@@ -167,3 +167,8 @@ python main.py
 ![12](image/12.jpg)
 
 ![Xnip2023-09-10_23-41-39](image/Xnip2023-09-10_23-41-39.jpg)
+
+## LICENSE
+[Apache](https://github.com/tianclll/Ace-Translate/blob/main/LICENSE)
+
+Copyright (c) 2023 tianclll
