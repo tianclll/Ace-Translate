@@ -101,7 +101,7 @@ python main.py
 
 - 文本翻译
 
-![Xnip2023-09-10_23-21-12](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-21-12.jpg)
+![Xnip2023-09-10_23-21-12](image/Xnip2023-09-10_23-21-12.jpg)
 
 - 划词翻译
 
@@ -110,53 +110,53 @@ python main.py
   - 然后鼠标选中想要翻译的内容，点击复制
   - 按下设置的快捷键，就能翻译了
 
-![Xnip2023-09-10_23-22-59](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-22-59.jpg)
+![Xnip2023-09-10_23-22-59](image/Xnip2023-09-10_23-22-59.jpg)
 
 
 
 - 截图翻译
 
-![Xnip2023-09-10_23-25-36](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-25-36.jpg)
+![Xnip2023-09-10_23-25-36](image/Xnip2023-09-10_23-25-36.jpg)
 
 - 语音翻译
 
   支持`音频文件`和`语音录入`
 
-  ![Xnip2023-09-10_23-26-39](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-26-39.jpg)
+  ![Xnip2023-09-10_23-26-39](image/Xnip2023-09-10_23-26-39.jpg)
 
 - 视频翻译
 
 ​		支持`输出srt字幕文件`和`视频`
 
-![Xnip2023-09-10_23-30-04](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-30-04.jpg)
+![Xnip2023-09-10_23-30-04](image/Xnip2023-09-10_23-30-04.jpg)
 
-![Xnip2023-09-10_23-30-57](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-30-57.jpg)
+![Xnip2023-09-10_23-30-57](image/Xnip2023-09-10_23-30-57.jpg)
 
 - 文件翻译
 
   - TXT
 
-  ![Xnip2023-09-10_23-53-20](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-53-20.jpg)
+  ![Xnip2023-09-10_23-53-20](image/Xnip2023-09-10_23-53-20.jpg)
 
-  ![Xnip2023-09-10_23-54-02](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-54-02.jpg)
+  ![Xnip2023-09-10_23-54-02](image/Xnip2023-09-10_23-54-02.jpg)
 
   - PDF
 
-  ![Xnip2023-09-10_23-50-55](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-50-55.jpg)
+  ![Xnip2023-09-10_23-50-55](image/Xnip2023-09-10_23-50-55.jpg)
 
-  ![Xnip2023-09-10_23-41-39](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-41-39.jpg)
+  ![Xnip2023-09-10_23-41-39](image/Xnip2023-09-10_23-41-39.jpg)
 
   - Excel
 
-  ![Xnip2023-09-11_00-07-27](/Users/liuhongdi/Desktop/image/Xnip2023-09-11_00-07-27.jpg)
+  ![Xnip2023-09-11_00-07-27](image/Xnip2023-09-11_00-07-27.jpg)
 
-  ![Xnip2023-09-11_00-09-16](/Users/liuhongdi/Desktop/image/Xnip2023-09-11_00-09-16.jpg)
+  ![Xnip2023-09-11_00-09-16](image/Xnip2023-09-11_00-09-16.jpg)
 
   - Word
 
-  ![Xnip2023-09-11_00-00-42](/Users/liuhongdi/Desktop/image/Xnip2023-09-11_00-00-42.jpg)
+  ![Xnip2023-09-11_00-00-42](image/Xnip2023-09-11_00-00-42.jpg)
 
-  ![Xnip2023-09-11_00-03-44](/Users/liuhongdi/Desktop/image/Xnip2023-09-11_00-03-44.jpg)
+  ![Xnip2023-09-11_00-03-44](image/Xnip2023-09-11_00-03-44.jpg)
 
   - Image
 
@@ -164,6 +164,6 @@ python main.py
 
 - 文档图片翻译
 
-![12](/Users/liuhongdi/Desktop/image/12.jpg)
+![12](image/12.jpg)
 
-![Xnip2023-09-10_23-41-39](/Users/liuhongdi/Desktop/image/Xnip2023-09-10_23-41-39.jpg)
+![Xnip2023-09-10_23-41-39](image/Xnip2023-09-10_23-41-39.jpg)
