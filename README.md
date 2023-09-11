@@ -216,9 +216,32 @@ python main.py
 </p>
 
 
+## 第三方开源软件
 
+本项目使用了以下基于 Apache 许可证，版本 2.0 的第三方开源软件：
 
+- 项目 PaddleOCR 由以下贡献者开发：
+  - [WenmuZhou](https://github.com/WenmuZhou)
+  - [LDOUBLEV](https://github.com/LDOUBLEV)
+  - [MissPenguin](https://github.com/MissPenguin)
+  ...
+  [项目 PaddleOCR 链接](https://github.com/PaddlePaddle/PaddleOCR)
+
+- 项目 PaddleSpeech 由以下贡献者开发：
+  - [zh794390558](https://github.com/zh794390558)
+  - [yt605155624](https://github.com/yt605155624)
+  - [Jackwaterveg](https://github.com/Jackwaterveg)
+  ...
+  [项目 PaddleSpeech 链接](https://github.com/PaddlePaddle/PaddleSpeech)
+
+- 项目 FastSAM 由以下贡献者开发：
+  - [zxDeepDiver](https://github.com/zxDeepDiver)
+  - [YinglongDu](https://github.com/YinglongDu)
+  - [berry-ding](https://github.com/berry-ding)
+  ...
+  [项目 FastSAM 链接](https://github.com/CASIA-IVA-Lab/FastSAM)
 ## LICENSE
-[Apache](https://github.com/tianclll/Ace-Translate/blob/main/LICENSE)
+
+本项目的发布受[Apache 2.0 license](https://github.com/tianclll/Ace-Translate/blob/main/LICENSE)许可认证。
 
 Copyright (c) 2023 tianclll
