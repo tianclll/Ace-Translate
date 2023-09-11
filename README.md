@@ -187,8 +187,8 @@ python main.py
 - PDF
 
 <p align="center">
-  <img src="image/Xnip2023-09-10_23-50-55.jpg" height="400" alt="PDF文件翻译">
-  <img src="image/Xnip2023-09-10_23-41-39.jpg" height="400" alt="PDF文件翻译">
+  <img src="image/Xnip2023-09-11_11-55-56.jpg" height="400" alt="PDF文件翻译">
+  <img src="image/Xnip2023-09-11_11-57-18.jpg" height="400" alt="PDF文件翻译">
 </p>
 
 
