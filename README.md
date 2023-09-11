@@ -77,6 +77,37 @@ pip install -r requirements.txt
 #### 2.4安装Pyaudio
 需要运行语音翻译才安装
 
+- Linux
+
+  ```
+  sudo apt-get install libasound2-dev
+  weget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+  tar -xvf pa_stable_v190700_20210406.tgz
+  cd portaudio
+  ./configure
+  make
+  sudo make install
+  make clean
+  pip install pyaudio
+  ```
+- Mac
+
+  ```
+  sudo brew install libasound2-dev
+  weget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+  tar -xvf pa_stable_v190700_20210406.tgz
+  cd portaudio
+  ./configure
+  make
+  sudo make install
+  make clean
+  pip install pyaudio
+  ```
+- Windows
+  ```
+  pip install pipwin
+  pipwin install pyaudio
+  ```
 #### 2.5安装ImageMagick
 
 需要运行视频翻译才安装
