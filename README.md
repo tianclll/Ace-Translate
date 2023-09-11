@@ -53,13 +53,13 @@ cd Ace-Translate
 - GPU
 
   ```
-  python3 -m pip install paddlepaddle-gpu -i https://mirror.baidu.com/pypi/simple
+  python3 -m pip install paddlepaddle-gpu==2.4.0 -i https://mirror.baidu.com/pypi/simple
   ```
 
 - CPU
 
   ```
-  python3 -m pip install paddlepaddle -i https://mirror.baidu.com/pypi/simple
+  python3 -m pip install paddlepaddle==2.4.0 -i https://mirror.baidu.com/pypi/simple
   ```
 
 #### 2.2安装依赖
