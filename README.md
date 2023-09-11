@@ -225,6 +225,7 @@ python main.py
   - [LDOUBLEV](https://github.com/LDOUBLEV)
   - [MissPenguin](https://github.com/MissPenguin)
   ...
+    
   [项目 PaddleOCR 链接](https://github.com/PaddlePaddle/PaddleOCR)
 
 - 项目 PaddleSpeech 由以下贡献者开发：
@@ -232,6 +233,7 @@ python main.py
   - [yt605155624](https://github.com/yt605155624)
   - [Jackwaterveg](https://github.com/Jackwaterveg)
   ...
+    
   [项目 PaddleSpeech 链接](https://github.com/PaddlePaddle/PaddleSpeech)
 
 - 项目 FastSAM 由以下贡献者开发：
@@ -239,6 +241,7 @@ python main.py
   - [YinglongDu](https://github.com/YinglongDu)
   - [berry-ding](https://github.com/berry-ding)
   ...
+    
   [项目 FastSAM 链接](https://github.com/CASIA-IVA-Lab/FastSAM)
 ## LICENSE
 
