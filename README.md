@@ -74,7 +74,10 @@ pip install -r requirements.txt
 
 下载放入项目文件夹(Ace-Translate)中。
 
-#### 2.4安装ImageMagick
+#### 2.4安装Pyaudio
+需要运行语音翻译才安装
+
+#### 2.5安装ImageMagick
 
 需要运行视频翻译才安装
 
