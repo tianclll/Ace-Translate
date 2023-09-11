@@ -111,7 +111,7 @@ pip install -r requirements.txt
 #### 2.5安装ImageMagick
 
 需要运行视频翻译才安装
-
+[官网下载地址](https://www.imagemagick.org/script/download.php)
 ### 3.设置
 
 修改`config.conf`文件:
@@ -133,74 +133,90 @@ python main.py
 
 有"划词翻译","截图翻译","PDF翻译","文档图片翻译"四个功能,项目运行后会挂载到状态栏上，点击"x"时不会退出只是隐藏，点击状态栏上的"打开",就会弹出，点击状态栏上的"退出",才是真正的退出程序。
 
-- 文本翻译
+### 文本翻译
 
-![Xnip2023-09-10_23-21-12](image/Xnip2023-09-10_23-21-12.jpg)
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-21-12.jpg" width="400" alt="文本翻译">
+</p>
 
-- 划词翻译
+### 划词翻译
 
-  - 选择"汉译英"或者"英译汉"，然后点击开始
+- 选择"汉译英"或者"英译汉"，然后点击开始
+- 然后鼠标选中想要翻译的内容，点击复制
+- 按下设置的快捷键，就能翻译了
 
-  - 然后鼠标选中想要翻译的内容，点击复制
-  - 按下设置的快捷键，就能翻译了
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-22-59.jpg" width="400" alt="划词翻译">
+</p>
 
-![Xnip2023-09-10_23-22-59](image/Xnip2023-09-10_23-22-59.jpg)
+### 截图翻译
+
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-25-36.jpg" width="400" alt="截图翻译">
+</p>
+
+### 语音翻译
+
+支持音频文件和语音录入
+
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-26-39.jpg" width="400" alt="语音翻译">
+</p>
+
+### 视频翻译
+
+支持输出srt字幕文件和视频
+
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-30-04.jpg" height="300" alt="视频翻译">
+  <img src="image/Xnip2023-09-10_23-30-57.jpg" height="300" alt="视频翻译">
+</p>
 
 
 
-- 截图翻译
+### 文件翻译
 
-![Xnip2023-09-10_23-25-36](image/Xnip2023-09-10_23-25-36.jpg)
+- TXT
 
-- 语音翻译
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-53-20.jpg" width="400" alt="TXT文件翻译">
+  <img src="image/Xnip2023-09-10_23-54-02.jpg" width="400" alt="TXT文件翻译">
+</p>
 
-  支持`音频文件`和`语音录入`
 
-  ![Xnip2023-09-10_23-26-39](image/Xnip2023-09-10_23-26-39.jpg)
+- PDF
 
-- 视频翻译
+<p align="center">
+  <img src="image/Xnip2023-09-10_23-50-55.jpg" height="400" alt="PDF文件翻译">
+  <img src="image/Xnip2023-09-10_23-41-39.jpg" height="400" alt="PDF文件翻译">
+</p>
 
-​		支持`输出srt字幕文件`和`视频`
 
-![Xnip2023-09-10_23-30-04](image/Xnip2023-09-10_23-30-04.jpg)
+- Excel
 
-![Xnip2023-09-10_23-30-57](image/Xnip2023-09-10_23-30-57.jpg)
+<p align="center">
+  <img src="image/Xnip2023-09-11_00-07-27.jpg" width="400" alt="Excel文件翻译">
+  <img src="image/Xnip2023-09-11_00-09-16.jpg" width="400" alt="Excel文件翻译">
+</p>
 
-- 文件翻译
 
-  - TXT
+- Word
 
-  ![Xnip2023-09-10_23-53-20](image/Xnip2023-09-10_23-53-20.jpg)
+<p align="center">
+  <img src="image/Xnip2023-09-11_00-00-42.jpg" alt="Word文件翻译" width="400">
+  <img src="image/Xnip2023-09-11_00-03-44.jpg" alt="Word文件翻译" width="400">
+</p>
 
-  ![Xnip2023-09-10_23-54-02](image/Xnip2023-09-10_23-54-02.jpg)
 
-  - PDF
+### 文档图片翻译
 
-  ![Xnip2023-09-10_23-50-55](image/Xnip2023-09-10_23-50-55.jpg)
+<p align="center">
+  <img src="image/12.jpg" height="400" alt="文档图片翻译">
+  <img src="image/Xnip2023-09-10_23-41-39.jpg" height="400" alt="文档图片翻译">
+</p>
 
-  ![Xnip2023-09-10_23-41-39](image/Xnip2023-09-10_23-41-39.jpg)
 
-  - Excel
 
-  ![Xnip2023-09-11_00-07-27](image/Xnip2023-09-11_00-07-27.jpg)
-
-  ![Xnip2023-09-11_00-09-16](image/Xnip2023-09-11_00-09-16.jpg)
-
-  - Word
-
-  ![Xnip2023-09-11_00-00-42](image/Xnip2023-09-11_00-00-42.jpg)
-
-  ![Xnip2023-09-11_00-03-44](image/Xnip2023-09-11_00-03-44.jpg)
-
-  - Image
-
-  类似PDF
-
-- 文档图片翻译
-
-![12](image/12.jpg)
-
-![Xnip2023-09-10_23-41-39](image/Xnip2023-09-10_23-41-39.jpg)
 
 ## LICENSE
 [Apache](https://github.com/tianclll/Ace-Translate/blob/main/LICENSE)
