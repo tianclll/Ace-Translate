@@ -168,8 +168,8 @@ python main.py
 支持输出srt字幕文件和视频
 
 <p align="center">
-  <img src="image/Xnip2023-09-10_23-30-04.jpg" height="300" alt="视频翻译">
-  <img src="image/Xnip2023-09-10_23-30-57.jpg" height="300" alt="视频翻译">
+  <img src="image/Xnip2023-09-10_23-30-04.jpg" height=250" alt="视频翻译">
+  <img src="image/Xnip2023-09-10_23-30-57.jpg" height="250" alt="视频翻译">
 </p>
 
 
