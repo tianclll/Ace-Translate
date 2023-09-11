@@ -7,9 +7,12 @@ from pynput import keyboard
 from paddleocr import PaddleOCR
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import transformers
+import platform
 
 config = configparser.ConfigParser()
 config.read("config.conf")
+
+
 class ScreenShotTool(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -31,7 +34,7 @@ class ScreenShotTool(tk.Tk):
 
         self.text_frame = tk.Frame(self.frame)
         self.text_frame.pack(side=tk.RIGHT, padx=10, pady=10)
-        self.image_label1 = tk.Label(self.image_frame,text="截图:")
+        self.image_label1 = tk.Label(self.image_frame, text="截图:")
         self.image_label1.pack()
         self.image_label = tk.Label(self.image_frame)
         self.image_label.pack()
@@ -54,13 +57,25 @@ class ScreenShotTool(tk.Tk):
         model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         pipeline = transformers.pipeline("translation", model=model, tokenizer=tokenizer)
         screenshot_path = "temp_screenshot.png"
-        subprocess.run(["screencapture", "-i", screenshot_path])
+
+        system = platform.system()
+        if system == "Windows":
+            subprocess.run(["powershell", "-Command", "Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class PInvoke { [DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow(); [DllImport(\"user32.dll\")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, int nFlags); }'"])
+            subprocess.run(["powershell", "-Command", f"$hwnd = (Add-Type -Name WindowUtils -PassThru -MemberDefinition '[DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow();')::GetForegroundWindow(); $srcBmp = New-Object Drawing.Bitmap((Get-Process -id $hwnd).MainWindowHandle); $srcBmp.Save('{screenshot_path}'); $srcBmp.Dispose()"])
+        elif system == "Linux":
+            subprocess.run(["gnome-screenshot", "-a", "-f", screenshot_path])
+        elif system == "Darwin":
+            subprocess.run(["screencapture", "-i", screenshot_path])
+        else:
+            print("Unsupported operating system.")
+            return
+
         image = Image.open(screenshot_path)
         image.thumbnail((300, 300))
         photo = ImageTk.PhotoImage(image)
         self.image_label.config(image=photo)
         self.image_label.image = photo
-        # 在这里添加图片OCR的代码，将识别出的文字显示在文本框中
+
         recognized_text = []
         results = ocr.ocr(screenshot_path, cls=True)
         for idx in range(len(results)):
@@ -79,6 +94,7 @@ class ScreenShotTool(tk.Tk):
 
     def on_closing(self):
         self.withdraw()  # 仅隐藏窗口，不退出程序
+
 
 if __name__ == "__main__":
     app = ScreenShotTool()
