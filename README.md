@@ -25,7 +25,8 @@
 - 文本翻译
 - 划词翻译
 - 截图翻译
-- 文件翻译，包括TXT文件、Excel、PPT、PDF、文档图片和Word
+- 视频翻译
+- 文件翻译，包括TXT文件、Excel、PPT、PDF、图片和Word
 - 文档图片翻译
 
 
