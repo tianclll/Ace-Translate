@@ -55,7 +55,7 @@ class TranslatorApp(tk.Tk):
         # time.sleep(0.5)
         # text = self.get_selected_text()
         text = pyperclip.paste()
-        model_path = 'models/zh-en'
+        model_path = 'models/translate/zh-en'
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         translate_model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         pipeline = transformers.pipeline("translation", model=translate_model, tokenizer=tokenizer)

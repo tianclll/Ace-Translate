@@ -9,7 +9,7 @@ if __name__ == '__main__':
     savePath = sys.argv[2]
     # 1、ppt地址
     pptPath = sys.argv[1]
-    model_path = 'models/en-zh'
+    model_path = 'models/translate/en-zh'
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     translate_model = transformers.pipeline("translation", model=model, tokenizer=tokenizer)

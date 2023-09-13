@@ -24,7 +24,7 @@ if __name__ == '__main__':
     wordPath = sys.argv[1]
     # 提取文档信息
     text = get_paragraphs_text(wordPath)
-    model_path = 'models/en-zh'
+    model_path = 'models/translate/en-zh'
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     translate_model = transformers.pipeline("translation", model=model, tokenizer=tokenizer)

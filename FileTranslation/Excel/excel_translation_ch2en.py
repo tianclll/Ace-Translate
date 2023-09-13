@@ -35,7 +35,7 @@ if __name__ == '__main__':
     savePath = sys.argv[2]
     # 1、excel地址
     excelPath = sys.argv[1]
-    model_path = 'models/zh-en'
+    model_path = 'models/translate/zh-en'
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     translate_model = transformers.pipeline("translation", model=model, tokenizer=tokenizer)

@@ -56,7 +56,7 @@ def do_sentence(translated_text):
     j = ''
     for i in words:
         j = j + i
-        if i[-1] in [',', '?', '!', ')', ';']:
+        if i[-1] in [',', '?', '!', ')', ';', ' ', '...']:
             sentences.append(j)
             j = ''
     sentences.append(j)

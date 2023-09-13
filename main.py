@@ -12,6 +12,7 @@ from tkinter import ttk
 from tkinter import filedialog, scrolledtext
 from ttkthemes import ThemedStyle  # 导入 ThemedStyle
 
+
 class TranslationApp:
     def __init__(self, root):
         self.root = root

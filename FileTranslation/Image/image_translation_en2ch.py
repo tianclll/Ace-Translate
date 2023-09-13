@@ -69,13 +69,14 @@ def img2doc(img,image_name,savePath):
     # 加载翻译模型
     #translate_model = hub.Module(name='transformer_zh-en', beam_size=5)
     # translate_model = hub.Module(name='baidu_translate')
-    model_path = 'models/en-zh'
+    model_path = 'models/translate/en-zh'
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     translate_model = transformers.pipeline("translation", model=model, tokenizer=tokenizer)
     #table_engine = PPStructure(show_log=False, recovery=True, image_orientation=True, layout_model_dir="CDLA dict",structure_version="PP-StructureV2")
-    table_engine = PPStructure(show_log=False, recovery=True, layout_model_dir="models/CDLA dict",structure_version="PP-StructureV2")
-    ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+    table_engine = PPStructure(show_log=False,recovery=True, lang='en',cls_model_dir='models/ocr/cls/ch_ppocr_mobile_v2.0_cls_infer',det_model_dir='models/ocr/det/en/en_PP-OCRv4_det_infer',rec_model_dir='models/ocr/rec/en/en_PP-OCRv4_rec_infer',
+                               layout_model_dir='models/ocr/layout/picodet_lcnet_x1_0_fgd_layout_infer',table_model_dir='models/ocr/table/en_ppstructure_mobile_v2.0_SLANet_infer')
+    ocr = PaddleOCR(use_angle_cls=True, lang='en',cls_model_dir='models/ocr/cls/ch_ppocr_mobile_v2.0_cls_infer',det_model_dir='models/ocr/det/en/en_PP-OCRv4_det_infer',rec_model_dir='models/ocr/rec/en/en_PP-OCRv4_rec_infer')
     save_folder = os.path.join(savePath,'output/')
     result = table_engine(img)
     for i in range(len(result)):

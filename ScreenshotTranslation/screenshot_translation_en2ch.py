@@ -51,8 +51,8 @@ class ScreenShotTool(tk.Tk):
         self.listener.start()
 
     def capture_and_ocr(self):
-        ocr = PaddleOCR(use_angle_cls=True, lang='en')
-        model_path = 'models/en-zh'
+        ocr = PaddleOCR(use_angle_cls=True, lang='en',cls_model_dir='models/ocr/cls/ch_ppocr_mobile_v2.0_cls_infer',det_model_dir='models/ocr/det/en/en_PP-OCRv4_det_infer',rec_model_dir='models/ocr/rec/en/en_PP-OCRv4_rec_infer')
+        model_path = 'models/translate/en-zh'
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         pipeline = transformers.pipeline("translation", model=model, tokenizer=tokenizer)

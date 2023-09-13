@@ -57,7 +57,7 @@ def translate(input_audio_file):
         text = asr(audio_file=output_wav_file, device=device)
     # text_punc = TextExecutor()
     # translate_text = text_punc(text=text)
-    model_path = 'models/zh-en'
+    model_path = 'models/translate/zh-en'
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     pipeline = transformers.pipeline("translation", model=model, tokenizer=tokenizer)
