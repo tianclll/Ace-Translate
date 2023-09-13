@@ -73,7 +73,7 @@ pip install -r requirements.txt
 
 点击[此处](https://www.123pan.com/s/knrdjv-AC5N3.html)下载
 
-下载放入项目文件夹(Ace-Translate)中。
+解压后，放入项目文件夹(Ace-Translate)中。
 
 #### 2.4安装Pyaudio
 需要运行语音翻译才安装
@@ -82,20 +82,21 @@ pip install -r requirements.txt
 
   ```
   sudo apt-get install libasound2-dev
-  weget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+  wget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
   tar -xvf pa_stable_v190700_20210406.tgz
   cd portaudio
   ./configure
   make
   sudo make install
   make clean
+  sudo apt-get install python3-pyaudio 
   pip install pyaudio
   ```
 - Mac
 
   ```
   sudo brew install libasound2-dev
-  weget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+  wget https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
   tar -xvf pa_stable_v190700_20210406.tgz
   cd portaudio
   ./configure
