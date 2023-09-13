@@ -71,7 +71,7 @@ pip install -r requirements.txt
 
 #### 2.3下载模型文件
 
-点击[此处](https://www.123pan.com/s/knrdjv-AC5N3.html)下载
+点击[此处](https://www.123pan.com/s/knrdjv-1N5N3.html)下载
 
 解压后，放入项目文件夹(Ace-Translate)中。
 
