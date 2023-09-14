@@ -68,6 +68,11 @@ cd Ace-Translate
 ```
 pip install -r requirements.txt
 ```
+- Windows需要额外下载
+  ```
+  pip install transformers[sentencepice]
+  pip install clip
+  ```
 
 #### 2.3下载模型文件
 
@@ -123,7 +128,7 @@ pip install -r requirements.txt
 
 ### 4.运行
 
-注意：第一次运行各个模块都需要连网，下载相应模型
+注意：第一次语音翻译模块都需要连网
 
 ```
 python main.py
