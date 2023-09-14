@@ -1,7 +1,8 @@
 import sys
 from docx import Document
 import os
-import utils
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
 import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 def get_paragraphs_text(path):
@@ -35,7 +36,7 @@ if __name__ == '__main__':
         print('标题层级：', src_style)
         print(src_texts)
         n_best = 1  # 每个输入样本的输出候选句子数量
-        trg_texts = [utils.do_sentence(translate_model(src_texts[0])[0]['translation_text'])]
+        trg_texts = [my_utils.do_sentence(translate_model(src_texts[0])[0]['translation_text'])]
         print(trg_texts)
         if trg_texts == ['N']:
             trg_texts = ['']

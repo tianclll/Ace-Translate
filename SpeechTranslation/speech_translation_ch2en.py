@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import os
-import shutil
 import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from paddlespeech.cli.asr.infer import ASRExecutor

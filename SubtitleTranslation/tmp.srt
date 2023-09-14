@@ -1,8 +1,0 @@
-1
-0:00:01,000 --> 0:00:01,1500
-Let's travel from time to time.
-
-2
-0:00:03,000 --> 0:00:03,1500
-The story of opening a plant paradise.
-

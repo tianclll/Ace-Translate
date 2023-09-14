@@ -1,6 +1,8 @@
-import sys
+
 import os
-import utils
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
 import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 if __name__ == '__main__':
@@ -19,7 +21,7 @@ if __name__ == '__main__':
     for line in text:
         line_clean = line.replace('\n','')
         translate_line = translate_model(line_clean)[0]['translation_text']
-        translate_line = utils.do_sentence(translate_line)
+        translate_line = my_utils.do_sentence(translate_line)
         translate_line = translate_line + '\n'
         lines.append(translate_line)
 

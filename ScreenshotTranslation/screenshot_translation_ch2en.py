@@ -60,8 +60,13 @@ class ScreenShotTool(tk.Tk):
 
         system = platform.system()
         if system == "Windows":
-            subprocess.run(["powershell", "-Command", "Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class PInvoke { [DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow(); [DllImport(\"user32.dll\")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, int nFlags); }'"])
-            subprocess.run(["powershell", "-Command", f"$hwnd = (Add-Type -Name WindowUtils -PassThru -MemberDefinition '[DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow();')::GetForegroundWindow(); $srcBmp = New-Object Drawing.Bitmap((Get-Process -id $hwnd).MainWindowHandle); $srcBmp.Save('{screenshot_path}'); $srcBmp.Dispose()"])
+            from PIL import ImageGrab
+            subprocess.run(["snippingtool", "/clip"])
+            clipboard_image = ImageGrab.grabclipboard()
+
+            if clipboard_image is not None:
+                # 保存图像到指定路径
+                clipboard_image.save(screenshot_path)
         elif system == "Linux":
             subprocess.run(["gnome-screenshot", "-a", "-f", screenshot_path])
         elif system == "Darwin":

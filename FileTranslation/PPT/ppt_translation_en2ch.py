@@ -3,8 +3,11 @@ from time import sleep
 import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import os
-import utils
 import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
+
+
 if __name__ == '__main__':
     savePath = sys.argv[2]
     # 1、ppt地址
@@ -24,7 +27,7 @@ if __name__ == '__main__':
                 for rs, run in enumerate(paragraph.runs):
                     str_in = run.text
                     str_out = translate_model(str_in)[0]['translation_text']
-                    str_out = utils.do_sentence(str_out)
+                    str_out = my_utils.do_sentence(str_out)
                     prs.slides[ns].shapes[nsh].text_frame.paragraphs[np].runs[rs].text = str_out
                     sleep(1.5)
     ppt_name = os.path.basename(pptPath)

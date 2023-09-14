@@ -8,7 +8,10 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from moviepy.editor import VideoFileClip
 from moviepy.editor import TextClip
 from moviepy.editor import CompositeVideoClip
-import glob
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
+
 running = True
 def cvsecs(time):
     print(time)
@@ -104,13 +107,14 @@ def translate(video_path, output_path, type):
             if not running:
                 break
             success, frame = src_video.read()
-            # 在视频字幕提取任务中，为了提速改为了每秒抽一帧，因此所有时间都是整数
+
             if i % math.floor(fps) == 0:
                 if success:
                     result = ocr.ocr(frame[-120:-30, :], cls=True)
                     if len(result[0]) > 0:
                         res = result[0][0][1][0]
                         res = pipeline(res)[0]['translation_text']
+                        res = my_utils.do_sentence(res)
                         if ((res[:-1] not in last_res) and (last_res[:-1] not in res)):
                             # 检测到新字幕，录入并开始计时
                             last_res = res

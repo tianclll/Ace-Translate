@@ -64,7 +64,7 @@ class TranslationApp:
         )
 
         # 创建系统托盘图标
-        self.tray_icon = pystray.Icon("app_name", icon_image, "App Name", menu)
+        self.tray_icon = pystray.Icon("app_name", icon_image, "Ace Translate", menu)
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
     def show_window(self):
         if not self.root.winfo_viewable():

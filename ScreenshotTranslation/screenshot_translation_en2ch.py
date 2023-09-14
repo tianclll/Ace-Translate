@@ -8,6 +8,9 @@ from paddleocr import PaddleOCR
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import transformers
 import platform
+import sys
+sys.path.append(os.getcwd())
+import my_utils
 
 config = configparser.ConfigParser()
 config.read("config.conf")
@@ -59,9 +62,15 @@ class ScreenShotTool(tk.Tk):
         screenshot_path = "temp_screenshot.png"
 
         system = platform.system()
+
         if system == "Windows":
-            subprocess.run(["powershell", "-Command", "Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class PInvoke { [DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow(); [DllImport(\"user32.dll\")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, int nFlags); }'"])
-            subprocess.run(["powershell", "-Command", f"$hwnd = (Add-Type -Name WindowUtils -PassThru -MemberDefinition '[DllImport(\"user32.dll\")] public static extern IntPtr GetForegroundWindow();')::GetForegroundWindow(); $srcBmp = New-Object Drawing.Bitmap((Get-Process -id $hwnd).MainWindowHandle); $srcBmp.Save('{screenshot_path}'); $srcBmp.Dispose()"])
+            from PIL import ImageGrab
+            subprocess.run(["snippingtool", "/clip"])
+            clipboard_image = ImageGrab.grabclipboard()
+
+            if clipboard_image is not None:
+                # 保存图像到指定路径
+                clipboard_image.save(screenshot_path)
         elif system == "Linux":
             subprocess.run(["gnome-screenshot", "-a", "-f", screenshot_path])
         elif system == "Darwin":
@@ -82,6 +91,7 @@ class ScreenShotTool(tk.Tk):
             res = results[idx]
             for line in res:
                 translate_text = pipeline(line[1][0])[0]['translation_text']
+                translate_text = my_utils.do_sentence(translate_text)
                 recognized_text.append(translate_text)
         translate_text = "\n".join(recognized_text)
         print(translate_text)

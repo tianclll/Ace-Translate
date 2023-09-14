@@ -1,7 +1,8 @@
 import os
-import sys
 import pandas as pd
-import utils
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
 from bs4 import BeautifulSoup
 import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -14,7 +15,7 @@ def table_translate(html_table,translate_model):
     for cell in original_header_row.find_all('td'):
         original_text = cell.text.strip()
         translated_text = translate_model(original_text)[0]['translation_text']
-        translated_text = utils.do_sentence(translated_text)
+        translated_text = my_utils.do_sentence(translated_text)
         translated_cell = f'<td>{translated_text}</td>'
         translated_header_row += translated_cell
     translated_header_row += '</tr>'
@@ -27,7 +28,7 @@ def table_translate(html_table,translate_model):
         for cell in row.find_all('td'):
             original_text = cell.text.strip()  # 提取原始文本
             translated_text = translate_model(original_text)[0]['translation_text']
-            translated_text = utils.do_sentence(translated_text)
+            translated_text = my_utils.do_sentence(translated_text)
             translated_cell = f'<td>{translated_text}</td>'  # 创建新的单元格
             translated_row += translated_cell  # 将单元格添加到行中
         translated_row += '</tr>'

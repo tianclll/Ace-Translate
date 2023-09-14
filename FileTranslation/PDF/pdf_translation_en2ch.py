@@ -1,7 +1,8 @@
 import os
-import sys
 import cv2
-import utils
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
 import numpy as np
 import fitz  # fitz就是pip install PyMuPDF
 import transformers
@@ -70,7 +71,7 @@ def table_translate(html_table,translate_model):
     for cell in original_header_row.find_all('td'):
         original_text = cell.text.strip()
         translated_text = translate_model(original_text)[0]['translation_text']
-        translated_text = utils.do_sentence(translated_text)
+        translated_text = my_utils.do_sentence(translated_text)
         translated_cell = f'<td>{translated_text}</td>'
         translated_header_row += translated_cell
     translated_header_row += '</tr>'
@@ -83,7 +84,7 @@ def table_translate(html_table,translate_model):
         for cell in row.find_all('td'):
             original_text = cell.text.strip()  # 提取原始文本
             translated_text = translate_model(original_text)[0]['translation_text']
-            translated_text = utils.do_sentence(translated_text)
+            translated_text = my_utils.do_sentence(translated_text)
             translated_cell = f'<td>{translated_text}</td>'  # 创建新的单元格
             translated_row += translated_cell  # 将单元格添加到行中
         translated_row += '</tr>'
@@ -112,7 +113,7 @@ def img2doc(imgs,pdf_name,imagePath):
                 for j in result[i]["res"]:
                     content = j["text"]
                     translate_text = translate_model(content)[0]['translation_text']
-                    translate_text = utils.do_sentence(translate_text)
+                    translate_text = my_utils.do_sentence(translate_text)
                     j["text"] = translate_text
                 #百度模型英译中
                     # content = j["text"]
@@ -124,7 +125,7 @@ def img2doc(imgs,pdf_name,imagePath):
                 for j in res[0]:
                     content = j[1][0]
                     translate_text = translate_model(content)[0]['translation_text']
-                    translate_text = utils.do_sentence(translate_text)
+                    translate_text = my_utils.do_sentence(translate_text)
                     text_region = j[0]
                     roi_img = image_translate(roi_img,text_region, translate_text)
                 result[i]['img'] = roi_img

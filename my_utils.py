@@ -41,6 +41,8 @@ def cosine_similarity(u, v):
     similarity = dot_product / (norm_u * norm_v)
     return similarity
 def do_sentence(translated_text):
+    if translated_text == '':
+        return ''
     translated_text = process_word(translated_text)
     print(translated_text)
     tokenized_sentence = list(jieba.cut(translated_text))
@@ -96,4 +98,4 @@ def do_sentence(translated_text):
     return sentence
 if __name__ == '__main__':
 
-    print(do_sentence("模块,模块,appple"))
+    print(do_sentence(""))

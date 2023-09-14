@@ -1,11 +1,13 @@
 import configparser
 import tkinter as tk
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import my_utils
 import pyperclip
 import transformers
 from pynput import keyboard
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import utils
 config = configparser.ConfigParser()
 config.read("config.conf")
 class TranslatorApp(tk.Tk):
@@ -60,7 +62,7 @@ class TranslatorApp(tk.Tk):
         translate_model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         pipeline = transformers.pipeline("translation", model=translate_model, tokenizer=tokenizer)
         translate_text = pipeline(text)
-        translate_text = utils.do_sentence(translate_text[0]['translation_text'])
+        translate_text = my_utils.do_sentence(translate_text[0]['translation_text'])
         self.display_translation(translate_text)
         print(translate_text)
         self.deiconify()  # 在截图完成后显示窗口
