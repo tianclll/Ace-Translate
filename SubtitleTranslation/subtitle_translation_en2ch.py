@@ -9,7 +9,7 @@ from moviepy.editor import VideoFileClip
 from moviepy.editor import TextClip
 from moviepy.editor import CompositeVideoClip
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.getcwd())
 import my_utils
 
 running = True
@@ -28,7 +28,7 @@ def cvsecs(time):
 
     return float(hours) * 3600 + float(minutes) * 60 + float(seconds) + float(milliseconds) / 1000
 
-def gen_video(video_path, output_file):
+def gen_video(video_path, output_file,fps):
     # 读取原始视频
     video = VideoFileClip(video_path)
 
@@ -73,7 +73,7 @@ def gen_video(video_path, output_file):
     subtitled_video = subtitled_video.set_audio(video.audio)
 
     # 生成输出视频文件
-    subtitled_video.write_videofile(output_file, codec='libx264',audio_codec="aac")
+    subtitled_video.write_videofile(output_file, fps=fps, codec='libx264',audio_codec="aac")
 
 def translate(video_path, output_path, type):
     src_video = cv2.VideoCapture(video_path)
@@ -135,7 +135,7 @@ def translate(video_path, output_path, type):
 
     if type == "输出视频":
         output_path = os.path.join(output_path, os.path.basename(video_path))
-        gen_video(video_path, output_path)
+        gen_video(video_path, output_path,fps)
 
     text = "已处理完成!"
     return text

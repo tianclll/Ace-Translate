@@ -8,7 +8,6 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from moviepy.editor import VideoFileClip
 from moviepy.editor import TextClip
 from moviepy.editor import CompositeVideoClip
-import glob
 running = True
 def cvsecs(time):
     print(time)
@@ -25,7 +24,7 @@ def cvsecs(time):
 
     return float(hours) * 3600 + float(minutes) * 60 + float(seconds) + float(milliseconds) / 1000
 
-def gen_video(video_path, output_file):
+def gen_video(video_path, output_file,fps):
     # 读取原始视频
     video = VideoFileClip(video_path)
 
@@ -63,14 +62,14 @@ def gen_video(video_path, output_file):
         # 叠加字幕剪辑到视频上
         subtitled_video = CompositeVideoClip([subtitled_video.set_audio(None), subtitle_clip])
 
+
     # 设置视频的持续时间
     subtitled_video = subtitled_video.set_duration(video.duration)
-
+    print(subtitled_video)
     # 添加原始视频的音频
     subtitled_video = subtitled_video.set_audio(video.audio)
-
     # 生成输出视频文件
-    subtitled_video.write_videofile(output_file, codec='libx264',audio_codec="aac")
+    subtitled_video.write_videofile(output_file, codec='libx264',audio_codec="aac", fps=fps)
 
 def translate(video_path, output_path, type):
     src_video = cv2.VideoCapture(video_path)
@@ -131,7 +130,7 @@ def translate(video_path, output_path, type):
 
     if type == "输出视频":
         output_path = os.path.join(output_path, os.path.basename(video_path))
-        gen_video(video_path, output_path)
+        gen_video(video_path, output_path,fps)
 
     text = "已处理完成!"
     return text

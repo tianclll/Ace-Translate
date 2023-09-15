@@ -3,7 +3,7 @@ import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.getcwd())
 import my_utils
 def translate(text):
     model_path = 'models/translate/en-zh'

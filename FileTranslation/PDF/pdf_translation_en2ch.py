@@ -1,7 +1,7 @@
 import os
 import cv2
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.getcwd())
 import my_utils
 import numpy as np
 import fitz  # fitz就是pip install PyMuPDF
