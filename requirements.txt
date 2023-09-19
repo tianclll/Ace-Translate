@@ -5,6 +5,7 @@ paddlespeech==1.2.0
 paddlenlp<=2.0.5
 torch>1.7.0
 Pillow==9.5.0
+nltk
 pystray
 wave
 pydub
