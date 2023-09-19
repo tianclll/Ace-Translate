@@ -70,7 +70,7 @@ pip install -r requirements.txt
 ```
 - Windows需要额外下载
   ```
-  pip install transformers[sentencepice]
+  pip install transformers[sentencepiece]
   pip install clip
   ```
 
