@@ -122,6 +122,9 @@ def img2doc(imgs,pdf_name,imagePath):
             elif result[i]["type"] == "figure":
                 roi_img = result[i]["img"]
                 res = ocr.ocr(roi_img, cls=True)
+                if res[0] is None:
+                    logger.info('第{}页识别为空,自动跳过...'.format(index+1))
+                    continue
                 for j in res[0]:
                     content = j[1][0]
                     translate_text = translate_model(content)[0]['translation_text']
