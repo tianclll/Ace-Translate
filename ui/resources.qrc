@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/style">
+        <file>style.qss</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="text.png">icons/text.png</file>
+        <file alias="selection.png">icons/selection.png</file>
+        <file alias="screenshot.png">icons/screenshot.png</file>
+        <file alias="image_.png">icons/image_.png</file>
+        <file alias="image.png">icons/image.png</file>
+        <file alias="file.png">icons/file.png</file>
+        <file alias="PDF.png">icons/PDF.png</file>
+        <file alias="DOCX.png">icons/DOCX.png</file>
+        <file alias="XLSX.png">icons/XLSX.png</file>
+        <file alias="PPTX.png">icons/PPTX.png</file>
+        <file alias="TXT.png">icons/TXT.png</file>
+        <file alias="Markdown.png">icons/Markdown.png</file>
+        <file alias="photo.png">icons/photo.png</file>
+        <file alias="org_image.png">icons/org_image.png</file>
+        <file alias="trans.png">icons/trans.png</file>
+        <file alias="close.png">icons/close.png</file>
+        <file alias="LOGO.png">icons/LOGO.png</file>
+        <file alias="setting.png">icons/setting.png</file>
+        <file alias="yes.png">icons/yes.png</file>
+        <file alias="OCR.png">icons/OCR.png</file>
+    </qresource>
+</RCC>

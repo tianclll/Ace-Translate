@@ -1,0 +1,2913 @@
+#include "mainwindow.h"
+#include "docmind/DocumentEngine.h"
+#include "docmind/core/GlobalEngineContext.hpp"
+#include "regioncapture.h"
+#include "floatwindow.h"
+#include "toast.h"
+#include "zoomablelabel.h"
+
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QFormLayout>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QScrollArea>
+#include <QPixmap>
+#include <QApplication>
+#include <QDebug>
+#include <QFrame>
+#include <QStackedWidget>
+#include <QDialog>
+#include <QKeySequenceEdit>
+#include <QDialogButtonBox>
+#include <QFileInfo>
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDir>
+#include <QDateTime>
+#include <QDateTime>
+#include <QCloseEvent>
+#include <QMenu>
+#include <QAction>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
+#include <QPainter>
+#include <QPainterPath>
+
+#include <opencv2/opencv.hpp>
+
+// ============================================================
+// 静态辅助：为下拉框填充118种语言
+// ============================================================
+static void populateLanguages(QComboBox* combo, const QString& defaultLang = QStringLiteral("中文")) {
+    combo->setEditable(true);
+    combo->setInsertPolicy(QComboBox::NoInsert);
+    combo->addItems({
+        QStringLiteral("中文"),
+        QStringLiteral("English"),
+        QStringLiteral("日本語"),
+        QStringLiteral("한국어"),
+        QStringLiteral("Afrikaans"),
+        QStringLiteral("Albanian"),
+        QStringLiteral("Amharic"),
+        QStringLiteral("Arabic"),
+        QStringLiteral("Armenian"),
+        QStringLiteral("Azerbaijani"),
+        QStringLiteral("Basque"),
+        QStringLiteral("Belarusian"),
+        QStringLiteral("Bengali"),
+        QStringLiteral("Bosnian"),
+        QStringLiteral("Bulgarian"),
+        QStringLiteral("Catalan"),
+        QStringLiteral("Cebuano"),
+        QStringLiteral("Chichewa"),
+        QStringLiteral("Chinese (Simplified)"),
+        QStringLiteral("Chinese (Traditional)"),
+        QStringLiteral("Corsican"),
+        QStringLiteral("Croatian"),
+        QStringLiteral("Czech"),
+        QStringLiteral("Danish"),
+        QStringLiteral("Dutch"),
+        QStringLiteral("Esperanto"),
+        QStringLiteral("Estonian"),
+        QStringLiteral("Filipino"),
+        QStringLiteral("Finnish"),
+        QStringLiteral("French"),
+        QStringLiteral("Frisian"),
+        QStringLiteral("Galician"),
+        QStringLiteral("Georgian"),
+        QStringLiteral("German"),
+        QStringLiteral("Greek"),
+        QStringLiteral("Gujarati"),
+        QStringLiteral("Haitian Creole"),
+        QStringLiteral("Hausa"),
+        QStringLiteral("Hawaiian"),
+        QStringLiteral("Hebrew"),
+        QStringLiteral("Hindi"),
+        QStringLiteral("Hmong"),
+        QStringLiteral("Hungarian"),
+        QStringLiteral("Icelandic"),
+        QStringLiteral("Igbo"),
+        QStringLiteral("Indonesian"),
+        QStringLiteral("Irish"),
+        QStringLiteral("Italian"),
+        QStringLiteral("Javanese"),
+        QStringLiteral("Kannada"),
+        QStringLiteral("Kazakh"),
+        QStringLiteral("Khmer"),
+        QStringLiteral("Kinyarwanda"),
+        QStringLiteral("Korean"),
+        QStringLiteral("Kurdish (Kurmanji)"),
+        QStringLiteral("Kyrgyz"),
+        QStringLiteral("Lao"),
+        QStringLiteral("Latin"),
+        QStringLiteral("Latvian"),
+        QStringLiteral("Lithuanian"),
+        QStringLiteral("Luxembourgish"),
+        QStringLiteral("Macedonian"),
+        QStringLiteral("Malagasy"),
+        QStringLiteral("Malay"),
+        QStringLiteral("Malayalam"),
+        QStringLiteral("Maltese"),
+        QStringLiteral("Maori"),
+        QStringLiteral("Marathi"),
+        QStringLiteral("Mongolian"),
+        QStringLiteral("Myanmar (Burmese)"),
+        QStringLiteral("Nepali"),
+        QStringLiteral("Norwegian"),
+        QStringLiteral("Odia (Oriya)"),
+        QStringLiteral("Pashto"),
+        QStringLiteral("Persian"),
+        QStringLiteral("Polish"),
+        QStringLiteral("Portuguese"),
+        QStringLiteral("Punjabi"),
+        QStringLiteral("Romanian"),
+        QStringLiteral("Russian"),
+        QStringLiteral("Samoan"),
+        QStringLiteral("Scots Gaelic"),
+        QStringLiteral("Serbian"),
+        QStringLiteral("Sesotho"),
+        QStringLiteral("Shona"),
+        QStringLiteral("Sindhi"),
+        QStringLiteral("Sinhala"),
+        QStringLiteral("Slovak"),
+        QStringLiteral("Slovenian"),
+        QStringLiteral("Somali"),
+        QStringLiteral("Spanish"),
+        QStringLiteral("Sundanese"),
+        QStringLiteral("Swahili"),
+        QStringLiteral("Swedish"),
+        QStringLiteral("Tajik"),
+        QStringLiteral("Tamil"),
+        QStringLiteral("Tatar"),
+        QStringLiteral("Telugu"),
+        QStringLiteral("Thai"),
+        QStringLiteral("Turkish"),
+        QStringLiteral("Turkmen"),
+        QStringLiteral("Ukrainian"),
+        QStringLiteral("Urdu"),
+        QStringLiteral("Uyghur"),
+        QStringLiteral("Uzbek"),
+        QStringLiteral("Vietnamese"),
+        QStringLiteral("Welsh"),
+        QStringLiteral("Xhosa"),
+        QStringLiteral("Yiddish"),
+        QStringLiteral("Yoruba"),
+        QStringLiteral("Zulu")
+    });
+    combo->setCurrentText(defaultLang);
+}
+
+// ============================================================
+// TranslateWorker — 在工作线程中调用翻译接口
+// ============================================================
+void TranslateWorker::run() {
+    try {
+            switch (mode) {
+            case TextTranslate: {
+                emit progressUpdated(QStringLiteral("翻译中…"));
+                try {
+                    std::string result = translate_text(
+                        inputText.toStdString(),
+                        targetLang.toStdString(),
+                        maxTokens);
+                    emit finished(QString::fromStdString(result));
+                } catch (const std::exception& e) {
+                    emit errorOccurred(QStringLiteral("翻译引擎错误: ") + QString::fromUtf8(e.what()));
+                }
+                break;
+            }
+            case FileTranslate: {
+                emit progressUpdated(QStringLiteral("处理文件: ") + currentFilePath);
+                try {
+                    std::string out = process_file(
+                        inputPath.toStdString(),
+                        outputPath.toStdString(),
+                        baseDir.toStdString(),
+                        targetLang.toStdString(),
+                        layoutThreshold,
+                        pdfDpi,
+                        enableWarp,
+                        enableEnhance);
+                    emit finished(QString::fromStdString(out));
+                } catch (const std::exception& e) {
+                    emit errorOccurred(QStringLiteral("文件翻译错误: ") + QString::fromUtf8(e.what()));
+                }
+                break;
+            }
+            case ScreenshotTranslate: {
+                emit progressUpdated(QStringLiteral("OCR 识别截图…"));
+                try {
+                    cv::Mat img = screenshotMat.clone();
+                    if (img.empty()) {
+                        emit errorOccurred(QStringLiteral("截图图像为空"));
+                        return;
+                    }
+                    // 先做 OCR 获取原文
+                    QString ocrText;
+                    {
+                        auto* ocr = docmind::GlobalEngineContext::getInstance().getOCREngine();
+                        if (ocr) {
+                            auto results = ocr->recognizeBuffer(img);
+                            QStringList texts;
+                            for (const auto& r : results) {
+                                if (!r.text.empty())
+                                    texts << QString::fromUtf8(r.text.c_str());
+                            }
+                            ocrText = texts.join("\n");
+                        }
+                        ocrOutput = ocrText;
+                        emit ocrFinished(ocrText);
+                    }
+                    emit progressUpdated(QStringLiteral("翻译中…"));
+                    // 再用翻译引擎
+                    auto* translator = docmind::GlobalEngineContext::getInstance().getTranslatorEngine();
+                    std::string result;
+                    if (translator && !ocrText.isEmpty()) {
+                        result = translator->translate(ocrText.toStdString(), targetLang.toStdString(), maxTokens);
+                    }
+                    emit finished(QString::fromStdString(result));
+                } catch (const std::exception& e) {
+                    emit errorOccurred(QStringLiteral("截图翻译错误: ") + QString::fromUtf8(e.what()));
+                }
+                break;
+            }
+            case PhotoTranslate: {
+                emit progressUpdated(QStringLiteral("翻译图片…"));
+                try {
+                    std::string out = process_photo(
+                        inputPath.toStdString(),
+                        outputPath.toStdString(),
+                        baseDir.toStdString(),
+                        targetLang.toStdString(),
+                        maxTokens);
+                    emit finished(QString::fromStdString(out));
+                } catch (const std::exception& e) {
+                    emit errorOccurred(QStringLiteral("图片翻译错误: ") + QString::fromUtf8(e.what()));
+                }
+                break;
+            }
+            }
+        } catch (const std::exception& e) {
+            emit errorOccurred(QStringLiteral("翻译出错: ") + QString::fromUtf8(e.what()));
+        } catch (...) {
+            emit errorOccurred(QStringLiteral("未知错误（可能是 DLL 加载失败）"));
+        }
+}
+
+// ============================================================
+// DropZoneWidget — 拖拽文件放置区域
+// ============================================================
+DropZoneWidget::DropZoneWidget(QWidget* parent) : QFrame(parent) {
+    setAcceptDrops(true);
+    setCursor(Qt::PointingHandCursor);
+    setObjectName("fileDropZone");
+    setMinimumHeight(120);
+}
+
+void DropZoneWidget::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+        setProperty("dragOver", true);
+        style()->unpolish(this);
+        style()->polish(this);
+    }
+}
+
+void DropZoneWidget::dragMoveEvent(QDragMoveEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+void DropZoneWidget::dropEvent(QDropEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        QStringList paths;
+        for (const QUrl& url : event->mimeData()->urls()) {
+            if (url.isLocalFile()) {
+                paths.append(url.toLocalFile());
+            }
+        }
+        if (!paths.isEmpty()) {
+            emit fileDropped(paths);
+        }
+        event->acceptProposedAction();
+    }
+    setProperty("dragOver", false);
+    style()->unpolish(this);
+    style()->polish(this);
+}
+
+void DropZoneWidget::mousePressEvent(QMouseEvent* event) {
+    Q_UNUSED(event);
+    // On click, emit fileDropped with empty list to trigger file dialog
+    emit fileDropped(QStringList());
+}
+
+// ============================================================
+// MainWindow
+// ============================================================
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+    setWindowTitle(QStringLiteral("AceTranslatePro"));
+    // 用圆角PNG作为窗口图标
+    {
+        QPixmap src(":/icons/LOGO.png");
+        if (!src.isNull()) {
+            int s = qMin(src.width(), src.height());
+            QPixmap rounded(s, s);
+            rounded.fill(Qt::transparent);
+            QPainter p(&rounded);
+            p.setRenderHint(QPainter::Antialiasing);
+            QPainterPath path;
+            path.addRoundedRect(0, 0, s, s, s * 0.18, s * 0.18);
+            p.setClipPath(path);
+            p.drawPixmap(QRect(0, 0, s, s), src);
+            p.end();
+            setWindowIcon(QIcon(rounded));
+        } else {
+            setWindowIcon(QIcon(":/icons/LOGO.png"));
+        }
+    }
+    // RegionCapture 截图选区组件
+    regionCapture_ = new RegionCapture(this);
+    connect(regionCapture_, &RegionCapture::regionCaptured, this, [this]() {
+        onCaptureComplete();
+    });
+
+    // FloatTranslateWindow 划词翻译悬浮窗（独立顶层窗口）
+    floatWindow_ = new FloatTranslateWindow(nullptr);
+    connect(floatWindow_, &FloatTranslateWindow::translationDone, this, [this](const QString& src, const QString& result) {
+        if (floatHistoryView_) {
+            QString ts = QDateTime::currentDateTime().toString(QStringLiteral("HH:mm:ss"));
+            floatHistoryView_->append(QStringLiteral("<small style='color:#889096;'>[%1]</small>").arg(ts));
+            floatHistoryView_->append(QStringLiteral("<b style='color:#1A1A2E;'>%1</b>").arg(src.toHtmlEscaped()));
+            floatHistoryView_->append(QStringLiteral("<span style='color:#0B7C72;'>%1</span><br>").arg(result.toHtmlEscaped()));
+        }
+    });
+
+    setupUI();
+    createTrayIcon();
+    resize(1113, 620);
+    setMinimumSize(800, 550);
+    onNavButtonClicked(0);
+
+    // 注册全局热键
+    winId();
+    qApp->installNativeEventFilter(this);
+    registerGlobalHotkeys();
+}
+
+MainWindow::~MainWindow() {
+    // 注销全局热键
+    UnregisterHotKey((HWND)winId(), floatHotkeyId_);
+    UnregisterHotKey((HWND)winId(), screenshotHotkeyId_);
+    qApp->removeNativeEventFilter(this);
+
+    if (workerThread_) {
+        workerThread_->quit();
+        workerThread_->wait(3000);
+    }
+    if (trayIcon_) {
+        trayIcon_->hide();
+        delete trayMenu_;
+    }
+    delete floatWindow_;
+}
+
+// ============================================================
+// resizeEvent — 窗口大小变化时自适应缩放预览图片
+// ============================================================
+void MainWindow::resizeEvent(QResizeEvent* event) {
+    QMainWindow::resizeEvent(event);
+
+    auto tryZoomLabel = [](ZoomableLabel* label, QScrollArea* area, const cv::Mat& mat) {
+        if (mat.empty() || !label || !area) return;
+        if (label->hasImage() && label->zoomLevel() != 1.0) return;
+        cv::Mat rgb;
+        cv::cvtColor(mat, rgb, cv::COLOR_BGR2RGB);
+        QImage qimg(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step), QImage::Format_RGB888);
+        QPixmap fullPix = QPixmap::fromImage(qimg);
+        if (!fullPix.isNull()) {
+            int maxW = area->viewport()->width();
+            int maxH = area->viewport()->height();
+            if (maxW > 50 && maxH > 50) {
+                // 存全分辨率图用于缩放，但适配显示缩略图
+                QPixmap displayPix = fullPix.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                label->setFullImage(fullPix, displayPix);
+            }
+        }
+    };
+    tryZoomLabel(qobject_cast<ZoomableLabel*>(photoPreview_), photoInputScroll_, photoOrigMat_);
+    tryZoomLabel(qobject_cast<ZoomableLabel*>(photoOutputPreview_), photoOutputScroll_, photoOutputMat_);
+}
+
+// ============================================================
+// 事件处理
+// ============================================================
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+    if (trayIcon_ && trayIcon_->isVisible()) {
+        hide();
+        event->ignore();
+    } else {
+        event->accept();
+    }
+}
+
+// ============================================================
+// eventFilter — 导航按钮悬浮放大 + 文本卡片悬浮动效
+// ============================================================
+bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
+    // ---- 导航按钮: 图标放大 ----
+    auto* btn = qobject_cast<QPushButton*>(obj);
+    if (btn && btn->objectName() == "navBtn") {
+        if (event->type() == QEvent::Enter) {
+            auto* anim = new QPropertyAnimation(btn, "iconSize");
+            anim->setDuration(180);
+            anim->setStartValue(btn->iconSize());
+            anim->setEndValue(QSize(30, 30));
+            anim->setEasingCurve(QEasingCurve::OutCubic);
+            anim->start(QAbstractAnimation::DeleteWhenStopped);
+        } else if (event->type() == QEvent::Leave) {
+            auto* anim = new QPropertyAnimation(btn, "iconSize");
+            anim->setDuration(180);
+            anim->setStartValue(btn->iconSize());
+            anim->setEndValue(QSize(24, 24));
+            anim->setEasingCurve(QEasingCurve::OutCubic);
+            anim->start(QAbstractAnimation::DeleteWhenStopped);
+        }
+        return QMainWindow::eventFilter(obj, event);
+    }
+
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    {
+        // 收集所有卡片
+        QFrame* card = nullptr;
+        bool isSource = false, isResult = false;
+        if (obj == textSourceCard_) { card = textSourceCard_; isSource = true; }
+        else if (obj == textResultCard_) { card = textResultCard_; isResult = true; }
+        else if (obj == screenshotPreviewCard_) { card = screenshotPreviewCard_; isSource = true; }
+        else if (obj == screenshotResultCard_) { card = screenshotResultCard_; isResult = true; }
+        else if (obj == photoInputCard_) { card = photoInputCard_; isSource = true; }
+        else if (obj == photoOutputCard_) { card = photoOutputCard_; isResult = true; }
+        else if (obj == floatConfigCard_) { card = floatConfigCard_; isSource = true; }
+        else if (obj == historyCard_) { card = historyCard_; isSource = true; }
+
+        if (card) {
+            if (event->type() == QEvent::Enter) {
+                // 细边框高亮 (1px)
+                QString base = isResult
+                    ? "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }"
+                    : "QFrame#card { background-color: #FFFFFF; border: 1px solid #0B7C72; border-radius: 8px; padding: 16px; }";
+                card->setStyleSheet(base);
+
+                // 阴影弹出效果
+                auto* shadow = new QGraphicsDropShadowEffect;
+                shadow->setBlurRadius(20);
+                shadow->setOffset(0, 4);
+                shadow->setColor(QColor(11, 124, 114, 50));
+                card->setGraphicsEffect(shadow);
+
+                // 微放大
+                int grow = 6;
+                card->setFixedHeight(card->height() + grow);
+
+            } else if (event->type() == QEvent::Leave) {
+                // 恢复原始边框
+                if (isResult) {
+                    card->setStyleSheet(
+                        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+                } else {
+                    card->setStyleSheet(
+                        "QFrame#card { background-color: #FFFFFF; border: 1px solid #E8ECEF;"
+                        " border-radius: 8px; padding: 16px; }");
+                }
+
+                // 移除阴影
+                card->setGraphicsEffect(nullptr);
+
+                // 恢复大小
+                card->setFixedHeight(QWIDGETSIZE_MAX);
+            }
+            return QMainWindow::eventFilter(obj, event);
+        }
+    }
+
+    // ---- 文件列表项：双击打开文件 ----
+    if (event->type() == QEvent::MouseButtonDblClick) {
+        auto* f = qobject_cast<QFrame*>(obj);
+        if (f) {
+            QString fp = f->property("filePath").toString();
+            if (!fp.isEmpty() && QFile::exists(fp)) {
+                QDesktopServices::openUrl(QUrl::fromLocalFile(fp));
+                return true;
+            }
+        }
+    }
+
+    return QMainWindow::eventFilter(obj, event);
+}
+
+// ============================================================
+// setupUI — 顶栏 + 左导航 + 右内容区
+// ============================================================
+void MainWindow::setupUI() {
+    setWindowTitle(QStringLiteral("AceTranslatePro"));
+
+    // 中央容器: 垂直布局 (header + content split)
+    auto* centralWidget = new QWidget(this);
+    auto* mainContainer = new QVBoxLayout(centralWidget);
+    mainContainer->setContentsMargins(0, 0, 0, 0);
+    mainContainer->setSpacing(0);
+    setCentralWidget(centralWidget);
+
+    // ====== 顶部 Header 栏 ======
+    auto* headerBar = new QFrame;
+    headerBar->setObjectName("headerBar");
+    headerBar->setFixedHeight(40);
+    auto* headerLayout = new QHBoxLayout(headerBar);
+    headerLayout->setContentsMargins(16, 0, 16, 0);
+
+    auto* headerLogo = new QLabel;
+    QPixmap logoPixmap(":/icons/LOGO.png");
+    if (!logoPixmap.isNull()) {
+        headerLogo->setPixmap(logoPixmap.scaled(28, 28, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    } else {
+        headerLogo->setText(QStringLiteral("AT"));
+        headerLogo->setStyleSheet(
+            "font-size: 20px; font-weight: bold; color: #0D9488;"
+            "background: #EEF1FF; padding: 4px 10px; border-radius: 8px;");
+    }
+    headerLogo->setFixedHeight(28);
+    headerLayout->addWidget(headerLogo);
+
+    auto* headerTitle = new QLabel(QStringLiteral("AceTranslatePro"));
+    headerTitle->setStyleSheet(
+        "font-size: 16px; font-weight: bold; color: #134E4A; padding-left: 8px;");
+    headerLayout->addWidget(headerTitle);
+
+    headerLayout->addStretch();
+
+    auto* settingsIconBtn = new QPushButton;
+    settingsIconBtn->setFixedSize(36, 36);
+    settingsIconBtn->setIcon(QIcon(":/icons/setting.png"));
+    settingsIconBtn->setIconSize(QSize(24, 24));
+    settingsIconBtn->setCursor(Qt::PointingHandCursor);
+    settingsIconBtn->setStyleSheet(
+        "QPushButton { border: none; border-radius: 18px; background: transparent; }"
+        "QPushButton:hover { background: #F0FDFA; }");
+    connect(settingsIconBtn, &QPushButton::clicked, this, [this]() {
+        onNavButtonClicked(5);
+    });
+    headerLayout->addWidget(settingsIconBtn);
+
+    mainContainer->addWidget(headerBar);
+
+    // ====== 内容区: 水平布局 (导航 + 页面) ======
+    auto* contentSplit = new QHBoxLayout;
+    contentSplit->setContentsMargins(0, 0, 0, 0);
+    contentSplit->setSpacing(0);
+
+    // ====== 左侧导航面板 ======
+    navPanel_ = new QFrame;
+    navPanel_->setObjectName("navPanel");
+    navPanel_->setFixedWidth(80);
+    auto* navLayout = new QVBoxLayout(navPanel_);
+    navLayout->setContentsMargins(0, 8, 4, 8);  // 左边距0，container竖杠紧贴边框
+    navLayout->setSpacing(2);
+    navLayout->setAlignment(Qt::AlignTop);
+
+    // 前 5 个导航按钮 (Text / Float / Screenshot / Photo / File)
+    struct NavDef { const char* icon; const char* label; };
+    NavDef navDefs[] = {
+        { ":/icons/text.png", "文本翻译" },
+        { ":/icons/selection.png", "划词翻译" },
+        { ":/icons/screenshot.png", "截图翻译" },
+        { ":/icons/image_.png", "图片翻译" },
+        { ":/icons/file.png", "文件翻译" },
+    };
+    for (int i = 0; i < 5; ++i) {
+        navLayout->addWidget(createNavButton(i, QString::fromUtf8(navDefs[i].icon),
+                                              QString::fromUtf8(navDefs[i].label)));
+    }
+
+    // 弹簧
+    navLayout->addStretch();
+
+    // 分隔线
+    auto* sep2 = new QFrame;
+    sep2->setObjectName("separator");
+    sep2->setFrameShape(QFrame::HLine);
+    sep2->setFixedHeight(1);
+    navLayout->addWidget(sep2);
+    navLayout->addSpacing(4);
+
+    // 底部的设置按钮
+    navLayout->addWidget(createNavButton(5, QStringLiteral(":/icons/setting.png"),
+                                          QStringLiteral("设置")));
+
+    contentSplit->addWidget(navPanel_);
+
+    // ====== 右侧内容区 ======
+    auto* contentFrame = new QFrame;
+    contentFrame->setObjectName("card");
+    auto* contentLayout = new QVBoxLayout(contentFrame);
+    contentLayout->setContentsMargins(20, 20, 20, 20);
+
+    stackedWidget_ = new QStackedWidget;
+    stackedWidget_->addWidget(createTextPanel());          // 0
+    stackedWidget_->addWidget(createFloatConfigPanel());   // 1
+    stackedWidget_->addWidget(createScreenshotPanel());    // 2
+    stackedWidget_->addWidget(createPhotoPanel());         // 3
+    stackedWidget_->addWidget(createFilePanel());          // 4
+    stackedWidget_->addWidget(createSettingsPanel());      // 5
+
+    contentLayout->addWidget(stackedWidget_);
+    contentSplit->addWidget(contentFrame, 1);
+
+    mainContainer->addLayout(contentSplit);
+
+    // 状态栏 + 进度条
+    statusBar_ = statusBar();
+    statusBar_->setStyleSheet(
+        "QStatusBar { background: #F8FAFA; border-top: 1px solid #E8ECEF;"
+        "  font-size: 12px; color: #889096; }"
+    );
+
+    // 把图标和文字放在一个容器里，避免 QStatusBar 画分隔线
+    auto* statusContainer = new QWidget;
+    auto* statusHBox = new QHBoxLayout(statusContainer);
+    statusHBox->setContentsMargins(0, 0, 0, 0);
+    statusHBox->setSpacing(2);
+    statusIcon_ = new QLabel;
+    QPixmap yesIcon(":/icons/yes.png");
+    if (!yesIcon.isNull()) {
+        statusIcon_->setPixmap(yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    } else {
+        statusIcon_->setPixmap(createCheckIcon());
+    }
+    statusIcon_->setFixedSize(16, 16);
+    statusIcon_->hide();
+    statusHBox->addWidget(statusIcon_);
+    statusLabel_ = new QLabel(QStringLiteral("就绪"));
+    statusLabel_->setStyleSheet("QLabel { border: none; margin: 0; padding: 0; font-size: 12px; color: #5B6269; }");
+    statusHBox->addWidget(statusLabel_);
+    statusHBox->addStretch();
+    statusBar_->addWidget(statusContainer, 1);
+    progressBar_ = new QProgressBar(this);
+    progressBar_->setRange(0, 0);
+    progressBar_->setFixedWidth(200);
+    progressBar_->hide();
+    statusBar_->addPermanentWidget(progressBar_);
+
+    // 沙漏动画定时器
+    hourglassTimer_ = new QTimer(this);
+    hourglassTimer_->setInterval(500);
+    connect(hourglassTimer_, &QTimer::timeout, this, &MainWindow::onHourglassTick);
+}
+
+// ============================================================
+// createNavButton — 创建导航按钮 (icon + 下方文字)
+// ============================================================
+QWidget* MainWindow::createNavButton(int index, const QString& iconPath,
+                                      const QString& label) {
+    auto* container = new QWidget;
+    container->setObjectName("navContainer");
+    container->setFixedWidth(72);
+    auto* layout = new QVBoxLayout(container);
+    layout->setContentsMargins(0, 6, 0, 6);
+    layout->setSpacing(2);
+    layout->setAlignment(Qt::AlignCenter);
+
+    auto* btn = new QPushButton;
+    btn->setObjectName("navBtn");
+    btn->setProperty("origIconSize", QSize(24, 24));
+    btn->setIcon(QIcon(iconPath));
+    btn->setIconSize(QSize(24, 24));
+    btn->setCheckable(true);
+    btn->setCursor(Qt::PointingHandCursor);
+    btn->setFixedSize(52, 52);
+    btn->installEventFilter(this);
+
+    // 确保 navButtons_ 有足够空间
+    while (navButtons_.size() <= index)
+        navButtons_.append(nullptr);
+    navButtons_[index] = btn;
+
+    connect(btn, &QPushButton::clicked, this, [this, index]() {
+        onNavButtonClicked(index);
+    });
+
+    layout->addWidget(btn, 0, Qt::AlignCenter);
+
+    auto* lbl = new QLabel(label);
+    lbl->setAlignment(Qt::AlignCenter);
+    lbl->setObjectName("navLabel");
+    layout->addWidget(lbl, 0, Qt::AlignCenter);
+
+    return container;
+}
+
+// ============================================================
+// onNavButtonClicked — 导航按钮点击处理
+// ============================================================
+void MainWindow::onNavButtonClicked(int index) {
+    for (int i = 0; i < navButtons_.size(); ++i) {
+        if (navButtons_[i])
+            navButtons_[i]->setChecked(i == index);
+    }
+    // 更新 navContainer 的 selected 属性用于竖杠样式
+    for (int i = 0; i < navButtons_.size(); ++i) {
+        auto* container = navButtons_[i] ? navButtons_[i]->parentWidget() : nullptr;
+        if (container) {
+            bool sel = (i == index);
+            container->setProperty("selected", sel);
+            container->style()->unpolish(container);
+            container->style()->polish(container);
+            // 强制重绘
+            container->update();
+        }
+    }
+    currentNavIndex_ = index;
+    stackedWidget_->setCurrentIndex(index);
+}
+
+// ============================================================
+// Panel 创建方法
+// ============================================================
+
+// —————— 文本翻译面板 (双栏布局, 匹配 HTML ref) ——————
+QWidget* MainWindow::createTextPanel() {
+    auto* panel = new QWidget;
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(12);
+
+    // ---- 标题 ----
+    auto* title = new QLabel(QStringLiteral("文本翻译"));
+    title->setObjectName("sectionTitle");
+    layout->addWidget(title);
+
+    auto* hint = new QLabel(QStringLiteral("输入或粘贴文本，快速翻译到目标语言"));
+    hint->setObjectName("sectionHint");
+    layout->addWidget(hint);
+
+    // ---- 1. 语言条 ----
+    auto* langBar = new QFrame;
+    langBar->setObjectName("languageBar");
+    auto* langLayout = new QHBoxLayout(langBar);
+    langLayout->setContentsMargins(10, 6, 10, 6);
+    langLayout->setSpacing(6);
+
+    auto* sourceLabel = new QLabel(QStringLiteral("源语言:"));
+    sourceLabel->setStyleSheet("font-size: 12px; color: #889096;");
+    langLayout->addWidget(sourceLabel);
+
+    auto* autoDetectLabel = new QLabel(QStringLiteral("自动检测"));
+    autoDetectLabel->setStyleSheet(
+        "font-size: 12px; font-weight: 500; color: #0B7C72;"
+        "background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 10px;"
+        " padding: 4px 10px;");
+    langLayout->addWidget(autoDetectLabel);
+
+    // 垂直分隔线
+    auto* sep = new QFrame;
+    sep->setFrameShape(QFrame::VLine);
+    sep->setStyleSheet("color: #E5E5EA; padding: 0 6px;");
+    langLayout->addWidget(sep);
+
+    auto* targetLabel = new QLabel(QStringLiteral("目标语言:"));
+    targetLabel->setStyleSheet("font-size: 12px; color: #889096;");
+    langLayout->addWidget(targetLabel);
+
+    textLangCombo_ = new QComboBox;
+    populateLanguages(textLangCombo_);
+    textLangCombo_->setFixedHeight(30);
+    textLangCombo_->setMinimumWidth(120);
+    textLangCombo_->setStyleSheet(
+        "QComboBox { border: 1px solid #DDE1E5; border-radius: 6px;"
+        " padding: 4px 8px; font-size: 13px; background: white; }");
+    langLayout->addWidget(textLangCombo_);
+
+    langLayout->addStretch();
+
+    auto* langHint = new QLabel(QStringLiteral("118 种语言"));
+    langHint->setStyleSheet("font-size: 12px; color: #889096;");
+    langLayout->addWidget(langHint);
+
+    layout->addWidget(langBar);
+
+    // ---- 2. 翻译双栏 ----
+    auto* gridLayout = new QHBoxLayout;
+    gridLayout->setSpacing(16);
+
+    // ---- 左栏: 原文 ----
+    auto* leftPanel = new QFrame;
+    leftPanel->setObjectName("card");
+    textSourceCard_ = leftPanel;
+    leftPanel->installEventFilter(this);
+    auto* leftInner = new QVBoxLayout(leftPanel);
+    leftInner->setContentsMargins(14, 10, 14, 10);
+    leftInner->setSpacing(6);
+
+    auto* leftHeaderRow = new QHBoxLayout;
+    auto* leftIcon = new QLabel;
+    QPixmap orgPix(":/icons/org_image.png");
+    if (!orgPix.isNull())
+        leftIcon->setPixmap(orgPix.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    leftHeaderRow->addWidget(leftIcon);
+    auto* leftTitle = new QLabel(QStringLiteral("原文"));
+    leftTitle->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096; text-transform: uppercase;");
+    leftHeaderRow->addWidget(leftTitle);
+    leftHeaderRow->addStretch();
+
+    textPasteBtn_ = new QPushButton(QStringLiteral("粘贴"));
+    textPasteBtn_->setCursor(Qt::PointingHandCursor);
+    textPasteBtn_->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
+    connect(textPasteBtn_, &QPushButton::clicked, this, [this]() {
+        if (textInput_) textInput_->insertPlainText(QApplication::clipboard()->text());
+    });
+    leftHeaderRow->addWidget(textPasteBtn_);
+
+    textClearBtn_ = new QPushButton(QStringLiteral("清空"));
+    textClearBtn_->setCursor(Qt::PointingHandCursor);
+    textClearBtn_->setStyleSheet(textPasteBtn_->styleSheet());
+    connect(textClearBtn_, &QPushButton::clicked, this, [this]() {
+        if (textInput_) { textInput_->clear(); }
+    });
+    leftHeaderRow->addWidget(textClearBtn_);
+
+    leftInner->addLayout(leftHeaderRow);
+
+    // 原文输入框 — 矮一些，用 stretch 填充空间
+    textInput_ = new QPlainTextEdit;
+    textInput_->setPlaceholderText(QStringLiteral("请输入要翻译的文本…"));
+    textInput_->setMaximumHeight(120);
+    textInput_->setStyleSheet(
+        "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
+        " color: #1A1A2E; padding: 2px 0; }"
+        "QPlainTextEdit:focus { border: none; }");
+    leftInner->addWidget(textInput_, 1);
+
+    auto* leftFooter = new QLabel(QStringLiteral("0 字符"));
+    leftFooter->setStyleSheet("font-size: 11px; color: #C4C8CC; padding-top: 6px;");
+    leftInner->addWidget(leftFooter);
+
+    connect(textInput_, &QPlainTextEdit::textChanged, this, [leftFooter, this]() {
+        leftFooter->setText(QStringLiteral("%1 字符").arg(textInput_->toPlainText().length()));
+    });
+
+    gridLayout->addWidget(leftPanel, 1);
+
+    // ---- 右栏: 译文 ----
+    auto* rightPanel = new QFrame;
+    textResultCard_ = rightPanel;
+    rightPanel->installEventFilter(this);
+    rightPanel->setStyleSheet(
+        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+    auto* rightInner = new QVBoxLayout(rightPanel);
+    rightInner->setContentsMargins(14, 10, 14, 10);
+    rightInner->setSpacing(6);
+
+    auto* rightHeaderRow = new QHBoxLayout;
+    auto* rightIcon = new QLabel;
+    rightIcon->setFixedSize(18, 18);
+    rightIcon->setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;");
+    QPixmap transPix(":/icons/trans.png");
+    if (!transPix.isNull())
+        rightIcon->setPixmap(transPix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    rightHeaderRow->addWidget(rightIcon);
+    auto* rightTitle = new QLabel(QStringLiteral("翻译结果"));
+    rightTitle->setStyleSheet("font-size: 12px; font-weight: 600; color: #0B7C72; text-transform: uppercase; background: transparent; border: none; padding: 0; margin: 0;");
+    rightHeaderRow->addWidget(rightTitle);
+    rightHeaderRow->addStretch();
+
+    textCopyBtn_ = new QPushButton(QStringLiteral("复制"));
+    textCopyBtn_->setCursor(Qt::PointingHandCursor);
+    textCopyBtn_->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #0B7C72; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }");
+    connect(textCopyBtn_, &QPushButton::clicked, this, [this]() {
+        if (textOutput_ && !textOutput_->toPlainText().isEmpty()) {
+            QApplication::clipboard()->setText(textOutput_->toPlainText());
+            statusBar_->showMessage(QStringLiteral("译文已复制"), 2000);
+        }
+    });
+    rightHeaderRow->addWidget(textCopyBtn_);
+
+    textSpeakBtn_ = new QPushButton(QStringLiteral("朗读"));
+    textSpeakBtn_->setCursor(Qt::PointingHandCursor);
+    textSpeakBtn_->setStyleSheet(textCopyBtn_->styleSheet());
+    rightHeaderRow->addWidget(textSpeakBtn_);
+
+    rightInner->addLayout(rightHeaderRow);
+
+    textOutput_ = new QPlainTextEdit;
+    textOutput_->setReadOnly(true);
+    textOutput_->setPlaceholderText(QStringLiteral("翻译结果…"));
+    textOutput_->setStyleSheet(
+        "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
+        " color: #1A1A2E; padding: 2px 0; }");
+    rightInner->addWidget(textOutput_, 1);
+
+    gridLayout->addWidget(rightPanel, 1);
+
+    layout->addLayout(gridLayout);
+
+    // ---- 3. 底部操作行 ----
+    auto* bottomRow = new QHBoxLayout;
+    bottomRow->setSpacing(8);
+
+    auto* quickFileBtn = new QPushButton(QStringLiteral("上传文件"));
+    quickFileBtn->setObjectName("pillBtn");
+    connect(quickFileBtn, &QPushButton::clicked, this, [this]() { onNavButtonClicked(4); });
+    bottomRow->addWidget(quickFileBtn);
+
+    auto* quickImageBtn = new QPushButton(QStringLiteral("图片翻译"));
+    quickImageBtn->setObjectName("pillBtn");
+    connect(quickImageBtn, &QPushButton::clicked, this, [this]() { onNavButtonClicked(3); });
+    bottomRow->addWidget(quickImageBtn);
+
+    bottomRow->addStretch();
+
+    auto* translateBtn = new QPushButton(QStringLiteral("翻译"));
+    translateBtn->setObjectName("primaryBtn");
+    textTranslateBtn_ = translateBtn;
+    connect(translateBtn, &QPushButton::clicked, this, &MainWindow::onTranslateText);
+    bottomRow->addWidget(translateBtn);
+
+    layout->addLayout(bottomRow);
+
+    return panel;
+}
+
+// —————— 浮动窗口配置面板 ——————
+QWidget* MainWindow::createFloatConfigPanel() {
+    auto* panel = new QWidget;
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(12);
+
+    auto* title = new QLabel(QStringLiteral("划词翻译"));
+    title->setObjectName("sectionTitle");
+    layout->addWidget(title);
+
+    auto* hint = new QLabel(QStringLiteral("选中任意应用中的文字，按快捷键弹出翻译窗口"));
+    hint->setObjectName("sectionHint");
+    layout->addWidget(hint);
+
+    // ====== 配置卡片 ======
+    auto* configCard = new QFrame;
+    configCard->setObjectName("card");
+    floatConfigCard_ = configCard;
+    configCard->installEventFilter(this);
+    auto* cardLayout = new QVBoxLayout(configCard);
+    cardLayout->setSpacing(12);
+
+    // 1) 快捷键行
+    auto* hotkeyRow = new QHBoxLayout;
+    auto* hotkeyLabel = new QLabel(QStringLiteral("快捷键"));
+    hotkeyLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096;");
+    hotkeyRow->addWidget(hotkeyLabel);
+    hotkeyRow->addSpacing(12);
+
+    floatHotkeyBtn_ = new QPushButton(QStringLiteral("Ctrl+Shift+C"));
+    floatHotkeyBtn_->setObjectName("hotkeyBtn");
+    floatHotkeyBtn_->setCursor(Qt::PointingHandCursor);
+    // hotkey click dialog (same as before)
+    connect(floatHotkeyBtn_, &QPushButton::clicked, this, [this]() {
+        // 获取当前快捷键
+        QString currentText = floatHotkeyBtn_->text();
+
+        auto* dialog = new QDialog(this);
+        dialog->setWindowTitle(QStringLiteral("设置划词翻译快捷键"));
+        dialog->setFixedSize(380, 240);
+        dialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+        dialog->setAttribute(Qt::WA_TranslucentBackground);
+        dialog->setStyleSheet(QStringLiteral(
+            "QDialog { background: #FFFFFF; border-radius: 14px; }"
+        ));
+
+        // 圆角背景容器
+        auto* container = new QWidget(dialog);
+        container->setStyleSheet(QStringLiteral(
+            "QWidget { background: #FFFFFF; border-radius: 14px; }"
+        ));
+        auto* dlgLayout = new QVBoxLayout(container);
+        dlgLayout->setContentsMargins(24, 22, 24, 18);
+        dlgLayout->setSpacing(0);
+
+        // 标题
+        auto* title = new QLabel(QStringLiteral("设置划词翻译快捷键"));
+        title->setStyleSheet(QStringLiteral(
+            "font-size: 16px; font-weight: 600; color: #1C1C1E; background: transparent;"
+        ));
+        dlgLayout->addWidget(title);
+
+        dlgLayout->addSpacing(8);
+
+        // 说明
+        auto* hint = new QLabel(QStringLiteral("按下新的快捷键组合，至少包含 Ctrl 或 Alt 键"));
+        hint->setWordWrap(true);
+        hint->setStyleSheet(QStringLiteral(
+            "font-size: 12px; color: #8E8E93; background: transparent;"
+        ));
+        dlgLayout->addWidget(hint);
+
+        dlgLayout->addSpacing(16);
+
+        // 输入框
+        auto* editor = new QKeySequenceEdit(container);
+        editor->setStyleSheet(QStringLiteral(
+            "QKeySequenceEdit {"
+            "  border: 1px solid #D1D1D6; border-radius: 8px;"
+            "  padding: 10px; font-size: 15px; background: #F8F9FA;"
+            "  min-height: 22px;"
+            "}"
+            "QKeySequenceEdit:focus { border-color: #007AFF; background: #FFFFFF; }"
+        ));
+        dlgLayout->addWidget(editor);
+
+        dlgLayout->addSpacing(18);
+
+        // 按钮行
+        auto* btnRow = new QHBoxLayout;
+        btnRow->setSpacing(10);
+
+        auto* cancelBtn = new QPushButton(QStringLiteral("取消"), container);
+        cancelBtn->setFixedHeight(36);
+        cancelBtn->setCursor(Qt::PointingHandCursor);
+        cancelBtn->setStyleSheet(QStringLiteral(
+            "QPushButton { background: #F2F2F7; color: #007AFF; font-size: 13px;"
+            "  border: none; border-radius: 8px; padding: 0 24px; }"
+            "QPushButton:hover { background: #E5E5EA; }"
+        ));
+
+        auto* okBtn = new QPushButton(QStringLiteral("确定"), container);
+        okBtn->setFixedHeight(36);
+        okBtn->setCursor(Qt::PointingHandCursor);
+        okBtn->setStyleSheet(QStringLiteral(
+            "QPushButton { background: #007AFF; color: #FFFFFF; font-size: 13px;"
+            "  border: none; border-radius: 8px; padding: 0 24px; }"
+            "QPushButton:hover { background: #0056CC; }"
+        ));
+
+        btnRow->addStretch();
+        btnRow->addWidget(cancelBtn);
+        btnRow->addWidget(okBtn);
+        dlgLayout->addLayout(btnRow);
+
+        // 主布局
+        auto* mainLayout = new QVBoxLayout(dialog);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mainLayout->addWidget(container);
+
+        connect(cancelBtn, &QPushButton::clicked, dialog, &QDialog::reject);
+        connect(okBtn, &QPushButton::clicked, dialog, [dialog, editor, currentText, this]() {
+            QKeySequence ks = editor->keySequence();
+            if (ks.isEmpty()) return;
+
+            QString newText = ks.toString();
+            // 检查是否与当前快捷键相同
+            if (newText == currentText) {
+                QMessageBox::information(dialog, QStringLiteral("提示"),
+                    QStringLiteral("该快捷键与当前设置相同，无需修改。"));
+                return;
+            }
+
+            int key = ks[0].key();
+            int mods = MOD_NOREPEAT;
+            Qt::KeyboardModifiers qMods = ks[0].keyboardModifiers();
+            if (qMods & Qt::ControlModifier) mods |= MOD_CONTROL;
+            if (qMods & Qt::ShiftModifier) mods |= MOD_SHIFT;
+            if (qMods & Qt::AltModifier) mods |= MOD_ALT;
+            key = key & ~(Qt::CTRL | Qt::SHIFT | Qt::ALT | Qt::META);
+
+            if (mods == MOD_NOREPEAT) {
+                QMessageBox::warning(dialog, QStringLiteral("快捷键"),
+                    QStringLiteral("请至少包含 Ctrl 或 Alt 修饰键。\n例如：Ctrl+Shift+D"));
+                return;
+            }
+
+            // 检查是否与截图快捷键冲突
+            if (key == screenshotHotkeyKey_ && mods == screenshotHotkeyMods_) {
+                QMessageBox::warning(dialog, QStringLiteral("快捷键冲突"),
+                    QStringLiteral("该快捷键已被截图翻译使用，请选择其他组合。"));
+                return;
+            }
+
+            // 保存并注册
+            {
+                auto& c = docmind::ConfigManager::getInstance();
+                c.setString("hotkey.float.key", std::to_string(key));
+                c.setString("hotkey.float.mods", std::to_string(mods));
+                c.save();
+            }
+            floatHotkeyKey_ = key;
+            floatHotkeyMods_ = mods;
+            UnregisterHotKey((HWND)winId(), floatHotkeyId_);
+            BOOL ok = RegisterHotKey((HWND)winId(), floatHotkeyId_, floatHotkeyMods_, floatHotkeyKey_);
+            if (!ok) {
+                DWORD err = GetLastError();
+                floatHotkeyKey_ = 'C';
+                floatHotkeyMods_ = MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT;
+                floatHotkeyBtn_->setText(QStringLiteral("Ctrl+Shift+C"));
+                RegisterHotKey((HWND)winId(), floatHotkeyId_, floatHotkeyMods_, floatHotkeyKey_);
+                QMessageBox::warning(dialog, QStringLiteral("快捷键注册失败"),
+                    QStringLiteral("热键 %1 注册失败（错误码: %2），可能被其他程序占用。\n已恢复为默认 Ctrl+Shift+C。")
+                    .arg(newText).arg(err));
+                return;
+            }
+            floatHotkeyBtn_->setText(newText);
+            dialog->accept();
+        });
+
+        dialog->exec();
+        dialog->deleteLater();
+    });
+    hotkeyRow->addWidget(floatHotkeyBtn_);
+    hotkeyRow->addStretch();
+    cardLayout->addLayout(hotkeyRow);
+
+    // 2) 分隔线
+    auto* sep3 = new QFrame;
+    sep3->setFrameShape(QFrame::HLine);
+    sep3->setFixedHeight(1);
+    sep3->setStyleSheet("color: #E5E5EA;");
+    cardLayout->addWidget(sep3);
+
+    // 3) 语言 + 选项行
+    auto* optionsRow = new QHBoxLayout;
+    optionsRow->setSpacing(20);
+
+    auto* langLabel = new QLabel(QStringLiteral("默认语言"));
+    langLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096;");
+    optionsRow->addWidget(langLabel);
+
+    auto* langCombo = new QComboBox;
+    populateLanguages(langCombo);
+    langCombo->setFixedWidth(160);
+    optionsRow->addWidget(langCombo);
+
+    optionsRow->addSpacing(20);
+
+    auto* autoCopy = new QCheckBox(QStringLiteral("自动复制"));
+    autoCopy->setChecked(true);
+    autoCopy->setObjectName("toggleSwitch");
+    optionsRow->addWidget(autoCopy);
+
+    auto* stayOnTop = new QCheckBox(QStringLiteral("窗口置顶"));
+    stayOnTop->setChecked(true);
+    stayOnTop->setObjectName("toggleSwitch");
+    optionsRow->addWidget(stayOnTop);
+
+    optionsRow->addStretch();
+    cardLayout->addLayout(optionsRow);
+
+    layout->addWidget(configCard);
+
+    // ====== 翻译历史卡片 ======
+    auto* historyCard = new QFrame;
+    historyCard->setObjectName("card");
+    historyCard_ = historyCard;
+    historyCard->installEventFilter(this);
+    auto* histLayout = new QVBoxLayout(historyCard);
+    auto* histTitle = new QLabel(QStringLiteral("翻译历史"));
+    histTitle->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096; text-transform: uppercase;");
+
+    auto* histHeaderRow = new QHBoxLayout;
+    histHeaderRow->addWidget(histTitle);
+    histHeaderRow->addStretch();
+    auto* clearHistBtn = new QPushButton(QStringLiteral("清空"));
+    clearHistBtn->setFixedSize(40, 22);
+    clearHistBtn->setCursor(Qt::PointingHandCursor);
+    clearHistBtn->setStyleSheet(
+        "QPushButton { font-size: 11px; color: #889096; background: transparent; border: 1px solid #DDE1E5; border-radius: 4px; }"
+        "QPushButton:hover { color: #0B7C72; border-color: #0B7C72; }");
+    connect(clearHistBtn, &QPushButton::clicked, this, [this]() {
+        if (floatHistoryView_) floatHistoryView_->clear();
+    });
+    histHeaderRow->addWidget(clearHistBtn);
+    histLayout->addLayout(histHeaderRow);
+    floatHistoryView_ = new QTextEdit;
+    floatHistoryView_->setReadOnly(true);
+    floatHistoryView_->setPlaceholderText(QStringLiteral("划词翻译记录将显示在这里…"));
+    floatHistoryView_->setMaximumHeight(160);
+    histLayout->addWidget(floatHistoryView_);
+    layout->addWidget(historyCard);
+
+    layout->addStretch();
+    return panel;
+}
+
+// —————— 截图翻译面板 ——————
+QWidget* MainWindow::createScreenshotPanel() {
+    auto* panel = new QWidget;
+    auto* lay = new QVBoxLayout(panel);
+    lay->setContentsMargins(0, 0, 0, 0);
+    lay->setSpacing(12);
+
+    auto* shotTitle = new QLabel(QStringLiteral("截图翻译"));
+    shotTitle->setObjectName("sectionTitle");
+    lay->addWidget(shotTitle);
+
+    auto* shotHint = new QLabel(QStringLiteral("点击「截图翻译」按钮或按快捷键截取屏幕区域，自动识别并翻译"));
+    shotHint->setObjectName("sectionHint");
+    shotHint->setWordWrap(true);
+    lay->addWidget(shotHint);
+
+    // 操作行
+    auto* actionRow = new QHBoxLayout;
+    screenshotCaptureBtn_ = new QPushButton(QStringLiteral("截图翻译"));
+    screenshotCaptureBtn_->setObjectName("primaryBtn");
+    connect(screenshotCaptureBtn_, &QPushButton::clicked, this, [this]() {
+        hide();
+        regionCapture_->startCapture();
+    });
+    actionRow->addWidget(screenshotCaptureBtn_);
+
+    // 可配置的快捷键按钮
+    screenshotHotkeyBtn_ = new QPushButton(QStringLiteral("Ctrl+Shift+Z"));
+    screenshotHotkeyBtn_->setObjectName("hotkeyBtn");
+    screenshotHotkeyBtn_->setCursor(Qt::PointingHandCursor);
+    screenshotHotkeyBtn_->setMaximumWidth(160);
+    connect(screenshotHotkeyBtn_, &QPushButton::clicked, this, [this]() {
+        QString currentText = screenshotHotkeyBtn_->text();
+
+        auto* dialog = new QDialog(this);
+        dialog->setWindowTitle(QStringLiteral("设置截图快捷键"));
+        dialog->setFixedSize(380, 240);
+        dialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+        dialog->setAttribute(Qt::WA_TranslucentBackground);
+
+        auto* container = new QWidget(dialog);
+        container->setStyleSheet(QStringLiteral(
+            "QWidget { background: #FFFFFF; border-radius: 14px; }"
+        ));
+        auto* dlgLayout = new QVBoxLayout(container);
+        dlgLayout->setContentsMargins(24, 22, 24, 18);
+        dlgLayout->setSpacing(0);
+
+        auto* title = new QLabel(QStringLiteral("设置截图快捷键"));
+        title->setStyleSheet(QStringLiteral(
+            "font-size: 16px; font-weight: 600; color: #1C1C1E; background: transparent;"
+        ));
+        dlgLayout->addWidget(title);
+        dlgLayout->addSpacing(8);
+
+        auto* hint = new QLabel(QStringLiteral("按下新的快捷键组合，至少包含 Ctrl 或 Alt 键"));
+        hint->setWordWrap(true);
+        hint->setStyleSheet(QStringLiteral(
+            "font-size: 12px; color: #8E8E93; background: transparent;"
+        ));
+        dlgLayout->addWidget(hint);
+        dlgLayout->addSpacing(16);
+
+        auto* editor = new QKeySequenceEdit(container);
+        editor->setStyleSheet(QStringLiteral(
+            "QKeySequenceEdit {"
+            "  border: 1px solid #D1D1D6; border-radius: 8px;"
+            "  padding: 10px; font-size: 15px; background: #F8F9FA;"
+            "  min-height: 22px;"
+            "}"
+            "QKeySequenceEdit:focus { border-color: #007AFF; background: #FFFFFF; }"
+        ));
+        dlgLayout->addWidget(editor);
+        dlgLayout->addSpacing(18);
+
+        auto* btnRow = new QHBoxLayout;
+        btnRow->setSpacing(10);
+
+        auto* cancelBtn = new QPushButton(QStringLiteral("取消"), container);
+        cancelBtn->setFixedHeight(36);
+        cancelBtn->setCursor(Qt::PointingHandCursor);
+        cancelBtn->setStyleSheet(QStringLiteral(
+            "QPushButton { background: #F2F2F7; color: #007AFF; font-size: 13px;"
+            "  border: none; border-radius: 8px; padding: 0 24px; }"
+            "QPushButton:hover { background: #E5E5EA; }"
+        ));
+
+        auto* okBtn = new QPushButton(QStringLiteral("确定"), container);
+        okBtn->setFixedHeight(36);
+        okBtn->setCursor(Qt::PointingHandCursor);
+        okBtn->setStyleSheet(QStringLiteral(
+            "QPushButton { background: #007AFF; color: #FFFFFF; font-size: 13px;"
+            "  border: none; border-radius: 8px; padding: 0 24px; }"
+            "QPushButton:hover { background: #0056CC; }"
+        ));
+
+        btnRow->addStretch();
+        btnRow->addWidget(cancelBtn);
+        btnRow->addWidget(okBtn);
+        dlgLayout->addLayout(btnRow);
+
+        auto* mainLayout = new QVBoxLayout(dialog);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mainLayout->addWidget(container);
+
+        connect(cancelBtn, &QPushButton::clicked, dialog, &QDialog::reject);
+        connect(okBtn, &QPushButton::clicked, dialog, [dialog, editor, currentText, this]() {
+            QKeySequence ks = editor->keySequence();
+            if (ks.isEmpty()) return;
+
+            QString newText = ks.toString();
+            if (newText == currentText) {
+                QMessageBox::information(dialog, QStringLiteral("提示"),
+                    QStringLiteral("该快捷键与当前设置相同，无需修改。"));
+                return;
+            }
+
+            int key = ks[0].key();
+            int mods = MOD_NOREPEAT;
+            if (key & Qt::CTRL) mods |= MOD_CONTROL;
+            if (key & Qt::SHIFT) mods |= MOD_SHIFT;
+            if (key & Qt::ALT) mods |= MOD_ALT;
+            key = key & ~(Qt::CTRL | Qt::SHIFT | Qt::ALT | Qt::META);
+
+            // 检查是否与划词快捷键冲突
+            if (key == floatHotkeyKey_ && mods == floatHotkeyMods_) {
+                QMessageBox::warning(dialog, QStringLiteral("快捷键冲突"),
+                    QStringLiteral("该快捷键已被划词翻译使用，请选择其他组合。"));
+                return;
+            }
+
+            screenshotHotkeyKey_ = key;
+            screenshotHotkeyMods_ = mods;
+            UnregisterHotKey((HWND)winId(), screenshotHotkeyId_);
+            BOOL ok = RegisterHotKey((HWND)winId(), screenshotHotkeyId_, screenshotHotkeyMods_, screenshotHotkeyKey_);
+            if (!ok) {
+                qWarning("Screenshot hotkey re-register failed (error %lu)", GetLastError());
+                screenshotHotkeyKey_ = 'Z';
+                screenshotHotkeyMods_ = MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT;
+                screenshotHotkeyBtn_->setText(QStringLiteral("Ctrl+Shift+Z"));
+                RegisterHotKey((HWND)winId(), screenshotHotkeyId_, screenshotHotkeyMods_, screenshotHotkeyKey_);
+                QMessageBox::warning(dialog, QStringLiteral("快捷键注册失败"),
+                    QStringLiteral("热键 %1 注册失败（错误码: %2），可能被其他程序占用。\n已恢复为默认 Ctrl+Shift+Z。")
+                    .arg(newText).arg(GetLastError()));
+                return;
+            }
+            screenshotHotkeyBtn_->setText(newText);
+            dialog->accept();
+        });
+
+        dialog->exec();
+        dialog->deleteLater();
+    });
+    actionRow->addWidget(screenshotHotkeyBtn_);
+    actionRow->addStretch();
+    lay->addLayout(actionRow);
+
+    // 左右内容 — 对等大小
+    auto* contentRow = new QHBoxLayout;
+    contentRow->setSpacing(16);
+
+    // 左: 预览
+    auto* previewCard = new QFrame;
+    previewCard->setObjectName("card");
+    screenshotPreviewCard_ = previewCard;
+    previewCard->installEventFilter(this);
+    auto* previewInner = new QVBoxLayout(previewCard);
+    previewInner->setContentsMargins(12, 8, 12, 8);
+    previewInner->setSpacing(6);
+    auto* previewHeader = new QHBoxLayout;
+    previewHeader->setSpacing(4);
+    auto* previewIcon = new QLabel;
+    previewIcon->setFixedSize(16, 16);
+    QPixmap previewPix(QStringLiteral(":/icons/org_image.png"));
+    if (!previewPix.isNull())
+        previewIcon->setPixmap(previewPix.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    previewHeader->addWidget(previewIcon);
+    auto* previewLabel = new QLabel(QStringLiteral("截图预览"));
+    previewLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096;");
+    previewLabel->setFixedHeight(16);
+    previewHeader->addWidget(previewLabel);
+    previewHeader->addStretch();
+
+    // 清空预览按钮
+    auto* screenshotClearPreviewBtn = new QPushButton(QStringLiteral("清空"));
+    screenshotClearPreviewBtn->setCursor(Qt::PointingHandCursor);
+    screenshotClearPreviewBtn->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
+    connect(screenshotClearPreviewBtn, &QPushButton::clicked, this, [this]() {
+        screenshotPreview_->setText(QStringLiteral("等待截图…"));
+        screenshotPreview_->setPixmap(QPixmap());
+        if (screenshotOcrResult_) screenshotOcrResult_->clear();
+        if (screenshotResult_) screenshotResult_->clear();
+    });
+    previewHeader->addWidget(screenshotClearPreviewBtn);
+    previewInner->addLayout(previewHeader);
+    screenshotPreview_ = new QLabel;
+    screenshotPreview_->setMinimumSize(200, 140);
+    screenshotPreview_->setAlignment(Qt::AlignCenter);
+    screenshotPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
+    screenshotPreview_->setText(QStringLiteral("等待截图…"));
+    auto* previewScroll = new QScrollArea;
+    previewScroll->setWidget(screenshotPreview_);
+    previewScroll->setWidgetResizable(true);
+    previewScroll->setMinimumHeight(160);
+    previewScroll->setStyleSheet("QScrollArea { border: none; background: transparent; }");
+    previewInner->addWidget(previewScroll, 1);
+    contentRow->addWidget(previewCard, 1);
+
+    // 右: 结果
+    auto* resultCard = new QFrame;
+    screenshotResultCard_ = resultCard;
+    resultCard->installEventFilter(this);
+    resultCard->setStyleSheet(
+        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+    auto* resultInner = new QVBoxLayout(resultCard);
+    resultInner->setContentsMargins(14, 10, 14, 10);
+    resultInner->setSpacing(6);
+
+    // 识别结果子框（带图标）
+    auto* ocrHeader = new QHBoxLayout;
+    ocrHeader->setSpacing(6);
+    auto* ocrIcon = new QLabel;
+    ocrIcon->setFixedSize(18, 18);
+    ocrIcon->setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;");
+    QPixmap ocrPix(QStringLiteral(":/icons/OCR.png"));
+    if (!ocrPix.isNull())
+        ocrIcon->setPixmap(ocrPix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ocrHeader->addWidget(ocrIcon);
+    auto* ocrLabel = new QLabel(QStringLiteral("识别结果"));
+    ocrLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096; background: transparent; border: none; padding: 0; margin: 0;");
+    ocrHeader->addWidget(ocrLabel);
+    ocrHeader->addStretch();
+    resultInner->addLayout(ocrHeader);
+    screenshotOcrResult_ = new QTextEdit;
+    screenshotOcrResult_->setReadOnly(true);
+    screenshotOcrResult_->setPlaceholderText(QStringLiteral("OCR 识别文本…"));
+    screenshotOcrResult_->setMaximumHeight(100);
+    screenshotOcrResult_->setStyleSheet("QTextEdit { border: 1px solid #E8ECEF; border-radius: 6px; background: transparent; font-size: 12px; color: #374151; padding: 4px; }");
+    resultInner->addWidget(screenshotOcrResult_);
+
+    // 翻译结果子框（带图标）
+    auto* transHeader = new QHBoxLayout;
+    transHeader->setSpacing(6);
+    auto* transIcon = new QLabel;
+    transIcon->setFixedSize(18, 18);
+    transIcon->setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;");
+    QPixmap transPix2(QStringLiteral(":/icons/trans.png"));
+    if (!transPix2.isNull())
+        transIcon->setPixmap(transPix2.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    transHeader->addWidget(transIcon);
+    auto* transLabel = new QLabel(QStringLiteral("翻译结果"));
+    transLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #0B7C72; background: transparent; border: none; padding: 0; margin: 0;");
+    transHeader->addWidget(transLabel);
+    transHeader->addStretch();
+    resultInner->addLayout(transHeader);
+
+    // 翻译结果框 + 按钮行（框在上，按钮在右侧）
+    auto* transContainer = new QVBoxLayout;
+    transContainer->setSpacing(4);
+    screenshotResult_ = new QTextEdit;
+    screenshotResult_->setReadOnly(true);
+    screenshotResult_->setPlaceholderText(QStringLiteral("翻译结果…"));
+    screenshotResult_->setStyleSheet("QTextEdit { border: 1px solid #D0E8E4; border-radius: 6px; background: transparent; font-size: 13px; color: #1C1C1E; padding: 6px; }");
+    screenshotResult_->setMinimumHeight(120);
+    transContainer->addWidget(screenshotResult_, 1);
+
+    // 复制 + 朗读按钮在右下
+    auto* resultBtnRow = new QHBoxLayout;
+    resultBtnRow->setSpacing(4);
+    resultBtnRow->addStretch();
+    auto* screenshotCopyBtn = new QPushButton(QStringLiteral("复制"));
+    screenshotCopyBtn->setCursor(Qt::PointingHandCursor);
+    screenshotCopyBtn->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #0B7C72; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }");
+    connect(screenshotCopyBtn, &QPushButton::clicked, this, [this]() {
+        if (screenshotResult_ && !screenshotResult_->toPlainText().isEmpty()) {
+            QApplication::clipboard()->setText(screenshotResult_->toPlainText());
+            statusBar_->showMessage(QStringLiteral("译文已复制"), 2000);
+        }
+    });
+    resultBtnRow->addWidget(screenshotCopyBtn);
+    auto* screenshotSpeakBtn = new QPushButton(QStringLiteral("朗读"));
+    screenshotSpeakBtn->setCursor(Qt::PointingHandCursor);
+    screenshotSpeakBtn->setStyleSheet(screenshotCopyBtn->styleSheet());
+    resultBtnRow->addWidget(screenshotSpeakBtn);
+    transContainer->addLayout(resultBtnRow);
+    resultInner->addLayout(transContainer, 1);
+    contentRow->addWidget(resultCard, 1);
+    lay->addLayout(contentRow);
+
+    // 参数行
+    auto* ctrlRow = new QHBoxLayout;
+    ctrlRow->addWidget(new QLabel(QStringLiteral("目标语言:")));
+    screenshotLangCombo_ = new QComboBox;
+    populateLanguages(screenshotLangCombo_);
+    ctrlRow->addWidget(screenshotLangCombo_);
+    ctrlRow->addStretch();
+    ctrlRow->addWidget(new QLabel(QStringLiteral("Max Tokens:")));
+    screenshotMaxTokens_ = new QSpinBox;
+    screenshotMaxTokens_->setRange(64, 4096);
+    screenshotMaxTokens_->setValue(512);
+    ctrlRow->addWidget(screenshotMaxTokens_);
+    lay->addLayout(ctrlRow);
+
+    return panel;
+}
+
+// —————— 图片翻译面板 ——————
+QWidget* MainWindow::createPhotoPanel() {
+    auto* panel = new QWidget;
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(12);
+
+    // --- 拖拽区（复用 DropZoneWidget）---
+    auto* dropZone = new DropZoneWidget;
+    dropZone->setFixedHeight(90);
+    auto* dropInner = new QVBoxLayout(dropZone);
+    dropInner->setAlignment(Qt::AlignCenter);
+    dropInner->setSpacing(2);
+    auto* dropIcon = new QLabel;
+    dropIcon->setPixmap(QPixmap(QStringLiteral(":/icons/photo.png")).scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    dropIcon->setAlignment(Qt::AlignCenter);
+    dropIcon->setFixedSize(24, 24);
+    dropInner->addWidget(dropIcon, 0, Qt::AlignCenter);
+    auto* dropTxt = new QLabel(QStringLiteral("拖拽图片到此处，或点击上传"));
+    dropTxt->setAlignment(Qt::AlignCenter);
+    dropTxt->setStyleSheet("font-size: 13px; color: #6B7280; border: none;");
+    dropInner->addWidget(dropTxt);
+    auto* dropFmt = new QLabel(QStringLiteral("JPG / PNG / BMP / TIFF"));
+    dropFmt->setAlignment(Qt::AlignCenter);
+    dropFmt->setStyleSheet("font-size: 11px; color: #9CA3AF; border: none;");
+    dropInner->addWidget(dropFmt);
+    layout->addWidget(dropZone);
+
+    connect(dropZone, &DropZoneWidget::fileDropped, this, [this](const QStringList& paths) {
+        QString path;
+        if (paths.isEmpty()) {
+            path = QFileDialog::getOpenFileName(
+                this, QStringLiteral("选择图片"), QString(),
+                QStringLiteral("图片 (*.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)"));
+        } else {
+            path = paths.first();
+        }
+        if (!path.isEmpty()) {
+            photoInputPath_->setText(path);
+            // 使用 cv::imread 加载原图
+            cv::Mat img = cv::imread(path.toStdString());
+            if (!img.empty()) {
+                photoOrigMat_ = img.clone();
+                photoZoom_ = 1.0;
+                // cv::Mat BGR → QImage RGB
+                cv::Mat rgb;
+                cv::cvtColor(img, rgb, cv::COLOR_BGR2RGB);
+                QImage qimg(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step), QImage::Format_RGB888);
+                QPixmap pix = QPixmap::fromImage(qimg);
+                if (!pix.isNull()) {
+                    // 存全分辨率图用于缩放，显示适配缩略图
+                    int maxW = photoInputScroll_->viewport()->width();
+                    int maxH = photoInputScroll_->viewport()->height();
+                    if (maxW < 50) maxW = 300;
+                    if (maxH < 50) maxH = 200;
+                    QPixmap displayPix = pix.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    auto* zoomLabel = qobject_cast<ZoomableLabel*>(photoPreview_);
+                    if (zoomLabel) zoomLabel->setFullImage(pix, displayPix);
+                    photoPreview_->setText(QString());
+                    photoPreview_->setAlignment(Qt::AlignCenter);
+                } else {
+                    photoPreview_->setText(QStringLiteral("无法加载图片"));
+                }
+            } else {
+                photoPreview_->setText(QStringLiteral("无法加载图片"));
+            }
+        }
+    });
+
+    // 隐藏字段
+    photoInputPath_ = new QLineEdit;
+    photoInputPath_->setVisible(false);
+    layout->addWidget(photoInputPath_);
+
+    // --- 左右预览对比 ---
+    auto* contentRow = new QHBoxLayout;
+    contentRow->setSpacing(12);
+
+    // 左: 原图
+    auto* inputCard = new QFrame;
+    inputCard->setObjectName("card");
+    photoInputCard_ = inputCard;
+    inputCard->installEventFilter(this);
+    auto* inputInner = new QVBoxLayout(inputCard);
+    inputInner->setContentsMargins(12, 8, 12, 8);
+    inputInner->setSpacing(4);
+    auto* inpHeader = new QHBoxLayout;
+    inpHeader->setSpacing(4);
+    auto* inpIcon = new QLabel;
+    inpIcon->setFixedSize(16, 16);
+    QPixmap inpPix(QStringLiteral(":/icons/org_image.png"));
+    if (!inpPix.isNull())
+        inpIcon->setPixmap(inpPix.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    inpHeader->addWidget(inpIcon);
+    auto* inpLabel = new QLabel(QStringLiteral("原图"));
+    inpLabel->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096; text-transform: uppercase;");
+    inpHeader->addWidget(inpLabel);
+    inpHeader->addStretch();
+
+    // 清空原图按钮
+    auto* photoInputClearBtn = new QPushButton(QStringLiteral("清空"));
+    photoInputClearBtn->setCursor(Qt::PointingHandCursor);
+    photoInputClearBtn->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
+    connect(photoInputClearBtn, &QPushButton::clicked, this, [this]() {
+        photoPreview_->clear();
+        photoPreview_->setText(QStringLiteral("拖拽图片预览…"));
+        photoInputPath_->clear();
+        photoOrigMat_ = cv::Mat();
+        auto* zl = qobject_cast<ZoomableLabel*>(photoOutputPreview_);
+        if (zl) zl->clearImage();
+        photoOutputPreview_->setText(QStringLiteral("翻译完成后显示结果…"));
+        photoOutputMat_ = cv::Mat();
+    });
+    inpHeader->addWidget(photoInputClearBtn);
+    inputInner->addLayout(inpHeader);
+    photoPreview_ = new ZoomableLabel;
+    photoPreview_->setAlignment(Qt::AlignCenter);
+    photoPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
+    photoPreview_->setText(QStringLiteral("拖拽图片预览…"));
+    photoInputScroll_ = new QScrollArea;
+    photoInputScroll_->setWidget(photoPreview_);
+    photoInputScroll_->setWidgetResizable(true);
+    photoInputScroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    photoInputScroll_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    photoInputScroll_->setStyleSheet("QScrollArea { border: none; background: transparent; }");
+    inputInner->addWidget(photoInputScroll_, 1);
+    contentRow->addWidget(inputCard);
+
+    // 右: 翻译后
+    auto* outputCard = new QFrame;
+    outputCard->setObjectName("card");
+    photoOutputCard_ = outputCard;
+    outputCard->installEventFilter(this);
+    outputCard->setStyleSheet(
+        "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+    auto* outputInner = new QVBoxLayout(outputCard);
+    outputInner->setContentsMargins(12, 8, 12, 8);
+    outputInner->setSpacing(4);
+    auto* outHeader = new QHBoxLayout;
+    outHeader->setSpacing(4);
+    auto* outIcon = new QLabel;
+    outIcon->setFixedSize(18, 18);
+    outIcon->setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;");
+    QPixmap outPix(QStringLiteral(":/icons/trans.png"));
+    if (!outPix.isNull())
+        outIcon->setPixmap(outPix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    outHeader->addWidget(outIcon);
+    auto* outLabel2 = new QLabel(QStringLiteral("翻译结果"));
+    outLabel2->setStyleSheet("font-size: 12px; font-weight: 600; color: #0B7C72; text-transform: uppercase; background: transparent; border: none; padding: 0; margin: 0;");
+    outHeader->addWidget(outLabel2);
+    outHeader->addStretch();
+
+    // 复制按钮
+    photoCopyBtn_ = new QPushButton(QStringLiteral("复制"));
+    photoCopyBtn_->setCursor(Qt::PointingHandCursor);
+    photoCopyBtn_->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #0B7C72; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }");
+    connect(photoCopyBtn_, &QPushButton::clicked, this, [this]() {
+        auto* zl = qobject_cast<ZoomableLabel*>(photoOutputPreview_);
+        if (zl && zl->hasImage()) {
+            QApplication::clipboard()->setPixmap(zl->originalFullPixmap());
+            statusBar_->showMessage(QStringLiteral("图片已复制"), 2000);
+        }
+    });
+    outHeader->addWidget(photoCopyBtn_);
+
+    // 下载按钮
+    photoDownloadBtn_ = new QPushButton(QStringLiteral("下载"));
+    photoDownloadBtn_->setCursor(Qt::PointingHandCursor);
+    photoDownloadBtn_->setStyleSheet(photoCopyBtn_->styleSheet());
+    connect(photoDownloadBtn_, &QPushButton::clicked, this, [this]() {
+        auto* zl = qobject_cast<ZoomableLabel*>(photoOutputPreview_);
+        if (!zl || !zl->hasImage()) return;
+        // 生成随机文件名
+        QString randName = QStringLiteral("AceTranslate_%1.png")
+            .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz"));
+        // 弹保存对话框，文件名随机不可编辑
+        QString savePath = QFileDialog::getSaveFileName(
+            this, QStringLiteral("保存图片"), randName,
+            QStringLiteral("PNG 图片 (*.png)"));
+        if (savePath.isEmpty()) return;
+        if (!zl->originalFullPixmap().save(savePath, "PNG")) {
+            statusBar_->showMessage(QStringLiteral("保存图片失败"), 2000);
+            return;
+        }
+        statusBar_->showMessage(QStringLiteral("图片已保存: ") + QFileInfo(savePath).fileName(), 3000);
+    });
+    outHeader->addWidget(photoDownloadBtn_);
+
+    outputInner->addLayout(outHeader);
+    photoOutputPreview_ = new ZoomableLabel;
+    photoOutputPreview_->setAlignment(Qt::AlignCenter);
+    photoOutputPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
+    photoOutputPreview_->setText(QStringLiteral("翻译完成后显示结果…"));
+    photoOutputScroll_ = new QScrollArea;
+    photoOutputScroll_->setWidget(photoOutputPreview_);
+    photoOutputScroll_->setWidgetResizable(true);
+    photoOutputScroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    photoOutputScroll_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    photoOutputScroll_->setStyleSheet("QScrollArea { border: none; background: transparent; }");
+    outputInner->addWidget(photoOutputScroll_, 1);
+    contentRow->addWidget(outputCard);
+    layout->addLayout(contentRow, 1);  // 1 = stretch, 预览区填满剩余空间
+
+    // --- 底部控制栏 ---
+    auto* ctrlCard = new QFrame;
+    ctrlCard->setObjectName("card");
+    auto* ctrlInner = new QHBoxLayout(ctrlCard);
+    ctrlInner->setContentsMargins(12, 8, 12, 8);
+    ctrlInner->setSpacing(12);
+
+    ctrlInner->addWidget(new QLabel(QStringLiteral("目标语言:")));
+    photoLangCombo_ = new QComboBox;
+    populateLanguages(photoLangCombo_);
+    ctrlInner->addWidget(photoLangCombo_);
+
+    ctrlInner->addStretch();
+
+    photoMaxTokens_ = new QSpinBox;
+    photoMaxTokens_->setRange(64, 4096);
+    photoMaxTokens_->setValue(512);
+    photoMaxTokens_->setFixedWidth(80);
+    ctrlInner->addWidget(new QLabel(QStringLiteral("Max Tokens:")));
+    ctrlInner->addWidget(photoMaxTokens_);
+    ctrlInner->addSpacing(12);
+    auto* transBtn = new QPushButton(QStringLiteral("翻译图片"));
+    transBtn->setObjectName("primaryBtn");
+    transBtn->setFixedWidth(100);
+    photoTranslateBtn_ = transBtn;
+    connect(transBtn, &QPushButton::clicked, this, &MainWindow::onProcessPhoto);
+    ctrlInner->addWidget(transBtn);
+
+    layout->addWidget(ctrlCard);
+
+    return panel;
+}
+
+// —————— 文件翻译面板 (带拖拽区) ——————
+QWidget* MainWindow::createFilePanel() {
+    auto* panel = new QWidget;
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(10);
+
+    // ========================================================
+    // 1. 文件拖拽区 — 现代化设计
+    // ========================================================
+    fileDropZone_ = new DropZoneWidget;
+    fileDropZone_->setFixedHeight(160);
+    fileDropZone_->setStyleSheet(QStringLiteral(
+        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #D0E8E4; border-radius: 12px; }"
+        "DropZoneWidget:hover { background: #E8F5F3; border-color: #0B7C72; }"
+    ));
+    auto* dropLayout = new QVBoxLayout(fileDropZone_);
+    dropLayout->setAlignment(Qt::AlignCenter);
+    dropLayout->setSpacing(6);
+
+    auto* dropIcon = new QLabel(QStringLiteral("\U0001F4C1"));
+    dropIcon->setAlignment(Qt::AlignCenter);
+    dropIcon->setStyleSheet("font-size: 32px; background: transparent;");
+    dropLayout->addWidget(dropIcon);
+
+    auto* dropText = new QLabel(QStringLiteral("拖拽文件到此处，或点击上传"));
+    dropText->setAlignment(Qt::AlignCenter);
+    dropText->setStyleSheet("font-size: 14px; font-weight: 600; color: #374151; background: transparent;");
+    dropLayout->addWidget(dropText);
+
+    auto* dropHint = new QLabel(QStringLiteral("支持 PDF / Word / Excel / PPT / MD / TXT / 图片"));
+    dropHint->setAlignment(Qt::AlignCenter);
+    dropHint->setStyleSheet("font-size: 12px; color: #9CA3AF; background: transparent;");
+    dropLayout->addWidget(dropHint);
+
+    auto* badgeRow = new QHBoxLayout;
+    badgeRow->setAlignment(Qt::AlignCenter);
+    badgeRow->setSpacing(5);
+    for (const QString& fmt : {"PDF", "DOCX", "XLSX", "PPTX", "MD", "TXT", "JPG/PNG"}) {
+        auto* badge = new QLabel(fmt);
+        badge->setStyleSheet(
+            "background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;"
+            " padding: 2px 10px; font-size: 11px; font-weight: 500; color: #6B7280;");
+        badgeRow->addWidget(badge);
+    }
+    dropLayout->addLayout(badgeRow);
+
+    layout->addWidget(fileDropZone_);
+
+    // 拖拽/点击事件
+    connect(fileDropZone_, &DropZoneWidget::fileDropped, this, [this](const QStringList& paths) {
+        auto addFile = [this](const QString& p) { addFileToList(p); filePendingPaths_.append(p); };
+        if (paths.isEmpty()) {
+            // 点击上传：支持多选
+            QStringList files = QFileDialog::getOpenFileNames(
+                this, QStringLiteral("选择文件"), QString(),
+                QStringLiteral("支持的文件 (*.png *.jpg *.jpeg *.bmp *.tiff *.pdf *.docx *.xlsx *.pptx *.md *.txt);;"
+                               "所有文件 (*)"));
+            for (const QString& path : files) addFile(path);
+        } else {
+            for (const QString& p : paths) addFile(p);
+        }
+    });
+
+    // ========================================================
+    // 2. 文件列表 — 带标题 + 滚动条
+    // ========================================================
+    auto* fileListCard = new QFrame;
+    fileListCard->setStyleSheet(QStringLiteral(
+        "QFrame { background: #F5F7F7; border: 1px solid #E8ECEF; border-radius: 10px; }"
+    ));
+    auto* fileListCardLayout = new QVBoxLayout(fileListCard);
+    fileListCardLayout->setContentsMargins(10, 8, 10, 8);
+    fileListCardLayout->setSpacing(6);
+
+    // 标题行
+    auto* fileListHeader = new QHBoxLayout;
+    auto* fileListTitle = new QLabel(QStringLiteral("上传文件列表"));
+    fileListTitle->setStyleSheet(
+        "font-size: 12px; font-weight: 600; color: #889096; background: transparent;"
+        " text-transform: uppercase;");
+    fileListHeader->addWidget(fileListTitle);
+    fileListHeader->addStretch();
+    fileListCardLayout->addLayout(fileListHeader);
+
+    // 滚动区域
+    auto* fileListScroll = new QScrollArea;
+    fileListScroll->setWidgetResizable(true);
+    fileListScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    fileListScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    fileListScroll->setMinimumHeight(100);
+    fileListScroll->setStyleSheet(
+        "QScrollArea { border: none; background: transparent; }"
+        "QScrollBar:vertical { width: 6px; background: transparent; }"
+        "QScrollBar::handle:vertical { background: #D1D1D6; border-radius: 3px; min-height: 30px; }"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }");
+    fileListContainer_ = new QWidget;
+    fileListContainer_->setStyleSheet("QWidget { background: transparent; }");
+    fileListLayout_ = new QVBoxLayout(fileListContainer_);
+    fileListLayout_->setContentsMargins(0, 0, 0, 0);
+    fileListLayout_->setSpacing(4);
+    fileListLayout_->addStretch();
+    fileListScroll->setWidget(fileListContainer_);
+    fileListCardLayout->addWidget(fileListScroll, 1);
+    layout->addWidget(fileListCard, 1);
+
+    // ========================================================
+    // 3. 参数组框 — 简洁卡片样式
+    // ========================================================
+    auto* paramCard = new QFrame;
+    paramCard->setObjectName("card");
+    paramCard->setStyleSheet(QStringLiteral(
+        "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 10px; }"
+    ));
+    auto* paramLayout = new QHBoxLayout(paramCard);
+    paramLayout->setContentsMargins(14, 8, 14, 8);
+    paramLayout->setSpacing(10);
+
+    // 目标语言
+    paramLayout->addWidget(new QLabel(QStringLiteral("目标语言:")));
+    fileLangCombo_ = new QComboBox;
+    populateLanguages(fileLangCombo_);
+    fileLangCombo_->setMaximumWidth(130);
+    fileLangCombo_->setFixedHeight(28);
+    fileLangCombo_->setStyleSheet(
+        "QComboBox { border: 1px solid #D1D5DB; border-radius: 6px;"
+        " padding: 2px 8px; font-size: 12px; background: white; }");
+    paramLayout->addWidget(fileLangCombo_);
+
+    // 分隔
+    auto* sep1 = new QFrame;
+    sep1->setFrameShape(QFrame::VLine);
+    sep1->setFixedWidth(1);
+    sep1->setStyleSheet("color: #E5E7EB; background: #E5E7EB;");
+    paramLayout->addWidget(sep1);
+
+    // 版面阈值
+    paramLayout->addWidget(new QLabel(QStringLiteral("版面阈值:")));
+    fileLayoutThreshold_ = new QDoubleSpinBox;
+    fileLayoutThreshold_->setRange(0.0, 1.0);
+    fileLayoutThreshold_->setSingleStep(0.05);
+    fileLayoutThreshold_->setValue(0.5);
+    fileLayoutThreshold_->setFixedWidth(70);
+    fileLayoutThreshold_->setFixedHeight(28);
+    fileLayoutThreshold_->setStyleSheet(
+        "QDoubleSpinBox { border: 1px solid #D1D5DB; border-radius: 6px; padding: 2px 4px; font-size: 12px; }");
+    paramLayout->addWidget(fileLayoutThreshold_);
+
+    // PDF DPI
+    paramLayout->addWidget(new QLabel(QStringLiteral("DPI:")));
+    filePdfDpi_ = new QSpinBox;
+    filePdfDpi_->setRange(72, 600);
+    filePdfDpi_->setValue(200);
+    filePdfDpi_->setFixedWidth(65);
+    filePdfDpi_->setFixedHeight(28);
+    filePdfDpi_->setStyleSheet(
+        "QSpinBox { border: 1px solid #D1D5DB; border-radius: 6px; padding: 2px 4px; font-size: 12px; }");
+    paramLayout->addWidget(filePdfDpi_);
+
+    // 分隔
+    auto* sep2 = new QFrame;
+    sep2->setFrameShape(QFrame::VLine);
+    sep2->setFixedWidth(1);
+    sep2->setStyleSheet("color: #E5E7EB; background: #E5E7EB;");
+    paramLayout->addWidget(sep2);
+
+    // 开关
+    fileEnableWarp_ = new QCheckBox(QStringLiteral("去扭曲"));
+    fileEnableWarp_->setObjectName("toggleSwitch");
+    fileEnableWarp_->setChecked(true);
+    fileEnableWarp_->setStyleSheet(
+        "QCheckBox { font-size: 12px; color: #374151; spacing: 4px; }");
+    paramLayout->addWidget(fileEnableWarp_);
+
+    fileEnableEnhance_ = new QCheckBox(QStringLiteral("增强"));
+    fileEnableEnhance_->setObjectName("toggleSwitch");
+    fileEnableEnhance_->setChecked(false);
+    fileEnableEnhance_->setStyleSheet(
+        "QCheckBox { font-size: 12px; color: #374151; spacing: 4px; }");
+    paramLayout->addWidget(fileEnableEnhance_);
+
+    paramLayout->addStretch();
+
+    // 翻译按钮
+    fileTranslateBtn_ = new QPushButton(QStringLiteral("翻译"));
+    fileTranslateBtn_->setObjectName("primaryBtn");
+    fileTranslateBtn_->setFixedHeight(32);
+    fileTranslateBtn_->setFixedWidth(90);
+    fileProcessBtn_ = fileTranslateBtn_;
+    connect(fileTranslateBtn_, &QPushButton::clicked, this, [this]() {
+        if (!filePendingPaths_.isEmpty()) {
+            fileCurrentIdx_ = 0;
+            onProcessFile();
+        }
+    });
+    paramLayout->addWidget(fileTranslateBtn_);
+
+    // 隐藏字段（向后兼容）
+    fileInputPath_ = new QLineEdit;
+    fileInputPath_->setVisible(false);
+    paramLayout->addWidget(fileInputPath_);
+
+    layout->addWidget(paramCard);
+
+    return panel;
+}
+
+void MainWindow::addFileToList(const QString& filePath) {
+    QFileInfo fi(filePath);
+    auto* fileItem = new QFrame;
+    fileItem->setFrameShape(QFrame::NoFrame);
+    fileItem->setFrameShadow(QFrame::Plain);
+    fileItem->setLineWidth(0);
+    fileItem->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 8px; }"
+        "QFrame:hover { border-color: #0B7C72; }");
+    auto* itemLayout = new QHBoxLayout(fileItem);
+    itemLayout->setContentsMargins(10, 8, 10, 8);
+    itemLayout->setSpacing(10);
+
+    // 根据扩展名选图标
+    QString ext = fi.suffix().toLower();
+    QString iconRes;
+    if (ext == "pdf") iconRes = ":/icons/PDF.png";
+    else if (ext == "docx" || ext == "doc") iconRes = ":/icons/DOCX.png";
+    else if (ext == "xlsx" || ext == "xls") iconRes = ":/icons/XLSX.png";
+    else if (ext == "pptx" || ext == "ppt") iconRes = ":/icons/PPTX.png";
+    else if (ext == "txt") iconRes = ":/icons/TXT.png";
+    else if (ext == "md") iconRes = ":/icons/Markdown.png";
+    else if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "tiff") iconRes = ":/icons/image.png";
+    else iconRes = ":/icons/file.png";
+
+    auto* iconLabel = new QLabel;
+    iconLabel->setPixmap(QPixmap(iconRes).scaled(28, 28, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setFixedSize(32, 32);
+    iconLabel->setAlignment(Qt::AlignCenter);
+    itemLayout->addWidget(iconLabel);
+
+    // 文件名 + 大小/时间 — 单个 QLabel，无多余框
+    qint64 bytes = fi.size();
+    QString sizeStr;
+    if (bytes < 1024) sizeStr = QStringLiteral("%1 B").arg(bytes);
+    else if (bytes < 1024 * 1024) sizeStr = QStringLiteral("%1 KB").arg(bytes / 1024);
+    else sizeStr = QStringLiteral("%1 MB").arg(bytes / (1024 * 1024));
+    QString timeStr = QDateTime::currentDateTime().toString("HH:mm:ss");
+
+    auto* nameLabel = new QLabel(
+        QStringLiteral("<span style='color:#1C1C1E; font-size:13px; font-weight:500;'>%1</span><br>"
+                       "<span style='color:#8E8E93; font-size:11px;'>%2 · %3</span>")
+            .arg(fi.fileName(), sizeStr, timeStr));
+    nameLabel->setStyleSheet("background: transparent; padding: 0; margin: 0; border: none;");
+    itemLayout->addWidget(nameLabel, 1);
+
+    // 存储文件路径用于双击打开
+    fileItem->setProperty("filePath", filePath);
+    fileItem->installEventFilter(this);
+
+    auto* statusLabel = new QLabel(QStringLiteral("排队中"));
+    statusLabel->setStyleSheet("font-size: 11px; color: #0B7C72; font-weight: 500;");
+    statusLabel->setProperty("fileStatus", true);
+    itemLayout->addWidget(statusLabel);
+
+    // 下载按钮（完成后显示）
+    auto* downloadBtn = new QPushButton(QStringLiteral("下载"));
+    downloadBtn->setFixedHeight(24);
+    downloadBtn->setCursor(Qt::PointingHandCursor);
+    downloadBtn->setStyleSheet(
+        "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
+        " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
+        "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
+    downloadBtn->setProperty("outputPath", QString());
+    downloadBtn->hide();
+    connect(downloadBtn, &QPushButton::clicked, this, [this, downloadBtn]() {
+        QString outPath = downloadBtn->property("outputPath").toString();
+        if (outPath.isEmpty()) return;
+        QString randName = QStringLiteral("AceTranslate_%1%2")
+            .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz"))
+            .arg(QFileInfo(outPath).suffix().isEmpty() ? ".md" : "." + QFileInfo(outPath).suffix());
+        QString savePath = QFileDialog::getSaveFileName(
+            this, QStringLiteral("保存文件"), randName,
+            QStringLiteral("所有文件 (*)"));
+        if (savePath.isEmpty()) return;
+        if (QFile::exists(outPath)) {
+            if (QFile::copy(outPath, savePath)) {
+                // 清除"翻译完成"状态
+                if (statusLabel_) statusLabel_->setText(QString());
+                if (statusIcon_) statusIcon_->hide();
+                progressBar_->hide();
+                QString dir = QFileInfo(savePath).absolutePath();
+                statusBar_->showMessage(QStringLiteral("已下载到: ") + savePath, 8000);
+                // 可点击的"在文件夹中打开" — 按钮样式更明显
+                auto* openFolderBtn = new QPushButton(QStringLiteral("📂 在文件夹中打开"));
+                openFolderBtn->setCursor(Qt::PointingHandCursor);
+                openFolderBtn->setFixedHeight(26);
+                openFolderBtn->setStyleSheet(
+                    "QPushButton { background: #0B7C72; color: #FFFFFF; font-size: 12px; font-weight: 500;"
+                    " border: none; border-radius: 5px; padding: 0 14px; }"
+                    "QPushButton:hover { background: #09685F; }");
+                connect(openFolderBtn, &QPushButton::clicked, this, [dir]() {
+                    QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
+                });
+                statusBar_->addPermanentWidget(openFolderBtn);
+                // 8秒后自动移除
+                QTimer::singleShot(8000, openFolderBtn, &QPushButton::deleteLater);
+            } else {
+                QFile::remove(savePath);
+                if (!QFile::copy(outPath, savePath))
+                    statusBar_->showMessage(QStringLiteral("保存失败"), 2000);
+            }
+        }
+    });
+    itemLayout->addWidget(downloadBtn);
+
+    auto* removeBtn = new QPushButton(QStringLiteral("✕"));
+    removeBtn->setFixedSize(20, 20);
+    removeBtn->setCursor(Qt::PointingHandCursor);
+    removeBtn->setStyleSheet(
+        "QPushButton { border: none; background: transparent; color: #9CA3AF; font-size: 11px; }"
+        "QPushButton:hover { color: #EF4444; }");
+    connect(removeBtn, &QPushButton::clicked, this, [this, fileItem, filePath]() {
+        fileListLayout_->removeWidget(fileItem);
+        fileItem->deleteLater();
+        filePendingPaths_.removeAll(filePath);
+    });
+    itemLayout->addWidget(removeBtn);
+
+    fileListLayout_->insertWidget(fileListLayout_->count() - 1, fileItem); // 在 stretch 前插入
+}
+
+// —————— 设置面板 ——————
+// ============================================================
+// 创建设置/配置页 — 加入滚动区域
+// ============================================================
+QWidget* MainWindow::createSettingsPanel() {
+    auto* scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setStyleSheet("QScrollArea { border: none; background: transparent; }");
+
+    auto* panel = new QWidget;
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(12);
+
+    auto* title = new QLabel(QStringLiteral("设置"));
+    title->setObjectName("sectionTitle");
+    layout->addWidget(title);
+
+    auto* hint = new QLabel(QStringLiteral("配置各引擎的模型路径与 DLL 路径（支持相对路径或绝对路径）"));
+    hint->setObjectName("sectionHint");
+    hint->setWordWrap(true);
+    layout->addWidget(hint);
+
+    // 获取配置
+    auto& cfg = docmind::ConfigManager::getInstance();
+
+    // ===== 辅助: 创建配置行 =====
+    struct EngineConfig {
+        QString title;
+        QString modelLabel;
+        QString dllLabel;
+        std::string modelKey;
+        std::string dllKey;
+    };
+    EngineConfig engines[] = {
+        {QStringLiteral("OCR 配置"),       QStringLiteral("识别模型"),   QStringLiteral("DLL"),        "models.ocr_dir",     "dlls.ocr"},
+        {QStringLiteral("翻译引擎配置"),   QStringLiteral("模型地址"),   QStringLiteral("DLL"),        "models.translator",  "dlls.translator"},
+        {QStringLiteral("公式识别配置"),   QStringLiteral("模型地址(e.g. VLM)"), QStringLiteral("DLL"),  "models.vlm",         "dlls.vlm"},
+        {QStringLiteral("版面分析配置"),   QStringLiteral("模型地址"),   QStringLiteral("DLL"),        "models.layout",      "dlls.layout"},
+        {QStringLiteral("图片矫正配置"),   QStringLiteral("模型地址(e.g. UVDoc)"), QStringLiteral("DLL"), "models.docproc",    "dlls.docproc"},
+    };
+
+    for (const auto& eng : engines) {
+        auto* group = new QGroupBox(eng.title);
+        group->setStyleSheet(
+            "QGroupBox { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px;"
+            " font-size: 13px; font-weight: 600; color: #134E4A;"
+            " margin-top: 14px; padding: 18px 18px 12px 18px; }"
+            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left;"
+            " padding: 2px 8px; margin-left: 8px;"
+            " background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 6px;"
+            " color: #0B7C72; font-size: 11px; }");
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        // 模型路径行（标签 + 输入 + 浏览）
+        auto* modelLabel = new QLabel(eng.modelLabel + QStringLiteral(":"));
+        modelLabel->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280;");
+        form->addWidget(modelLabel);
+
+        auto* modelRow = new QHBoxLayout;
+        auto* modelEdit = new QLineEdit;
+        modelEdit->setText(QString::fromStdString(cfg.getNestedString(eng.modelKey)));
+        modelEdit->setPlaceholderText(QStringLiteral("留空使用默认"));
+        modelRow->addWidget(modelEdit, 1);
+        auto* modelBrowse = new QPushButton(QStringLiteral("浏览…"));
+        modelBrowse->setObjectName("secondaryBtn");
+        modelBrowse->setFixedSize(72, 30);
+        modelBrowse->setStyleSheet(
+            "QPushButton { background: transparent; color: #0B7C72; border: 1px solid #0B7C72; border-radius: 5px;"
+            " padding: 4px 10px; font-size: 12px; }"
+            "QPushButton:hover { background: #EDF5F4; }");
+        connect(modelBrowse, &QPushButton::clicked, this, [modelEdit]() {
+            QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择模型文件"),
+                QString(), QStringLiteral("模型文件 (*.onnx *.gguf *.pth *.pt);;所有文件 (*)"));
+            if (!path.isEmpty()) modelEdit->setText(path);
+        });
+        modelRow->addWidget(modelBrowse);
+        form->addLayout(modelRow);
+
+        // DLL 路径行
+        auto* dllLabel = new QLabel(eng.dllLabel + QStringLiteral(":"));
+        dllLabel->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280;");
+        form->addWidget(dllLabel);
+
+        auto* dllRow = new QHBoxLayout;
+        auto* dllEdit = new QLineEdit;
+        dllEdit->setText(QString::fromStdString(cfg.getNestedString(eng.dllKey)));
+        dllEdit->setPlaceholderText(QStringLiteral("留空使用默认"));
+        dllRow->addWidget(dllEdit, 1);
+        auto* dllBrowse = new QPushButton(QStringLiteral("浏览…"));
+        dllBrowse->setObjectName("secondaryBtn");
+        dllBrowse->setFixedSize(72, 30);
+        dllBrowse->setStyleSheet(
+            "QPushButton { background: transparent; color: #0B7C72; border: 1px solid #0B7C72; border-radius: 5px;"
+            " padding: 4px 10px; font-size: 12px; }"
+            "QPushButton:hover { background: #EDF5F4; }");
+        connect(dllBrowse, &QPushButton::clicked, this, [dllEdit]() {
+            QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择 DLL 文件"),
+                QString(), QStringLiteral("DLL (*.dll);;所有文件 (*)"));
+            if (!path.isEmpty()) dllEdit->setText(path);
+        });
+        dllRow->addWidget(dllBrowse);
+        form->addLayout(dllRow);
+
+        // 保存修改（拷贝 eng 副本到 lambda，避免悬垂引用）
+        connect(modelEdit, &QLineEdit::editingFinished, this, [&cfg, eng, modelEdit]() {
+            cfg.setNestedString(eng.modelKey, modelEdit->text().toStdString());
+            cfg.save();
+        });
+        connect(dllEdit, &QLineEdit::editingFinished, this, [&cfg, eng, dllEdit]() {
+            cfg.setNestedString(eng.dllKey, dllEdit->text().toStdString());
+            cfg.save();
+        });
+
+        layout->addWidget(group);
+    }
+
+    // ===== GPU 设置组 =====
+    {
+        auto* gpuGroup = new QGroupBox(QStringLiteral("GPU 设置"));
+        gpuGroup->setStyleSheet(
+            "QGroupBox { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px;"
+            " font-size: 13px; font-weight: 600; color: #134E4A;"
+            " margin-top: 14px; padding: 18px 18px 12px 18px; }"
+            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left;"
+            " padding: 2px 8px; margin-left: 8px;"
+            " background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 6px;"
+            " color: #0B7C72; font-size: 11px; }");
+        auto* gpuForm = new QVBoxLayout(gpuGroup);
+        gpuForm->setSpacing(8);
+
+        auto* gpuHint = new QLabel(QStringLiteral("关闭 GPU 加速可降低显存占用，修改后需重启应用生效"));
+        gpuHint->setStyleSheet("font-size: 11px; color: #889096; font-weight: normal;");
+        gpuHint->setWordWrap(true);
+        gpuForm->addWidget(gpuHint);
+
+        // 总开关（分隔线之前）
+        auto* gpuMasterCheck = new QCheckBox(QStringLiteral("启用全部 GPU 加速"));
+        gpuMasterCheck->setObjectName("toggleSwitch");
+        gpuMasterCheck->setChecked(true);
+        gpuMasterCheck->setStyleSheet(
+            "QCheckBox { font-size: 13px; font-weight: 600; color: #134E4A;"
+            "  background: #F0F7F6; border-radius: 6px; padding: 8px 10px; }"
+            "QCheckBox::indicator { width: 44px; height: 24px; border-radius: 12px;"
+            "  border: none; background: #D0D4D8; }"
+            "QCheckBox::indicator:checked { background: #0B7C72; }"
+        );
+        gpuForm->addWidget(gpuMasterCheck);
+
+        // 子开关容器（缩进，包含分隔线和所有子开关）
+        auto* gpuSubWidget = new QWidget;
+        auto* gpuSubLayout = new QVBoxLayout(gpuSubWidget);
+        gpuSubLayout->setContentsMargins(28, 0, 0, 0);
+        gpuSubLayout->setSpacing(4);
+
+        auto* gpuSep = new QFrame;
+        gpuSep->setFrameShape(QFrame::HLine);
+        gpuSep->setFixedHeight(1);
+        gpuSep->setStyleSheet("color: #E5E5EA; margin: 4px 0;");
+        gpuSubLayout->addWidget(gpuSep);
+
+        auto makeGpuCheck = [&](const QString& label, const std::string& configKey) -> QCheckBox* {
+            auto* check = new QCheckBox(label);
+            check->setObjectName("toggleSwitch");
+            check->setChecked(cfg.getNestedJson("defaults").value(configKey, true));
+            check->setEnabled(true);
+            connect(check, &QCheckBox::toggled, this, [&cfg, configKey](bool checked) {
+                cfg.setNestedBool("defaults." + configKey, checked);
+                cfg.save();
+            });
+            return check;
+        };
+
+        auto* gpuLayoutCheck = makeGpuCheck(QStringLiteral("版面分析启用 GPU"), "enable_gpu_layout");
+        auto* gpuOcrCheck = makeGpuCheck(QStringLiteral("OCR 启用 GPU"), "enable_gpu_ocr");
+        auto* gpuVlmCheck = makeGpuCheck(QStringLiteral("公式识别启用 GPU"), "enable_gpu_vlm");
+        auto* gpuDocprocCheck = makeGpuCheck(QStringLiteral("图片矫正启用 GPU"), "enable_gpu_docproc");
+        auto* gpuTransCheck = makeGpuCheck(QStringLiteral("翻译引擎启用 GPU"), "enable_gpu_translator");
+
+        gpuSubLayout->addWidget(gpuLayoutCheck);
+        gpuSubLayout->addWidget(gpuOcrCheck);
+        gpuSubLayout->addWidget(gpuVlmCheck);
+        gpuSubLayout->addWidget(gpuDocprocCheck);
+        gpuSubLayout->addWidget(gpuTransCheck);
+
+        gpuForm->addWidget(gpuSubWidget);
+
+        // 总开关控制所有子开关
+        connect(gpuMasterCheck, &QCheckBox::toggled, this, [gpuLayoutCheck, gpuOcrCheck, gpuVlmCheck, gpuDocprocCheck, gpuTransCheck](bool checked) {
+            gpuLayoutCheck->setChecked(checked);
+            gpuOcrCheck->setChecked(checked);
+            gpuVlmCheck->setChecked(checked);
+            gpuDocprocCheck->setChecked(checked);
+            gpuTransCheck->setChecked(checked);
+        });
+
+        layout->addWidget(gpuGroup);
+    }
+
+    layout->addStretch();
+    scrollArea->setWidget(panel);
+    return scrollArea;
+}
+
+// ============================================================
+// 系统托盘
+// ============================================================
+void MainWindow::createTrayIcon() {
+    // 确保不重复创建托盘图标
+    if (trayIcon_) {
+        trayIcon_->hide();
+        delete trayIcon_;
+        trayIcon_ = nullptr;
+    }
+    trayIcon_ = new QSystemTrayIcon(this);
+    // 用圆角图标
+    {
+        QPixmap src(":/icons/LOGO.png");
+        if (!src.isNull()) {
+            int s = qMin(src.width(), src.height());
+            QPixmap rounded(s, s);
+            rounded.fill(Qt::transparent);
+            QPainter p(&rounded);
+            p.setRenderHint(QPainter::Antialiasing);
+            QPainterPath path;
+            path.addRoundedRect(0, 0, s, s, s * 0.18, s * 0.18);
+            p.setClipPath(path);
+            p.drawPixmap(QRect(0, 0, s, s), src);
+            p.end();
+            trayIcon_->setIcon(QIcon(rounded));
+        } else {
+            trayIcon_->setIcon(QIcon(":/icons/LOGO.png"));
+        }
+    }
+    trayIcon_->setToolTip(QStringLiteral("AceTranslatePro"));
+
+    trayMenu_ = new QMenu(this);
+    trayMenu_->setObjectName(QStringLiteral("trayMenu"));
+    trayMenu_->setStyleSheet(QStringLiteral(
+        "QMenu#trayMenu {"
+        "  background: #FFFFFF;"
+        "  border: 1px solid #D1D1D6;"
+        "  border-radius: 10px;"
+        "  padding: 6px 0;"
+        "}"
+        "QMenu#trayMenu::item {"
+        "  padding: 10px 22px;"
+        "  font-size: 13px;"
+        "  color: #1C1C1E;"
+        "  border: none;"
+        "}"
+        "QMenu#trayMenu::item:selected {"
+        "  background: #007AFF;"
+        "  color: #FFFFFF;"
+        "  border-radius: 6px;"
+        "  margin: 2px 8px;"
+        "  padding: 10px 14px;"
+        "}"
+        "QMenu#trayMenu::separator {"
+        "  height: 1px;"
+        "  background: #E5E5EA;"
+        "  margin: 4px 12px;"
+        "}"
+    ));
+
+    auto* showAction = trayMenu_->addAction(QStringLiteral("显示主窗口"));
+    connect(showAction, &QAction::triggered, this, &MainWindow::onShowWindow);
+
+    trayMenu_->addSeparator();
+
+    auto* quitAction = trayMenu_->addAction(QStringLiteral("退出"));
+    connect(quitAction, &QAction::triggered, this, &MainWindow::onQuitApp);
+
+    trayIcon_->setContextMenu(trayMenu_);
+    connect(trayIcon_, &QSystemTrayIcon::activated, this, &MainWindow::onTrayIconActivated);
+
+    trayIcon_->show();
+}
+
+void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {
+    if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
+        onShowWindow();
+    }
+}
+
+void MainWindow::onShowWindow() {
+    showNormal();
+    activateWindow();
+    raise();
+}
+
+void MainWindow::onQuitApp() {
+    if (trayIcon_) {
+        trayIcon_->hide();
+        delete trayIcon_;
+        trayIcon_ = nullptr;
+    }
+    QApplication::quit();
+}
+
+// ============================================================
+// 全局热键注册
+// ============================================================
+void MainWindow::registerGlobalHotkeys() {
+    // 先确保 ConfigManager 已加载
+    docmind::ConfigManager::getInstance().load();
+
+    // 从配置读取自定义快捷键
+    {
+        auto& cfg = docmind::ConfigManager::getInstance();
+        std::string savedKey = cfg.getString("hotkey.float.key", "");
+        std::string savedMods = cfg.getString("hotkey.float.mods", "");
+        if (!savedKey.empty()) {
+            floatHotkeyKey_ = std::stoi(savedKey);
+            floatHotkeyMods_ = std::stoi(savedMods);
+            if (floatHotkeyBtn_) {
+                QString txt;
+                if (floatHotkeyMods_ & MOD_CONTROL) txt += "Ctrl+";
+                if (floatHotkeyMods_ & MOD_SHIFT) txt += "Shift+";
+                if (floatHotkeyMods_ & MOD_ALT) txt += "Alt+";
+                txt += QChar(floatHotkeyKey_);
+                floatHotkeyBtn_->setText(txt);
+            }
+        }
+    }
+
+    // 截图热键
+    BOOL ok = RegisterHotKey((HWND)winId(), screenshotHotkeyId_,
+                              screenshotHotkeyMods_, screenshotHotkeyKey_);
+    if (!ok) {
+        qWarning("MainWindow: RegisterHotKey(screenshot) failed (error %lu)", GetLastError());
+    }
+
+    // 划词翻译热键: Ctrl+Shift+C
+    ok = RegisterHotKey((HWND)winId(), floatHotkeyId_,
+                         floatHotkeyMods_, floatHotkeyKey_);
+    if (!ok) {
+        qWarning("MainWindow: RegisterHotKey(float) failed (error %lu)", GetLastError());
+    }
+}
+
+// ============================================================
+// nativeEventFilter — 捕获全局热键消息
+// ============================================================
+bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
+    MSG* msg = static_cast<MSG*>(message);
+    if (msg->message == WM_HOTKEY) {
+        if (msg->wParam == floatHotkeyId_) {
+            onFloatHotkey();
+            return true;
+        }
+        if (msg->wParam == screenshotHotkeyId_) {
+            onScreenshotHotkey();
+            return true;
+        }
+    }
+    return false;
+}
+
+// ============================================================
+// onFloatHotkey — 模拟 Ctrl+C 后读取剪贴板（修复修饰键冲突）
+// ============================================================
+void MainWindow::onFloatHotkey() {
+    // 最小化主窗口以确保焦点不在本应用，让 keybd_event 能发送到其他窗口
+    if (isVisible() && !isMinimized()) {
+        showMinimized();
+        Sleep(100);
+    }
+
+    // 释放可能仍按下的 Ctrl 和 Shift（热键消息消耗后 OS 仍视为按下状态）
+    keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+    keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, 0);
+
+    // 等待按键释放完成
+    Sleep(50);
+
+    // 重新发送 Ctrl+C
+    keybd_event(VK_CONTROL, 0, 0, 0);
+    keybd_event('C', 0, 0, 0);
+    Sleep(50);
+    keybd_event('C', 0, KEYEVENTF_KEYUP, 0);
+    keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+
+    // 等待剪贴板更新
+    Sleep(300);
+
+    // 读取剪贴板（带重试）
+    QString text;
+    for (int attempt = 0; attempt < 3 && text.isEmpty(); attempt++) {
+        if (attempt > 0) Sleep(200);
+
+        if (!OpenClipboard(nullptr)) {
+            // 剪贴板忙，重试
+            continue;
+        }
+
+        HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+        if (hData) {
+            wchar_t* pData = static_cast<wchar_t*>(GlobalLock(hData));
+            if (pData) {
+                text = QString::fromWCharArray(pData);
+                GlobalUnlock(hData);
+            }
+        }
+        CloseClipboard();
+    }
+
+    if (!text.isEmpty()) {
+        // 将悬浮窗显示到鼠标位置附近
+        POINT pt;
+        GetCursorPos(&pt);
+        floatWindow_->move(pt.x + 20, pt.y - 40);
+        floatWindow_->translateText(text);
+    } else {
+        // 回退：用 UI 中的语言按钮文本
+        if (floatWindow_) {
+            floatWindow_->show();
+        }
+    }
+}
+
+// ============================================================
+// onScreenshotHotkey — 启动截图
+// ============================================================
+void MainWindow::onScreenshotHotkey() {
+    hide();
+    regionCapture_->startCapture();
+}
+
+// ============================================================
+// 槽函数实现
+// ============================================================
+
+void MainWindow::onTranslateText() {
+    if (busy_.loadRelaxed()) {
+        statusBar_->showMessage(QStringLiteral("正在处理中，请等待…"), 3000);
+        return;
+    }
+    if (!textInput_) return;
+    QString text = textInput_->toPlainText().trimmed();
+    if (text.isEmpty()) {
+        QMessageBox::warning(this, QStringLiteral("提示"), QStringLiteral("请输入要翻译的文本"));
+        return;
+    }
+
+    auto* worker = new TranslateWorker;
+    worker->mode = TranslateWorker::TextTranslate;
+    worker->inputText = text;
+    // 使用目标语言下拉框
+    QString lang = textLangCombo_ ? textLangCombo_->currentText() : QStringLiteral("中文");
+    worker->targetLang = lang;
+    worker->maxTokens = 512;
+    runWorker(worker);
+}
+
+void MainWindow::onCaptureComplete() {
+    show();
+    raise();
+    activateWindow();
+
+    // 切换到截图翻译面板
+    onNavButtonClicked(2);
+
+    cv::Mat mat = regionCapture_->capturedImage();
+    if (mat.empty()) {
+        statusBar_->showMessage(QStringLiteral("截图取消"), 3000);
+        return;
+    }
+
+    // 显示预览缩略图
+    QImage qimg(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_BGR888);
+    QPixmap pix = QPixmap::fromImage(qimg.rgbSwapped());
+    screenshotPreview_->setPixmap(pix.scaled(360, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    screenshotPreview_->setText(QString());
+
+    // 启动翻译
+    auto* worker = new TranslateWorker;
+    worker->mode = TranslateWorker::ScreenshotTranslate;
+    worker->screenshotMat = mat.clone();
+    worker->targetLang = screenshotLangCombo_->currentText();
+    worker->maxTokens = screenshotMaxTokens_->value();
+    runWorker(worker);
+}
+
+void MainWindow::onSelectInputFile() {
+    QString path = QFileDialog::getOpenFileName(
+        this, QStringLiteral("选择文件"),
+        QString(),
+        QStringLiteral("支持的文件 (*.png *.jpg *.jpeg *.bmp *.tiff *.pdf *.docx *.xlsx *.pptx *.md *.txt);;"
+                       "图片 (*.png *.jpg *.jpeg *.bmp *.tiff);;"
+                       "PDF (*.pdf);;"
+                       "Office (*.docx *.xlsx *.pptx);;"
+                       "Markdown (*.md);;"
+                       "文本 (*.txt);;"
+                       "所有文件 (*)")
+    );
+    if (!path.isEmpty()) {
+        fileInputPath_->setText(path);
+    }
+}
+
+void MainWindow::onProcessFile() {
+    if (busy_.loadRelaxed()) {
+        statusBar_->showMessage(QStringLiteral("正在处理中，请等待…"), 3000);
+        return;
+    }
+    if (filePendingPaths_.isEmpty() || fileCurrentIdx_ >= filePendingPaths_.size()) {
+        fileCurrentIdx_ = 0;
+        QMessageBox::warning(this, QStringLiteral("提示"), QStringLiteral("请拖拽或选择输入文件"));
+        return;
+    }
+    QString inputPath = filePendingPaths_[fileCurrentIdx_];
+    fileInputPath_->setText(inputPath);
+
+    auto* worker = new TranslateWorker;
+    worker->mode = TranslateWorker::FileTranslate;
+    worker->inputPath = inputPath;
+    worker->outputPath = QString();
+    worker->targetLang = fileLangCombo_->currentText();
+    worker->layoutThreshold = static_cast<float>(fileLayoutThreshold_->value());
+    worker->pdfDpi = filePdfDpi_->value();
+    worker->enableWarp = fileEnableWarp_->isChecked();
+    worker->enableEnhance = fileEnableEnhance_->isChecked();
+    worker->currentFilePath = inputPath;
+    // 更新文件列表中对应文件的状态为"翻译中"
+    // 用 fileCurrentIdx_ 直接匹配 layout 中的位置
+    int layoutIdx = 0;
+    for (int i = 0; i < fileListLayout_->count(); ++i) {
+        auto* item = fileListLayout_->itemAt(i);
+        if (!item || !item->widget()) continue;
+        if (layoutIdx == fileCurrentIdx_) {
+            QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+            for (int li = 0; li < labels.size(); ++li) {
+                if (labels[li]->property("fileStatus").isValid()) {
+                    labels[li]->setText(QStringLiteral("翻译中…"));
+                    labels[li]->setStyleSheet("font-size: 11px; color: #0B7C72; font-weight: 500;");
+                    break;
+                }
+            }
+            break;
+        }
+        ++layoutIdx;
+    }
+    runWorker(worker);
+}
+
+void MainWindow::onSelectPhotoInput() {
+    QString path = QFileDialog::getOpenFileName(
+        this, QStringLiteral("选择图片"),
+        QString(),
+        QStringLiteral("图片 (*.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)")
+    );
+    if (!path.isEmpty()) {
+        photoInputPath_->setText(path);
+        QPixmap fullPix(path);
+        if (!fullPix.isNull()) {
+            int maxW = photoInputScroll_->viewport()->width();
+            int maxH = photoInputScroll_->viewport()->height();
+            if (maxW < 50) maxW = 300;
+            if (maxH < 50) maxH = 200;
+            QPixmap displayPix = fullPix.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            auto* zoomLabel = qobject_cast<ZoomableLabel*>(photoPreview_);
+            if (zoomLabel) zoomLabel->setFullImage(fullPix, displayPix);
+            photoPreview_->setText(QString());
+            photoPreview_->setAlignment(Qt::AlignCenter);
+        } else {
+            photoPreview_->setText(QStringLiteral("无法加载预览"));
+        }
+    }
+}
+
+void MainWindow::onProcessPhoto() {
+    if (busy_.loadRelaxed()) {
+        statusBar_->showMessage(QStringLiteral("正在处理中，请等待…"), 3000);
+        return;
+    }
+    if (!photoInputPath_) return;
+    QString inputPath = photoInputPath_->text().trimmed();
+    if (inputPath.isEmpty()) {
+        QMessageBox::warning(this, QStringLiteral("提示"), QStringLiteral("请选择输入图片"));
+        return;
+    }
+
+    auto* worker = new TranslateWorker;
+    worker->mode = TranslateWorker::PhotoTranslate;
+    worker->inputPath = inputPath;
+    worker->outputPath = QString();
+    worker->baseDir = "";
+    worker->targetLang = photoLangCombo_->currentText();
+    worker->maxTokens = photoMaxTokens_ ? photoMaxTokens_->value() : 512;
+    runWorker(worker);
+}
+
+void MainWindow::onBrowseBaseDir() {
+    QString dir = QFileDialog::getExistingDirectory(this, QStringLiteral("选择模型/DLL 目录"));
+    if (!dir.isEmpty()) {
+        baseDirPath_->setText(dir);
+    }
+}
+
+// ============================================================
+// 工作线程管理
+// ============================================================
+
+void MainWindow::runWorker(TranslateWorker* worker) {
+    busy_.storeRelaxed(1);
+
+    // 禁用所有操作按钮
+    if (textTranslateBtn_) textTranslateBtn_->setEnabled(false);
+    if (fileProcessBtn_) fileProcessBtn_->setEnabled(false);
+    if (screenshotCaptureBtn_) screenshotCaptureBtn_->setEnabled(false);
+    if (photoTranslateBtn_) photoTranslateBtn_->setEnabled(false);
+
+    QThread* thread = new QThread(this);
+    worker->moveToThread(thread);
+
+    connect(thread, &QThread::started, worker, &TranslateWorker::run);
+    connect(worker, &TranslateWorker::finished, this, &MainWindow::onWorkerFinished);
+    connect(worker, &TranslateWorker::ocrFinished, this, [this](const QString& ocrText) {
+        if (screenshotOcrResult_) {
+            screenshotOcrResult_->setPlainText(ocrText);
+        }
+    });
+    connect(worker, &TranslateWorker::errorOccurred, this, &MainWindow::onWorkerError);
+    connect(worker, &TranslateWorker::progressUpdated, this, &MainWindow::onWorkerProgress);
+    connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+    progressBar_->show();
+    if (statusLabel_) statusLabel_->setText(QStringLiteral("处理中…"));
+    if (hourglassTimer_) {
+        hourglassTimer_->start();
+        // 让沙漏立即显示
+        onHourglassTick();
+    }
+    thread->start();
+}
+
+void MainWindow::onWorkerFinished(const QString& result) {
+    if (hourglassTimer_) hourglassTimer_->stop();
+    if (statusLabel_) statusLabel_->setText(QString()); // 清旧消息
+    if (statusIcon_) {
+        statusIcon_->setText(QString()); // 清除沙漏文字
+        statusIcon_->hide();
+    }
+    progressBar_->hide();
+    QApplication::processEvents(); // 立即刷新进度条隐藏
+    busy_.storeRelaxed(0);
+
+    switch (currentNavIndex_) {
+    case 0: // Text
+        if (textOutput_) textOutput_->setPlainText(result);
+        if (statusIcon_) {
+            QPixmap yesIcon(":/icons/yes.png");
+            statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            statusIcon_->show();
+        }
+        if (statusLabel_) statusLabel_->setText(QStringLiteral(" 翻译完成"));
+        break;
+    case 2: // Screenshot
+        if (screenshotResult_) screenshotResult_->setPlainText(result);
+        if (statusIcon_) {
+            QPixmap yesIcon(":/icons/yes.png");
+            statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            statusIcon_->show();
+        }
+        if (statusLabel_) statusLabel_->setText(QStringLiteral(" 翻译完成"));
+        break;
+    case 3: // Photo — 输出预览缩略图
+        if (statusLabel_) statusLabel_->setText(QStringLiteral(" 翻译完成"));
+        if (statusIcon_) {
+            QPixmap yesIcon(":/icons/yes.png");
+            statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            statusIcon_->show();
+        }
+        if (photoOutputPreview_) {
+            QString outputPath = result;
+            cv::Mat outImg = cv::imread(outputPath.toStdString());
+            if (!outImg.empty()) {
+                photoOutputMat_ = outImg.clone();
+                cv::Mat rgb;
+                cv::cvtColor(outImg, rgb, cv::COLOR_BGR2RGB);
+                QImage qimg(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step), QImage::Format_RGB888);
+                QPixmap pix = QPixmap::fromImage(qimg);
+                if (!pix.isNull()) {
+                    int maxW = photoOutputScroll_ ? photoOutputScroll_->viewport()->width() : 300;
+                    int maxH = photoOutputScroll_ ? photoOutputScroll_->viewport()->height() : 200;
+                    if (maxW < 50) maxW = 300;
+                    if (maxH < 50) maxH = 200;
+                    QPixmap displayPix = pix.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    auto* zoomLabel = qobject_cast<ZoomableLabel*>(photoOutputPreview_);
+                    if (zoomLabel) zoomLabel->setFullImage(pix, displayPix);
+                    photoOutputPreview_->setText(QString());
+                    photoOutputPreview_->setAlignment(Qt::AlignCenter);
+                } else {
+                    photoOutputPreview_->setText(outputPath);
+                }
+            } else {
+                photoOutputPreview_->setText(outputPath);
+            }
+        }
+        break;
+    case 4: // File — 状态栏显示结果 + 更新文件状态 + 显示下载按钮
+        // 更新当前文件的状态为已完成
+        if (fileCurrentIdx_ < filePendingPaths_.size()) {
+            int layoutIdx = 0;
+            for (int i = 0; i < fileListLayout_->count(); ++i) {
+                auto* item = fileListLayout_->itemAt(i);
+                if (!item || !item->widget()) continue;
+                if (layoutIdx == fileCurrentIdx_) {
+                    QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+                    for (int li = 0; li < labels.size(); ++li) {
+                        if (labels[li]->property("fileStatus").isValid()) {
+                            labels[li]->setText(QStringLiteral("已完成"));
+                            labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
+                            break;
+                        }
+                    }
+                    QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
+                    for (int bi = 0; bi < btns.size(); ++bi) {
+                        if (btns[bi]->text() == QStringLiteral("下载")) {
+                            btns[bi]->setProperty("outputPath", result);
+                            btns[bi]->show();
+                            break;
+                        }
+                    }
+                    break;
+                }
+                ++layoutIdx;
+            }
+        }
+        if (statusIcon_) {
+            QPixmap yesIcon(":/icons/yes.png");
+            statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            statusIcon_->show();
+        }
+        statusLabel_->setText(QStringLiteral(" 翻译完成: %1").arg(result));
+        // 自动翻译下一个文件
+        ++fileCurrentIdx_;
+        if (fileCurrentIdx_ < filePendingPaths_.size()) {
+            QTimer::singleShot(500, this, &MainWindow::onProcessFile);
+        } else {
+            fileCurrentIdx_ = 0;
+            // 全部翻译完成 → 悬浮通知（带图标）
+            int total = filePendingPaths_.size();
+            QString msg = QStringLiteral("全部翻译完成（共 %1 个文件）").arg(total);
+            ToastNotification::show(this, msg, 4000, QColor(11, 124, 114));
+        }
+        break;
+    }
+    busy_.storeRelaxed(0);
+    if (textTranslateBtn_) textTranslateBtn_->setEnabled(true);
+    if (fileProcessBtn_) fileProcessBtn_->setEnabled(true);
+    if (screenshotCaptureBtn_) screenshotCaptureBtn_->setEnabled(true);
+    if (photoTranslateBtn_) photoTranslateBtn_->setEnabled(true);
+
+    // 5秒后清除翻译完成状态（如果没被新操作覆盖）
+    QTimer::singleShot(5000, this, [this]() {
+        if (statusLabel_ && statusLabel_->text().contains(QStringLiteral("翻译完成"))) {
+            statusLabel_->setText(QStringLiteral("就绪"));
+            if (statusIcon_) statusIcon_->hide();
+        }
+    });
+}
+
+void MainWindow::onWorkerError(const QString& err) {
+    if (hourglassTimer_) hourglassTimer_->stop();
+    progressBar_->hide();
+    statusBar_->showMessage(QStringLiteral("错误"), 5000);
+    QMessageBox::warning(this, QStringLiteral("翻译出错"), err);
+
+    busy_.storeRelaxed(0);
+    if (textTranslateBtn_) textTranslateBtn_->setEnabled(true);
+    if (fileProcessBtn_) fileProcessBtn_->setEnabled(true);
+    if (screenshotCaptureBtn_) screenshotCaptureBtn_->setEnabled(true);
+    if (photoTranslateBtn_) photoTranslateBtn_->setEnabled(true);
+}
+
+void MainWindow::onWorkerProgress(const QString& msg) {
+    if (statusLabel_) statusLabel_->setText(msg);
+}
+
+// ============================================================
+// onHourglassTick — ⏳ 旋转绘制
+// ============================================================
+void MainWindow::onHourglassTick() {
+    if (!statusIcon_) return;
+    QPixmap pix(18, 18);
+    pix.fill(Qt::transparent);
+    {
+        QPainter p(&pix);
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
+        p.translate(9, 9);
+        p.rotate(hourglassFrame_ * 30.0); // 每帧转30度
+        QFont f = p.font();
+        f.setPixelSize(16);
+        p.setFont(f);
+        p.setPen(QColor(11, 124, 114)); // #0B7C72
+        p.drawText(QRect(-9, -9, 18, 18), Qt::AlignCenter, QStringLiteral("\xe2\x8f\xb3")); // ⏳
+    }
+    statusIcon_->setPixmap(pix);
+    statusIcon_->setFixedSize(16, 16);
+    statusIcon_->show();
+    hourglassFrame_++;
+}
+
+// ============================================================
+// createCheckIcon — 绘制绿色小对勾图标
+// ============================================================
+QPixmap MainWindow::createCheckIcon() {
+    QPixmap pix(16, 16);
+    pix.fill(Qt::transparent);
+    QPainter painter(&pix);
+    painter.setRenderHint(QPainter::Antialiasing);
+    // 绿色圆底
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor("#10B981"));
+    painter.drawEllipse(1, 1, 14, 14);
+    // 白色对勾
+    painter.setPen(QPen(Qt::white, 2.2));
+    painter.drawLine(QPointF(4.5, 8.5), QPointF(7, 11));
+    painter.drawLine(QPointF(7, 11), QPointF(12, 5.5));
+    painter.end();
+    return pix;
+}
