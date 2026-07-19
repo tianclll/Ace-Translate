@@ -85,6 +85,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} ${PDFIUM_LIBRARY})
 target_link_libraries(${PROJECT_NAME} Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} ole32 sapi)
 
 # ====== deps 子项目（GPU 版）======
 add_subdirectory(deps/translator)

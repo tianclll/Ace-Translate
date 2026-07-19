@@ -94,6 +94,14 @@ tests/
 Thumbs.db
 desktop.ini
 
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+
+# ── 开发文档 / 过程产物 ──
+docs/superpowers/
+
 # ── 杂项 ──
 by.txt
 config.json

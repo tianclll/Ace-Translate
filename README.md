@@ -167,6 +167,8 @@ models/
 
 > **模型下载**：[Hugging Face 🤗](https://huggingface.co/your-username/your-repo)（待上传）
 
+> **注意**：本项目为追求轻量化，所有模块均使用了量化/轻量模型（翻译 Q4_K_M、OCR mobile 版、小型 VLM 等），翻译质量和识别精度可能不如全精度或大型模型。如果您有特定场景的更高精度需求（专业领域的翻译模型、高精度 OCR、大型 VLM 等），欢迎联系我定制。
+
 ---
 
 ## ⚙️ 配置
@@ -265,6 +267,6 @@ AceTranslatePro/
 
 <div align="center">
 
-**Made with ❤️**
+**Made with ❤️** · 如有定制需求，请加微信：`AceTranslatePro`
 
 </div>

@@ -158,6 +158,7 @@ private:
     void resizeEvent(QResizeEvent* event) override;
     bool eventFilter(QObject* obj, QEvent* event) override;
     static QPixmap createCheckIcon();
+    void speakText(const QString& text);
 
     // -- 导航 --
     QFrame* navPanel_;
