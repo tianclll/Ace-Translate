@@ -1,0 +1,101 @@
+# ── 构建输出 ──
+build/
+build_all/
+build_cpu/
+cmake-build-debug/
+cmake-build-release/
+cmake-build-*/
+out/
+x64/
+Release/
+Debug/
+
+# ── IDE / 编辑器 ──
+.idea/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.vcxproj.user
+*.vcxproj.filters
+*.vcxproj
+*.sln
+ipch/
+.vs/
+
+# ── Claude / Superpowers ──
+.claude/
+.superpowers/
+
+# ── CMake ──
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.dir/
+*.cmake
+!CMakeLists.txt
+!CMakeLists_cpu.txt
+!deps/*/CMakeLists.txt
+
+# ── 编译中间产物 ──
+*.obj
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.ipdb
+*.iobj
+*.tlog
+*.lastbuildstate
+*.log
+*.manifest
+*.res
+*.aps
+
+# ── Qt 生成的 moc/rcc/ui 文件 ──
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# ── 模型文件（大二进制） ──
+*.gguf
+*.onnx
+*.param
+*.bin
+models/
+
+# ── 运行时 DLL（由 CMake POST_BUILD 复制） ──
+*.dll
+!third_party/**/*.dll
+!deps/**/*.dll
+
+# ── 输入测试文件 ──
+tests/
+*.docx
+*.xlsx
+*.pptx
+
+# ── 图片产物 ──
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif
+*.ico
+!.gitkeep
+
+# ── 系统文件 ──
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── 杂项 ──
+by.txt
+config.json
+*.env
+*.env.local
