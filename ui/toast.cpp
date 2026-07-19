@@ -5,23 +5,29 @@
 #include <QGraphicsOpacityEffect>
 #include <QApplication>
 #include <QLabel>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QMouseEvent>
 
 void ToastNotification::show(QWidget* parent, const QString& message, int durationMs,
-                              const QColor& bgColor) {
+                              const QColor& bgColor, const QString& iconPath,
+                              const QString& actionText, const QString& actionUrl) {
     if (!parent) return;
-    auto* toast = new ToastNotification(parent, message, durationMs, bgColor);
+    auto* toast = new ToastNotification(parent, message, durationMs, bgColor, iconPath,
+                                         actionText, actionUrl);
     toast->raise();
     toast->QFrame::show();
     toast->animate();
 }
 
 ToastNotification::ToastNotification(QWidget* parent, const QString& message, int durationMs,
-                                       const QColor& bgColor)
+                                       const QColor& bgColor, const QString& iconPath,
+                                       const QString& actionText, const QString& actionUrl)
     : QFrame(parent)
 {
     setObjectName("toast");
     setAttribute(Qt::WA_DeleteOnClose);
-    setAttribute(Qt::WA_TransparentForMouseEvents);
+    // WA_TransparentForMouseEvents 不能设了——需要点击事件
     auto* effect = new QGraphicsOpacityEffect;
     setGraphicsEffect(effect);
 
@@ -29,11 +35,12 @@ ToastNotification::ToastNotification(QWidget* parent, const QString& message, in
     layout->setContentsMargins(14, 10, 16, 10);
     layout->setSpacing(6);
 
-    // 图标
+    // 图标（支持自定义路径，默认 yes.png）
     auto* icon = new QLabel;
-    QPixmap yesPix(QStringLiteral(":/icons/yes.png"));
-    if (!yesPix.isNull()) {
-        icon->setPixmap(yesPix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QString path = iconPath.isEmpty() ? QStringLiteral(":/icons/yes.png") : iconPath;
+    QPixmap ico(path);
+    if (!ico.isNull()) {
+        icon->setPixmap(ico.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
     icon->setFixedSize(20, 20);
     layout->addWidget(icon);
@@ -41,7 +48,19 @@ ToastNotification::ToastNotification(QWidget* parent, const QString& message, in
     label_ = new QLabel(message);
     label_->setStyleSheet("color: #FFFFFF; font-size: 13px; font-weight: 500; background: transparent;");
     label_->setWordWrap(false);
-    layout->addWidget(label_);
+    layout->addWidget(label_, 1);
+
+    // 动作按钮（如"打开设置"）
+    if (!actionText.isEmpty() && !actionUrl.isEmpty()) {
+        auto* actionLabel = new QLabel(QStringLiteral("<a href=\"%1\" style=\"color:#FFFFFF; text-decoration:underline;\">%2</a>")
+                                        .arg(actionUrl, actionText));
+        actionLabel->setStyleSheet("background: transparent;");
+        actionLabel->setCursor(Qt::PointingHandCursor);
+        connect(actionLabel, &QLabel::linkActivated, this, [actionUrl]() {
+            QDesktopServices::openUrl(QUrl(actionUrl));
+        });
+        layout->addWidget(actionLabel);
+    }
 
     // 背景色（默认绿色，参数可指定）
     setStyleSheet(QStringLiteral(

@@ -37,6 +37,10 @@
 #include <QPainter>
 #include <QPainterPath>
 
+#include <sapi.h>
+#include <sphelper.h>
+#include <sstream>
+
 #include <opencv2/opencv.hpp>
 
 // ============================================================
@@ -47,116 +51,43 @@ static void populateLanguages(QComboBox* combo, const QString& defaultLang = QSt
     combo->setInsertPolicy(QComboBox::NoInsert);
     combo->addItems({
         QStringLiteral("中文"),
-        QStringLiteral("English"),
-        QStringLiteral("日本語"),
-        QStringLiteral("한국어"),
-        QStringLiteral("Afrikaans"),
-        QStringLiteral("Albanian"),
-        QStringLiteral("Amharic"),
-        QStringLiteral("Arabic"),
-        QStringLiteral("Armenian"),
-        QStringLiteral("Azerbaijani"),
-        QStringLiteral("Basque"),
-        QStringLiteral("Belarusian"),
-        QStringLiteral("Bengali"),
-        QStringLiteral("Bosnian"),
-        QStringLiteral("Bulgarian"),
-        QStringLiteral("Catalan"),
-        QStringLiteral("Cebuano"),
-        QStringLiteral("Chichewa"),
-        QStringLiteral("Chinese (Simplified)"),
-        QStringLiteral("Chinese (Traditional)"),
-        QStringLiteral("Corsican"),
-        QStringLiteral("Croatian"),
-        QStringLiteral("Czech"),
-        QStringLiteral("Danish"),
-        QStringLiteral("Dutch"),
-        QStringLiteral("Esperanto"),
-        QStringLiteral("Estonian"),
-        QStringLiteral("Filipino"),
-        QStringLiteral("Finnish"),
-        QStringLiteral("French"),
-        QStringLiteral("Frisian"),
-        QStringLiteral("Galician"),
-        QStringLiteral("Georgian"),
-        QStringLiteral("German"),
-        QStringLiteral("Greek"),
-        QStringLiteral("Gujarati"),
-        QStringLiteral("Haitian Creole"),
-        QStringLiteral("Hausa"),
-        QStringLiteral("Hawaiian"),
-        QStringLiteral("Hebrew"),
-        QStringLiteral("Hindi"),
-        QStringLiteral("Hmong"),
-        QStringLiteral("Hungarian"),
-        QStringLiteral("Icelandic"),
-        QStringLiteral("Igbo"),
-        QStringLiteral("Indonesian"),
-        QStringLiteral("Irish"),
-        QStringLiteral("Italian"),
-        QStringLiteral("Javanese"),
-        QStringLiteral("Kannada"),
-        QStringLiteral("Kazakh"),
-        QStringLiteral("Khmer"),
-        QStringLiteral("Kinyarwanda"),
-        QStringLiteral("Korean"),
-        QStringLiteral("Kurdish (Kurmanji)"),
-        QStringLiteral("Kyrgyz"),
-        QStringLiteral("Lao"),
-        QStringLiteral("Latin"),
-        QStringLiteral("Latvian"),
-        QStringLiteral("Lithuanian"),
-        QStringLiteral("Luxembourgish"),
-        QStringLiteral("Macedonian"),
-        QStringLiteral("Malagasy"),
-        QStringLiteral("Malay"),
-        QStringLiteral("Malayalam"),
-        QStringLiteral("Maltese"),
-        QStringLiteral("Maori"),
-        QStringLiteral("Marathi"),
-        QStringLiteral("Mongolian"),
-        QStringLiteral("Myanmar (Burmese)"),
-        QStringLiteral("Nepali"),
-        QStringLiteral("Norwegian"),
-        QStringLiteral("Odia (Oriya)"),
-        QStringLiteral("Pashto"),
-        QStringLiteral("Persian"),
-        QStringLiteral("Polish"),
-        QStringLiteral("Portuguese"),
-        QStringLiteral("Punjabi"),
-        QStringLiteral("Romanian"),
-        QStringLiteral("Russian"),
-        QStringLiteral("Samoan"),
-        QStringLiteral("Scots Gaelic"),
-        QStringLiteral("Serbian"),
-        QStringLiteral("Sesotho"),
-        QStringLiteral("Shona"),
-        QStringLiteral("Sindhi"),
-        QStringLiteral("Sinhala"),
-        QStringLiteral("Slovak"),
-        QStringLiteral("Slovenian"),
-        QStringLiteral("Somali"),
-        QStringLiteral("Spanish"),
-        QStringLiteral("Sundanese"),
-        QStringLiteral("Swahili"),
-        QStringLiteral("Swedish"),
-        QStringLiteral("Tajik"),
-        QStringLiteral("Tamil"),
-        QStringLiteral("Tatar"),
-        QStringLiteral("Telugu"),
-        QStringLiteral("Thai"),
-        QStringLiteral("Turkish"),
-        QStringLiteral("Turkmen"),
-        QStringLiteral("Ukrainian"),
-        QStringLiteral("Urdu"),
-        QStringLiteral("Uyghur"),
-        QStringLiteral("Uzbek"),
-        QStringLiteral("Vietnamese"),
-        QStringLiteral("Welsh"),
-        QStringLiteral("Xhosa"),
-        QStringLiteral("Yiddish"),
-        QStringLiteral("Yoruba"),
-        QStringLiteral("Zulu")
+        QStringLiteral("英语"),
+        QStringLiteral("法语"),
+        QStringLiteral("葡萄牙语"),
+        QStringLiteral("西班牙语"),
+        QStringLiteral("日语"),
+        QStringLiteral("土耳其语"),
+        QStringLiteral("俄语"),
+        QStringLiteral("阿拉伯语"),
+        QStringLiteral("韩语"),
+        QStringLiteral("泰语"),
+        QStringLiteral("意大利语"),
+        QStringLiteral("德语"),
+        QStringLiteral("越南语"),
+        QStringLiteral("马来语"),
+        QStringLiteral("印尼语"),
+        QStringLiteral("菲律宾语"),
+        QStringLiteral("印地语"),
+        QStringLiteral("繁体中文"),
+        QStringLiteral("波兰语"),
+        QStringLiteral("捷克语"),
+        QStringLiteral("荷兰语"),
+        QStringLiteral("高棉语"),
+        QStringLiteral("缅甸语"),
+        QStringLiteral("波斯语"),
+        QStringLiteral("古吉拉特语"),
+        QStringLiteral("乌尔都语"),
+        QStringLiteral("泰卢固语"),
+        QStringLiteral("马拉地语"),
+        QStringLiteral("希伯来语"),
+        QStringLiteral("孟加拉语"),
+        QStringLiteral("泰米尔语"),
+        QStringLiteral("乌克兰语"),
+        QStringLiteral("藏语"),
+        QStringLiteral("哈萨克语"),
+        QStringLiteral("蒙古语"),
+        QStringLiteral("维吾尔语"),
+        QStringLiteral("粤语"),
     });
     combo->setCurrentText(defaultLang);
 }
@@ -903,6 +834,9 @@ QWidget* MainWindow::createTextPanel() {
     textSpeakBtn_ = new QPushButton(QStringLiteral("朗读"));
     textSpeakBtn_->setCursor(Qt::PointingHandCursor);
     textSpeakBtn_->setStyleSheet(textCopyBtn_->styleSheet());
+    connect(textSpeakBtn_, &QPushButton::clicked, this, [this]() {
+        speakText(textOutput_ ? textOutput_->toPlainText() : QString());
+    });
     rightHeaderRow->addWidget(textSpeakBtn_);
 
     rightInner->addLayout(rightHeaderRow);
@@ -1492,6 +1426,9 @@ QWidget* MainWindow::createScreenshotPanel() {
     auto* screenshotSpeakBtn = new QPushButton(QStringLiteral("朗读"));
     screenshotSpeakBtn->setCursor(Qt::PointingHandCursor);
     screenshotSpeakBtn->setStyleSheet(screenshotCopyBtn->styleSheet());
+    connect(screenshotSpeakBtn, &QPushButton::clicked, this, [this]() {
+        speakText(screenshotResult_ ? screenshotResult_->toPlainText() : QString());
+    });
     resultBtnRow->addWidget(screenshotSpeakBtn);
     transContainer->addLayout(resultBtnRow);
     resultInner->addLayout(transContainer, 1);
@@ -2890,6 +2827,155 @@ void MainWindow::onHourglassTick() {
     statusIcon_->setFixedSize(16, 16);
     statusIcon_->show();
     hourglassFrame_++;
+}
+
+// ============================================================
+// speakText — 使用 Windows SAPI 朗读文本（自动匹配语音）
+// ============================================================
+void MainWindow::speakText(const QString& text) {
+    if (text.isEmpty()) return;
+
+    // 检测文本包含哪些非拉丁文字
+    bool hasChinese = false, hasKorean = false, hasJapanese = false;
+    bool hasTamil = false, hasHindi = false, hasBengali = false;
+    bool hasTelugu = false, hasMarathi = false, hasGujarati = false;
+    bool hasMalayalam = false, hasKannada = false, hasPunjabi = false;
+    bool hasArabic = false, hasHebrew = false, hasThai = false;
+    bool hasKhmer = false, hasBurmese = false, hasTibetan = false;
+    bool hasMongolian = false, hasRussian = false;
+
+    for (const QChar& c : text) {
+        uint32_t u = c.unicode();
+        if      (u >= 0x4E00 && u <= 0x9FFF) hasChinese = true;
+        else if (u >= 0xAC00 && u <= 0xD7AF) hasKorean = true;
+        else if (u >= 0x3040 && u <= 0x30FF) hasJapanese = true;
+        else if (u >= 0x0900 && u <= 0x097F) { hasHindi = true; hasMarathi = true; }
+        else if (u >= 0x0980 && u <= 0x09FF) hasBengali = true;
+        else if (u >= 0x0A00 && u <= 0x0A7F) hasPunjabi = true;
+        else if (u >= 0x0A80 && u <= 0x0AFF) hasGujarati = true;
+        else if (u >= 0x0B80 && u <= 0x0BFF) hasTamil = true;
+        else if (u >= 0x0C00 && u <= 0x0C7F) hasTelugu = true;
+        else if (u >= 0x0C80 && u <= 0x0CFF) hasKannada = true;
+        else if (u >= 0x0D00 && u <= 0x0D7F) hasMalayalam = true;
+        else if (u >= 0x0E00 && u <= 0x0E7F) hasThai = true;
+        else if (u >= 0x1780 && u <= 0x17FF) hasKhmer = true;
+        else if (u >= 0x1000 && u <= 0x109F) hasBurmese = true;
+        else if (u >= 0x0600 && u <= 0x06FF) hasArabic = true;
+        else if (u >= 0x0590 && u <= 0x05FF) hasHebrew = true;
+        else if (u >= 0x0F00 && u <= 0x0FFF) hasTibetan = true;
+        else if (u >= 0x1800 && u <= 0x18AF) hasMongolian = true;
+        else if (u >= 0x0400 && u <= 0x04FF) hasRussian = true;
+    }
+
+    ISpVoice* pVoice = nullptr;
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    hr = CoCreateInstance(CLSID_SpVoice, nullptr, CLSCTX_ALL, IID_ISpVoice, (void**)&pVoice);
+    if (FAILED(hr) || !pVoice) {
+        qWarning() << "SAPI voice initialization failed:" << hr;
+        return;
+    }
+
+    // 枚举所有语音
+    IEnumSpObjectTokens* pEnum = nullptr;
+    hr = SpEnumTokens(SPCAT_VOICES, nullptr, nullptr, &pEnum);
+    if (SUCCEEDED(hr) && pEnum) {
+        struct VoiceInfo { ISpObjectToken* token; std::wstring name; std::wstring lcid; };
+        std::vector<VoiceInfo> voices;
+        ISpObjectToken* pToken = nullptr;
+        while (pEnum->Next(1, &pToken, nullptr) == S_OK) {
+            LPWSTR lang = nullptr, vname = nullptr;
+            pToken->GetStringValue(L"Language", &lang);
+            pToken->GetStringValue(L"", &vname);
+            voices.push_back({pToken, vname ? vname : L"", lang ? lang : L""});
+            CoTaskMemFree(lang); CoTaskMemFree(vname);
+        }
+        pEnum->Release();
+
+        if (!voices.empty()) {
+            // 确定目标语言的 LCID 和名称关键词
+            struct LangInfo { std::wstring lcid; std::vector<std::wstring> names; };
+            LangInfo target;
+
+            if (hasKorean)        target = {L"0412", {L"Korean", L"한"}};
+            else if (hasJapanese) target = {L"0411", {L"Japanese", L"日"}};
+            else if (hasChinese)  target = {L"0804", {L"Chinese", L"中文", L"Hui", L"Xiao", L"Yun"}};
+            else if (hasTamil)    target = {L"0449", {L"Tamil"}};
+            else if (hasHindi || hasMarathi) target = {L"0439", {L"Hindi", L"द"}};
+            else if (hasBengali)  target = {L"0445", {L"Bengali", L"ব"}};
+            else if (hasTelugu)   target = {L"044A", {L"Telugu", L"త"}};
+            else if (hasGujarati) target = {L"0447", {L"Gujarati", L"ગ"}};
+            else if (hasMalayalam) target = {L"044C", {L"Malayalam", L"മ"}};
+            else if (hasKannada)  target = {L"044B", {L"Kannada", L"ಕ"}};
+            else if (hasPunjabi)  target = {L"0446", {L"Punjabi", L"ਪ"}};
+            else if (hasThai)     target = {L"041E", {L"Thai"}};
+            else if (hasArabic)   target = {L"0401", {L"Arabic"}};
+            else if (hasHebrew)   target = {L"040D", {L"Hebrew"}};
+            else if (hasKhmer)    target = {L"0453", {L"Khmer"}};
+            else if (hasBurmese)  target = {L"0455", {L"Burmese"}};
+            else if (hasTibetan)  target = {L"0451", {L"Tibetan"}};
+            else if (hasMongolian) target = {L"0450", {L"Mongolian"}};
+            else if (hasRussian)  target = {L"0419", {L"Russian", L"Russian"}};
+            else                  target = {L"0409", {L"English", L"David", L"Zira", L"Jenny"}};
+
+            bool matched = false;
+            for (auto& v : voices) {
+                if (!target.lcid.empty() && v.lcid.find(target.lcid) != std::wstring::npos) {
+                    pVoice->SetVoice(v.token);
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                for (auto& v : voices) {
+                    for (const auto& kw : target.names) {
+                        if (v.name.find(kw) != std::wstring::npos) {
+                            pVoice->SetVoice(v.token);
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (matched) break;
+                }
+            }
+            for (auto& v : voices) v.token->Release();
+
+            // 没匹配到 — 弹提示
+            if (!matched) {
+                QStringList names;
+                if (hasKorean)     names << QStringLiteral("韩语");
+                else if (hasJapanese) names << QStringLiteral("日语");
+                else if (hasTamil)  names << QStringLiteral("泰米尔语");
+                else if (hasHindi)  names << QStringLiteral("印地语");
+                else if (hasBengali) names << QStringLiteral("孟加拉语");
+                else if (hasTelugu) names << QStringLiteral("泰卢固语");
+                else if (hasMarathi) names << QStringLiteral("马拉地语");
+                else if (hasGujarati) names << QStringLiteral("古吉拉特语");
+                else if (hasMalayalam) names << QStringLiteral("马拉雅拉姆语");
+                else if (hasKannada) names << QStringLiteral("卡纳达语");
+                else if (hasPunjabi) names << QStringLiteral("旁遮普语");
+                else if (hasThai)   names << QStringLiteral("泰语");
+                else if (hasArabic) names << QStringLiteral("阿拉伯语");
+                else if (hasHebrew) names << QStringLiteral("希伯来语");
+                else if (hasKhmer)  names << QStringLiteral("高棉语");
+                else if (hasBurmese) names << QStringLiteral("缅甸语");
+                else if (hasTibetan) names << QStringLiteral("藏语");
+                else if (hasMongolian) names << QStringLiteral("蒙古语");
+                else if (hasRussian) names << QStringLiteral("俄语");
+
+                if (!names.isEmpty()) {
+                    ToastNotification::show(this,
+                        QStringLiteral("未找到 %1 语音包").arg(names.join(QStringLiteral("/"))), 5000,
+                        QColor("#E74C3C"), QStringLiteral(":/icons/close.png"),
+                        QStringLiteral("打开设置"),
+                        QStringLiteral("ms-settings:speech"));
+                }
+            }
+        }
+    }
+
+    std::wstring wstr = text.toStdWString();
+    pVoice->Speak(wstr.c_str(), SPF_DEFAULT, nullptr);
+    pVoice->Release();
 }
 
 // ============================================================
