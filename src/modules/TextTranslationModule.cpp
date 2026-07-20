@@ -14,6 +14,9 @@ namespace docmind {
     std::string TextTranslationModule::translate(const std::string& text, int max_tokens) {
         if (text.empty()) return text;
 
+        // 确保翻译引擎已加载（支持懒加载）
+        GlobalEngineContext::getInstance().ensureTranslatorEngine();
+
         auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
         if (!translator) {
             throw std::runtime_error("Translator engine not available");

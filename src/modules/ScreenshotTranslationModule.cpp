@@ -13,6 +13,10 @@ namespace docmind {
     std::string ScreenshotTranslationModule::translate(const cv::Mat& image, int max_tokens) {
         if (image.empty()) return "";
 
+        // 确保引擎已加载（支持懒加载）
+        GlobalEngineContext::getInstance().ensureOCREngine();
+        GlobalEngineContext::getInstance().ensureTranslatorEngine();
+
         auto* ocr = GlobalEngineContext::getInstance().getOCREngine();
         auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
         if (!ocr || !translator) {

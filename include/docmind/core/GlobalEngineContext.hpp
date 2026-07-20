@@ -33,7 +33,14 @@ namespace docmind {
         void* getASRHandle() { return asr_handle_; }
         ASREngine* getASREngine() { return asr_.get(); }
         bool isASRLoaded() const { return asr_loaded_; }
-        void setBaseDir(const std::string& dir) { base_dir_ = dir; }
+
+        // 懒加载引擎（如果启动时未加载，按需加载；返回 true 表示加载成功或已加载）
+        bool ensureOCREngine();
+        bool ensureLayoutDetector();
+        bool ensureVLMEngine();
+        bool ensureTranslatorEngine();
+        bool ensureASREngine();
+        bool ensureDocProc();
 
         bool isInitialized() const { return initialized_; }
 

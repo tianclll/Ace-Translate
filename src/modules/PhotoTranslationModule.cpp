@@ -23,6 +23,10 @@ namespace docmind {
     cv::Mat PhotoTranslationModule::process(const cv::Mat& input, int max_tokens) {
         if (input.empty()) return {};
 
+        // 确保引擎已加载（支持懒加载）
+        ctx_.ensureOCREngine();
+        ctx_.ensureTranslatorEngine();
+
         auto* ocr = ctx_.getOCREngine();
         auto* translator = ctx_.getTranslatorEngine();
         if (!ocr || !translator) {

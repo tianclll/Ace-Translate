@@ -31,6 +31,7 @@ namespace docmind {
 
 // ---------- 独立公式识别 ----------
     std::string DocumentProcessor::recognizeFormula(const cv::Mat& roi) {
+        ctx_.ensureVLMEngine();
         auto* vlm = ctx_.getVLMEngine();
         if (!vlm) return "";
         std::string latex = vlm->recognize(roi, "Table Recognition:", 128);
@@ -44,6 +45,9 @@ namespace docmind {
                                                     const std::vector<BoxInfo>& formula_boxes) {
         cv::Mat roi = image(text_box.bbox).clone();
         if (roi.empty()) return "";
+
+        ctx_.ensureOCREngine();
+        ctx_.ensureVLMEngine();
 
         auto* ocr = ctx_.getOCREngine();
         auto* vlm = ctx_.getVLMEngine();
@@ -288,6 +292,11 @@ namespace docmind {
             return {};
         }
 
+        // 确保所需引擎已加载（支持懒加载）
+        ctx_.ensureLayoutDetector();
+        ctx_.ensureOCREngine();
+        ctx_.ensureVLMEngine();
+
         // 获取所需引擎指针
         auto* layout = ctx_.getLayoutDetector();
         auto* ocr = ctx_.getOCREngine();
@@ -300,6 +309,9 @@ namespace docmind {
 
         // -------- 图像预处理（去扭曲、增强） --------
         cv::Mat processed_image = image;
+        if (config_.enable_warp || config_.enable_enhance) {
+            ctx_.ensureDocProc();
+        }
         void* docproc = ctx_.getDocProcHandle();
         if (docproc && (config_.enable_warp || config_.enable_enhance)) {
             auto* dll_loader = ctx_.getDLLLoader();

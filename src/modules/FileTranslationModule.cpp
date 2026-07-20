@@ -212,6 +212,7 @@ namespace docmind {
     static std::string translate_text(const std::string& text, const std::string& target_lang, int max_tokens = 512) {
         // 使用新重载
         if (text.empty()) return text;
+        GlobalEngineContext::getInstance().ensureTranslatorEngine();
         auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
         if (!translator) {
             std::cerr << "Translator not available." << std::endl;
@@ -318,6 +319,7 @@ namespace docmind {
         std::string content = buffer.str();
 
         if (is_md) {
+            GlobalEngineContext::getInstance().ensureTranslatorEngine();
             auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
             if (!translator) throw std::runtime_error("Translator not available");
             return translate_markdown_content(content, *translator, target_lang);
