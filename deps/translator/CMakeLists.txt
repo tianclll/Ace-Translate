@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # llama.cpp 路径（已编译好的库文件）
 set(LLAMA_DIR "D:/AceTranslatePro/tools/translator/TranslationApp/external/llama.cpp")
-set(LLAMA_BUILD_DIR "${LLAMA_DIR}/build")
+set(LLAMA_BUILD_DIR "${LLAMA_DIR}/build_gpu")
 
 # 包含路径
 include_directories(${LLAMA_DIR})
@@ -17,7 +17,7 @@ include_directories(${LLAMA_DIR}/common)
 # 创建动态库
 add_library(translator SHARED src/translator.cpp)
 
-target_compile_definitions(translator PRIVATE TRANSLATOR_EXPORTS)
+target_compile_definitions(translator PRIVATE TRANSLATOR_EXPORTS GGML_USE_CUDA)
 # CPU 版：不定义 GGML_USE_CUDA
 
 # 链接已编译好的 llama 库
