@@ -12,10 +12,11 @@ extern "C" {
  * @brief 创建 ASR 引擎实例
  * @param model_path model_quant.onnx 路径
  * @param tokens_path tokens.json 路径
+ * @param mvn_path am.mvn（CMVN 文件）路径，可为空
  * @param use_gpu 是否启用 GPU
  * @return 引擎句柄，失败返回 nullptr
  */
-ASR_API void* asr_create(const char* model_path, const char* tokens_path, int use_gpu);
+ASR_API void* asr_create(const char* model_path, const char* tokens_path, const char* mvn_path, int use_gpu);
 
 /**
  * @brief 识别音频

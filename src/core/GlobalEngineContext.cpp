@@ -5,7 +5,7 @@
 #include <windows.h>
 
 // ASR DLL 函数指针类型
-using ASRCreateFunc = void* (*)(const char*, const char*, int);
+using ASRCreateFunc = void* (*)(const char*, const char*, const char*, int);
 using ASRRecognizeFunc = char* (*)(void*, const short*, int);
 using ASRDestroyFunc = void (*)(void*);
 
@@ -147,7 +147,8 @@ namespace docmind {
                     if (asr_create_fn) {
                         std::string asr_model = base + "\\" + models.value("asr_model", "models/ASR/model_quant.onnx");
                         std::string asr_tokens = base + "\\" + models.value("asr_tokens", "models/ASR/tokens.json");
-                        asr_handle_ = asr_create_fn(asr_model.c_str(), asr_tokens.c_str(), asr_gpu ? 1 : 0);
+                        std::string asr_mvn = base + "\\" + models.value("asr_mvn", "models/ASR/am.mvn");
+                        asr_handle_ = asr_create_fn(asr_model.c_str(), asr_tokens.c_str(), asr_mvn.c_str(), asr_gpu ? 1 : 0);
                         asr_loaded_ = (asr_handle_ != nullptr);
                         if (asr_loaded_) {
                             std::cout << "ASR engine initialized." << std::endl;

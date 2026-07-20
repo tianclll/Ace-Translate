@@ -2203,8 +2203,8 @@ QWidget* MainWindow::createSettingsPanel() {
         form->setSpacing(6);
 
         auto* transCombo = new QComboBox;
-        // 扫描 models/translator/ 下的 .gguf 文件
-        QString modelDir = QCoreApplication::applicationDirPath() + "/models/translator";
+        // 扫描 models/translation/ 下的 .gguf 文件
+        QString modelDir = QCoreApplication::applicationDirPath() + "/models/translation";
         QDir dir(modelDir);
         QStringList filters;
         filters << "*.gguf";
@@ -2792,6 +2792,9 @@ static HMODULE tryLoadASRDLL() {
 // onMicButtonClicked — 语音输入
 // ============================================================
 void MainWindow::onMicButtonClicked() {
+    // Shift+点击：从 test.wav 读取音频进行测试（无需麦克风）
+    bool testMode = (QApplication::keyboardModifiers() & Qt::ShiftModifier);
+
     if (!isRecording_) {
         // 开始录音
         isRecording_ = true;
@@ -2799,13 +2802,13 @@ void MainWindow::onMicButtonClicked() {
             "QPushButton { border: 0px; background: #E74C3C; color: white; font-size: 14px; padding: 2px 6px; border-radius: 4px; }"
             "QPushButton:focus { outline: none; }");
         textMicBtn_->setToolTip(QStringLiteral("点击停止录音"));
-        statusBar_->showMessage(QStringLiteral("录音中…点击 🎤 停止"), 0);
+        statusBar_->showMessage(testMode ? QStringLiteral("测试模式：读取 test.wav…") : QStringLiteral("录音中…点击 🎤 停止"), 0);
         QString baseDir = QCoreApplication::applicationDirPath();
 
         // 在后台线程录音（避免阻塞 UI）
-        asrThread_ = QThread::create([this, baseDir]() {
+        asrThread_ = QThread::create([this, baseDir, testMode]() {
             // 加载 ASR DLL（用 SEH 保护，避免因缺少 CUDA 依赖闪退）
-            typedef void* (*ASRCreateFunc)(const char*, const char*, int);
+            typedef void* (*ASRCreateFunc)(const char*, const char*, const char*, int);
             typedef char* (*ASRRecognizeFunc)(void*, const short*, int);
             typedef void (*ASRDestroyFunc)(void*);
 
@@ -2833,7 +2836,8 @@ void MainWindow::onMicButtonClicked() {
             // 初始化 ASR 引擎（模型路径）
             std::string modelPath = baseDir.toStdString() + "\\models\\ASR\\model_quant.onnx";
             std::string tokensPath = baseDir.toStdString() + "\\models\\ASR\\tokens.json";
-            void* asrHandle = asrCreate(modelPath.c_str(), tokensPath.c_str(), 0);
+            std::string mvnPath = baseDir.toStdString() + "\\models\\ASR\\am.mvn";
+            void* asrHandle = asrCreate(modelPath.c_str(), tokensPath.c_str(), mvnPath.c_str(), 0);
             if (!asrHandle) {
                 FreeLibrary(asrDll);
                 QMetaObject::invokeMethod(this, [this]() {
@@ -2843,58 +2847,92 @@ void MainWindow::onMicButtonClicked() {
                 return;
             }
 
-            // 开始录音
-            HWAVEIN hWaveIn = nullptr;
-            WAVEHDR waveHeaders[2] = {};
-            const int bufSamples = 16000 * 5;
-            std::vector<short> bufs[2];
+            // 开始录音（或从文件读取）
             std::vector<short> allData;
-            allData.reserve(bufSamples * 4);
-
-            WAVEFORMATEX wfx = {};
-            wfx.wFormatTag = WAVE_FORMAT_PCM;
-            wfx.nChannels = 1;
-            wfx.nSamplesPerSec = 16000;
-            wfx.wBitsPerSample = 16;
-            wfx.nBlockAlign = 2;
-            wfx.nAvgBytesPerSec = 32000;
-
-            MMRESULT res = waveInOpen(&hWaveIn, WAVE_MAPPER, &wfx,
-                                       (DWORD_PTR)WaveInProc, (DWORD_PTR)&allData,
-                                       CALLBACK_FUNCTION);
-            if (res != MMSYSERR_NOERROR) {
-                asrDestroy(asrHandle);
-                FreeLibrary(asrDll);
+            if (testMode) {
+                // 测试模式：从 exe 同目录的 test.wav 读取 16kHz 16-bit mono PCM
+                std::string wavPath = baseDir.toStdString() + "\\test.wav";
+                FILE* f = fopen(wavPath.c_str(), "rb");
+                if (!f) {
+                    asrDestroy(asrHandle);
+                    FreeLibrary(asrDll);
+                    QMetaObject::invokeMethod(this, [this]() {
+                        statusBar_->showMessage(QStringLiteral("测试模式：找不到 test.wav"), 3000);
+                        resetMicButton();
+                    }, Qt::QueuedConnection);
+                    return;
+                }
+                fseek(f, 0, SEEK_END);
+                long fsize = ftell(f);
+                fseek(f, 0, SEEK_SET);
+                // WAV 头部通常是 44 字节
+                fseek(f, 44, SEEK_SET);
+                long dataBytes = fsize - 44;
+                if (dataBytes > 0) {
+                    allData.resize(dataBytes / 2);
+                    fread(allData.data(), 1, dataBytes, f);
+                }
+                fclose(f);
                 QMetaObject::invokeMethod(this, [this]() {
-                    statusBar_->showMessage(QStringLiteral("麦克风打开失败"), 3000);
-                    resetMicButton();
+                    statusBar_->showMessage(QStringLiteral("测试模式：读取完成，开始识别"), 2000);
                 }, Qt::QueuedConnection);
-                return;
+                // 跳到识别
+                goto recognize;
             }
 
-            for (int i = 0; i < 2; ++i) {
-                bufs[i].resize(bufSamples, 0);
-                waveHeaders[i].lpData = (LPSTR)bufs[i].data();
-                waveHeaders[i].dwBufferLength = bufSamples * sizeof(short);
-                waveHeaders[i].dwFlags = 0;
-                waveInPrepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
-                waveInAddBuffer(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
-            }
-            waveInStart(hWaveIn);
+            {
+                HWAVEIN hWaveIn = nullptr;
+                WAVEHDR waveHeaders[2] = {};
+                const int bufSamples = 16000 * 5;
+                std::vector<short> bufs[2];
+                allData.reserve(bufSamples * 4);
 
-            // 等待用户停止录音
-            while (isRecording_) {
-                Sleep(100);
+                WAVEFORMATEX wfx = {};
+                wfx.wFormatTag = WAVE_FORMAT_PCM;
+                wfx.nChannels = 1;
+                wfx.nSamplesPerSec = 16000;
+                wfx.wBitsPerSample = 16;
+                wfx.nBlockAlign = 2;
+                wfx.nAvgBytesPerSec = 32000;
+
+                MMRESULT res = waveInOpen(&hWaveIn, WAVE_MAPPER, &wfx,
+                                           (DWORD_PTR)WaveInProc, (DWORD_PTR)&allData,
+                                           CALLBACK_FUNCTION);
+                if (res != MMSYSERR_NOERROR) {
+                    asrDestroy(asrHandle);
+                    FreeLibrary(asrDll);
+                    QMetaObject::invokeMethod(this, [this]() {
+                        statusBar_->showMessage(QStringLiteral("麦克风打开失败"), 3000);
+                        resetMicButton();
+                    }, Qt::QueuedConnection);
+                    return;
+                }
+
+                for (int i = 0; i < 2; ++i) {
+                    bufs[i].resize(bufSamples, 0);
+                    waveHeaders[i].lpData = (LPSTR)bufs[i].data();
+                    waveHeaders[i].dwBufferLength = bufSamples * sizeof(short);
+                    waveHeaders[i].dwFlags = 0;
+                    waveInPrepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+                    waveInAddBuffer(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+                }
+                waveInStart(hWaveIn);
+
+                // 等待用户停止录音
+                while (isRecording_) {
+                    Sleep(100);
+                }
+
+                // 停止录音
+                waveInStop(hWaveIn);
+                waveInReset(hWaveIn);
+                for (int i = 0; i < 2; ++i) {
+                    waveInUnprepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+                }
+                waveInClose(hWaveIn);
             }
 
-            // 停止录音
-            waveInStop(hWaveIn);
-            waveInReset(hWaveIn);
-            for (int i = 0; i < 2; ++i) {
-                waveInUnprepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
-            }
-            waveInClose(hWaveIn);
-
+recognize:
             // 识别
             if (!allData.empty()) {
                 char* result = asrRecognize(asrHandle, allData.data(), (int)allData.size());
