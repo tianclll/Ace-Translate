@@ -257,27 +257,6 @@ std::string SenseVoiceEngine::ctcDecode(const float* logits, int time_steps, int
     }
 
     // 用 SentencePiece 风格拼接：▁ → 空格
-    // 调试：写入详细的帧分析
-    {
-        FILE* f = fopen("asr_ids.txt", "w");
-        if (f) {
-            fprintf(f, "ids_count=%zu blank_id=%d\n", ids.size(), blank_id_);
-            int dbg_t = (time_steps < 20) ? time_steps : 20;
-            for (int t = 0; t < dbg_t; ++t) {
-                const float* frame = logits + t * vocab_size;
-                int max_id = (int)(std::max_element(frame, frame + vocab_size) - frame);
-                float blank_val = (blank_id_ < vocab_size) ? frame[blank_id_] : -999;
-                float uk_val = frame[0];
-                float top_val = frame[max_id];
-                fprintf(f, "t=%d max=%d top=%.2f blank=%.2f unk=%.2f\n",
-                        t, max_id, top_val, blank_val, uk_val);
-            }
-            for (int i = 0; i < (int)ids.size() && i < 5; ++i)
-                fprintf(f, "id[%d]=%d token=%s\n", i, ids[i], tokens_[ids[i]].c_str());
-            fclose(f);
-        }
-    }
-
     std::string result;
     for (int id : ids) {
         const std::string& tk = tokens_[id];
