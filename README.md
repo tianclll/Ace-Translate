@@ -86,7 +86,7 @@
 
 ### 下载预编译版本
 
-> [Releases](https://github.com/yourusername/AceTranslatePro/releases) 页面提供 GPU 版和 CPU 版压缩包，下载解压即可运行。
+> [Releases](https://github.com/tianclll/Ace-Translate/releases) 页面提供 GPU 版和 CPU 版压缩包，下载解压即可运行。
 
 ### 从源码编译
 
@@ -191,7 +191,7 @@ models/
     └── UVDoc_grid.onnx              # 图片矫正模型
 ```
 
-> **模型下载**：[Hugging Face 🤗](https://huggingface.co/your-username/your-repo)（待上传）
+> **模型下载**：[Hugging Face 🤗](https://huggingface.co/tianclll/AceTranslatePro-models)
 
 > **注意**：本项目为追求轻量化，所有模型均使用量化版本（翻译 Q4_K_M、OCR tiny、小型 VLM 等），在常见场景下表现良好。如果您有更高精度、更全语言覆盖的需求，欢迎联系我定制。
 
