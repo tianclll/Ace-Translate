@@ -1,6 +1,5 @@
 <div align="center">
-
-<img src="ui/icons/LOGO.png" width="80" height="80" alt="AceTranslatePro Logo"/>
+<img src="ui/icons/LOGO.png" width="100" height="100" alt="AceTranslatePro Logo"/>
 
 # AceTranslatePro
 
@@ -40,29 +39,36 @@
 
 ## 🖼️ 界面预览
 
-> *截图待补充——替换以下占位图为实际界面截图*
+> *点击图片查看大图*
 
-![主界面](docs/images/main_window.png)
+![主界面](docs/images/text_translate.png)
 
 ## 📸 翻译效果
 
-> *效果图待补充——替换以下占位图为实际翻译效果截图*
+> *点击图片查看大图*
 
 ### 文本翻译
 
-![文本翻译效果](docs/images/demo_text.png)
+![文本翻译效果](docs/images/text_translate.png)
+
+### 划词翻译
+
+![划词翻译效果](docs/images/selection_translate1.png)
+
+![划词翻译效果 2](docs/images/selection_translate2.png)
 
 ### 截图翻译
 
-![截图翻译效果](docs/images/demo_screenshot.png)
+![截图翻译效果](docs/images/ScreenShot_translate.png)
 
 ### 图片翻译
 
-![图片翻译效果](docs/images/demo_photo.png)
+![图片翻译效果](docs/images/image_translate.png)
 
 ### 文件翻译
 
-![文件翻译效果](docs/images/demo_file.png)
+![文件翻译效果](docs/images/document_translation1.png)
+<img src="docs/images/document_translate2.jpg" width="48%"> <img src="docs/images/document_translate3.png" width="48%">
 
 ---
 
