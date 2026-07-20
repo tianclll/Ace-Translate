@@ -50,6 +50,7 @@ set(SOURCES
         src/engines/OCREngine.cpp
         src/engines/VLMEngine.cpp
         src/engines/TranslatorEngine.cpp
+        src/engines/ASREngine.cpp
 
         src/utils/ImageUtils.cpp
         src/utils/MarkdownGenerator.cpp

@@ -4,11 +4,6 @@
 #include <stdexcept>
 #include <windows.h>
 
-// ASR DLL 函数指针类型
-using ASRCreateFunc = void* (*)(const char*, const char*, const char*, int);
-using ASRRecognizeFunc = char* (*)(void*, const short*, int);
-using ASRDestroyFunc = void (*)(void*);
-
 namespace docmind {
 
     GlobalEngineContext& GlobalEngineContext::getInstance() {
@@ -141,24 +136,18 @@ namespace docmind {
             // 加载 ASR 引擎（受 enable_asr 控制）
             if (enable_asr) {
                 std::string asr_dll_path = base + "\\" + dlls.value("asr", "asr.dll");
-                HMODULE asr_dll = LoadLibraryA(asr_dll_path.c_str());
-                if (asr_dll) {
-                    auto asr_create_fn = (ASRCreateFunc)GetProcAddress(asr_dll, "asr_create");
-                    if (asr_create_fn) {
-                        std::string asr_model = base + "\\" + models.value("asr_model", "models/ASR/model_quant.onnx");
-                        std::string asr_tokens = base + "\\" + models.value("asr_tokens", "models/ASR/tokens.json");
-                        std::string asr_mvn = base + "\\" + models.value("asr_mvn", "models/ASR/am.mvn");
-                        asr_handle_ = asr_create_fn(asr_model.c_str(), asr_tokens.c_str(), asr_mvn.c_str(), asr_gpu ? 1 : 0);
-                        asr_loaded_ = (asr_handle_ != nullptr);
-                        if (asr_loaded_) {
-                            std::cout << "ASR engine initialized." << std::endl;
-                        } else {
-                            std::cerr << "ASR engine init failed." << std::endl;
-                            FreeLibrary(asr_dll);
-                        }
-                    } else {
-                        std::cerr << "ASR DLL missing asr_create export." << std::endl;
-                        FreeLibrary(asr_dll);
+                if (dll_loader_->loadASRDLL(asr_dll_path)) {
+                    std::string asr_model = base + "\\" + models.value("asr_model", "models/ASR/model_quant.onnx");
+                    std::string asr_tokens = base + "\\" + models.value("asr_tokens", "models/ASR/tokens.json");
+                    std::string asr_mvn = base + "\\" + models.value("asr_mvn", "models/ASR/am.mvn");
+                    try {
+                        asr_ = std::make_unique<ASREngine>(*dll_loader_, asr_model, asr_tokens, asr_mvn, asr_gpu ? 1 : 0);
+                        asr_handle_ = asr_->isLoaded() ? (void*)1 : nullptr;
+                        asr_loaded_ = asr_->isLoaded();
+                    } catch (const std::exception& e) {
+                        std::cerr << "ASREngine init failed: " << e.what() << std::endl;
+                        asr_loaded_ = false;
+                        asr_handle_ = nullptr;
                     }
                 } else {
                     std::cerr << "Warning: ASR DLL not loaded." << std::endl;
