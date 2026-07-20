@@ -133,13 +133,22 @@ std::vector<float> Fbank::extract(const short* pcm, int pcm_len) {
                 sum += power[k] * mel_filter_bank_[m][k];
             }
             fbank[m] = static_cast<float>(std::log(std::max(sum, 1e-10)));
+            // 检查 NaN
+            if (std::isnan(fbank[m])) {
+                fbank[m] = -5.0f; // 兜底
+            }
         }
 
         all_fbanks.push_back(std::move(fbank));
     }
 
     // 拼接上下文（7帧：左右各3帧）
-    return applyContextFrames(all_fbanks);
+    auto result = applyContextFrames(all_fbanks);
+    // 更新帧数：applyContextFrames 会去掉前后各3帧 → 总帧数减6
+    // 但若原帧数 <= 6 则 pad 为 1 帧
+    int raw_frames = num_frames_;
+    num_frames_ = (raw_frames > 6) ? (raw_frames - 6) : ((raw_frames > 0) ? 1 : 0);
+    return result;
 }
 
 std::vector<float> applyContextFrames(const std::vector<std::vector<float>>& fbank_feats) {

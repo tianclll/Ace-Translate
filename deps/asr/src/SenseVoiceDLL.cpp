@@ -15,11 +15,12 @@ static std::mutex g_asr_mutex;
 // ============================================================
 // asr_create — 创建引擎实例
 // ============================================================
-ASR_API void* asr_create(const char* model_path, const char* tokens_path, int use_gpu) {
+ASR_API void* asr_create(const char* model_path, const char* tokens_path, const char* mvn_path, int use_gpu) {
     if (!model_path || !tokens_path) return nullptr;
 
     auto* engine = new SenseVoiceEngine();
-    if (!engine->init(model_path, tokens_path, use_gpu != 0)) {
+    std::string mvn = mvn_path ? mvn_path : "";
+    if (!engine->init(model_path, tokens_path, mvn, use_gpu != 0)) {
         delete engine;
         return nullptr;
     }

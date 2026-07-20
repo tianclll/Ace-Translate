@@ -1,9 +1,14 @@
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "SenseVoiceEngine.h"
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
 #include <codecvt>
 #include <locale>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -22,42 +27,18 @@ bool SenseVoiceEngine::loadTokens(const std::string& path) {
     if (!file.is_open()) return false;
 
     try {
-        // tokens.json is a JSON array of strings
-        char c;
-        file >> c; // skip [
-        if (c != '[') return false;
+        nlohmann::json j;
+        file >> j;
 
-        std::string token;
-        bool in_string = false;
-        while (file.get(c)) {
-            if (c == '\"') {
-                in_string = !in_string;
-                if (!in_string) {
-                    // end of token
-                    tokens_.push_back(token);
-                    token.clear();
-                    // skip comma or whitespace
-                    while (file.get(c) && (c == ',' || c == ' ' || c == '\n' || c == '\r'));
-                    if (c == ']') break;
-                    // put back
-                    file.unget();
-                }
-            } else if (in_string) {
-                // handle escaped chars
-                if (c == '\\') {
-                    file.get(c);
-                    if (c == 'u') {
-                        // unicode escape - skip for simplicity
-                        token += '?';
-                        for (int i = 0; i < 4; ++i) file.get(c);
-                    } else {
-                        token += c;
-                    }
-                } else {
-                    token += c;
-                }
-            }
-        }
+        tokens_.clear();
+        tokens_.reserve(j.size());
+
+        for (auto& item : j)
+            tokens_.push_back(item.get<std::string>());
+
+        // 动态检测 blank_id：检查 tokens_.size() - 1 是否经常被 argmax 选中
+        // 初始假设 blank = 0（<unk>），推理时会根据第一帧自动校准
+        blank_id_ = 0;
     } catch (...) {
         return false;
     }
@@ -65,10 +46,15 @@ bool SenseVoiceEngine::loadTokens(const std::string& path) {
     return !tokens_.empty();
 }
 
-bool SenseVoiceEngine::init(const std::string& model_path, const std::string& tokens_path, bool use_gpu) {
+bool SenseVoiceEngine::init(const std::string& model_path, const std::string& tokens_path, const std::string& mvn_path, bool use_gpu) {
     // 加载 tokenizer
     if (!loadTokens(tokens_path)) {
         return false;
+    }
+
+    // 加载 CMVN
+    if (!mvn_path.empty() && !cmvn_.load(mvn_path)) {
+        std::cerr << "Warning: CMVN not loaded, recognition may be poor" << std::endl;
     }
 
     // ONNX session 配置
@@ -91,7 +77,15 @@ bool SenseVoiceEngine::init(const std::string& model_path, const std::string& to
     try {
 #ifdef _WIN32
         std::wstring wpath = toWide(model_path);
-        session_ = std::make_unique<Ort::Session>(env_, wpath.c_str(), options);
+        try {
+            session_ = std::make_unique<Ort::Session>(env_, wpath.c_str(), options);
+        } catch (const std::exception& e) {
+            std::cerr << "SenseVoice session create error: " << e.what() << std::endl;
+            return false;
+        } catch (...) {
+            std::cerr << "SenseVoice session create unknown error" << std::endl;
+            return false;
+        }
 #else
         session_ = std::make_unique<Ort::Session>(env_, model_path.c_str(), options);
 #endif
@@ -134,6 +128,12 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
     if (!session_ || !fbank || num_frames <= 0) return {};
 
     try {
+        // 复制 fbank 数据用于 CMVN（不能修改原始 const 输入）
+        std::vector<float> feats(fbank, fbank + num_frames * 560LL);
+        if (cmvn_.isLoaded()) {
+            cmvn_.apply(feats, num_frames, 560);
+        }
+
         // 构建输入张量
         // speech: [1, num_frames, 560]
         std::vector<int64_t> speech_shape = {1, num_frames, 560};
@@ -141,7 +141,7 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
 
         auto speech_tensor = Ort::Value::CreateTensor<float>(
             memory_info_,
-            const_cast<float*>(fbank),  // ONNX 不修改输入
+            feats.data(),  // 使用 CMVN 后的数据
             speech_size,
             speech_shape.data(),
             speech_shape.size()
@@ -149,8 +149,8 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
 
         // speech_lengths: [1]
         std::vector<int64_t> length_shape = {1};
-        std::vector<int64_t> length_data = {num_frames};
-        auto length_tensor = Ort::Value::CreateTensor<int64_t>(
+        std::vector<int32_t> length_data = {num_frames};
+        auto length_tensor = Ort::Value::CreateTensor<int32_t>(
             memory_info_,
             length_data.data(),
             1,
@@ -160,8 +160,8 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
 
         // language: [1] (0 = auto detect)
         std::vector<int64_t> lang_shape = {1};
-        std::vector<int64_t> lang_data = {0};
-        auto lang_tensor = Ort::Value::CreateTensor<int64_t>(
+        std::vector<int32_t> lang_data = {0};
+        auto lang_tensor = Ort::Value::CreateTensor<int32_t>(
             memory_info_,
             lang_data.data(),
             1,
@@ -171,8 +171,8 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
 
         // textnorm: [1] (1 = with textnorm)
         std::vector<int64_t> norm_shape = {1};
-        std::vector<int64_t> norm_data = {1};
-        auto norm_tensor = Ort::Value::CreateTensor<int64_t>(
+        std::vector<int32_t> norm_data = {1};
+        auto norm_tensor = Ort::Value::CreateTensor<int32_t>(
             memory_info_,
             norm_data.data(),
             1,
@@ -221,9 +221,12 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
         int batch_time = (int)logits_shape[1];
         int vocab_size = (int)logits_shape[2];
         int actual_len = (out_len_data && logits_shape.size() > 1) ? (int)out_len_data[0] : batch_time;
+        // 防止越界
+        if (actual_len > batch_time) actual_len = batch_time;
+        if (actual_len <= 0) actual_len = batch_time;
 
         // CTC 解码
-        std::string text = ctcDecode(reinterpret_cast<const int64_t*>(logits_data), actual_len, vocab_size);
+        std::string text = ctcDecode(logits_data, actual_len, vocab_size);
         return text;
 
     } catch (const std::exception& e) {
@@ -231,63 +234,72 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
     }
 }
 
-std::string SenseVoiceEngine::ctcDecode(const int64_t* logits, int time_steps, int vocab_size) {
+std::string SenseVoiceEngine::ctcDecode(const float* logits, int time_steps, int vocab_size) {
     if (!logits || time_steps <= 0) return {};
 
-    std::string result;
+    // 动态检测 blank_id：统计前 50 帧 argmax 分布
+    // 默认用 vocab_size - 1（常见 CTC 约定），如果某 id 占 >30% 则采用
+    blank_id_ = vocab_size - 1;
+    {
+        std::unordered_map<int, int> freq;
+        int limit = (time_steps < 50) ? time_steps : 50;
+        for (int t = 0; t < limit; ++t) {
+            const float* frame = logits + t * vocab_size;
+            int max_id = (int)(std::max_element(frame, frame + vocab_size) - frame);
+            freq[max_id]++;
+        }
+        int most_freq = 0, max_cnt = 0;
+        for (auto p = freq.begin(); p != freq.end(); ++p) {
+            if (p->second > max_cnt) { max_cnt = p->second; most_freq = p->first; }
+        }
+        if (max_cnt > (int)(limit * 0.3))
+            blank_id_ = most_freq;
+    }
+
+    std::vector<int> ids;
     int prev_id = blank_id_;
 
-    // 每一帧取 argmax
     for (int t = 0; t < time_steps; ++t) {
-        const float* frame = reinterpret_cast<const float*>(logits) + t * vocab_size;
-        int max_id = 0;
-        float max_val = frame[0];
-        for (int i = 1; i < vocab_size; ++i) {
-            if (frame[i] > max_val) {
-                max_val = frame[i];
-                max_id = i;
-            }
-        }
+        const float* frame = logits + t * vocab_size;
+        int max_id = (int)(std::max_element(frame, frame + vocab_size) - frame);
 
         // 去重 + 跳过 blank
         if (max_id != blank_id_ && max_id != prev_id) {
-            if (max_id >= 0 && max_id < (int)tokens_.size() && max_id > 2) {
-                // token 0=unk, 1=<s>, 2=</s>
-                result += tokens_[max_id];
+            if (max_id >= 0 && max_id < (int)tokens_.size()) {
+                ids.push_back(max_id);
             }
         }
         prev_id = max_id;
     }
 
-    // 移除 BPE 标记 ▁ → 空格
-    // SenseVoice 使用 SentencePiece BPE，▁ 表示词的开头
-    std::string final_text;
-    for (size_t i = 0; i < result.size(); ) {
-        // UTF-8 解码 ▁ (U+2581, UTF-8: E2 96 81)
-        if ((unsigned char)result[i] == 0xE2 && i + 2 < result.size() &&
-            (unsigned char)result[i+1] == 0x96 && (unsigned char)result[i+2] == 0x81) {
-            final_text += ' ';
-            i += 3;
+    // 用 SentencePiece 风格拼接：▁ → 空格
+    // 调试：写入 ids 信息
+    { FILE* f = fopen("asr_ids.txt", "w"); if (f) { fprintf(f, "ids_count=%zu\n", ids.size()); for (int i = 0; i < (int)ids.size() && i < 5; ++i) fprintf(f, "id[%d]=%d token=%s\n", i, ids[i], tokens_[ids[i]].c_str()); fclose(f); } }
+
+    std::string result;
+    for (int id : ids) {
+        const std::string& tk = tokens_[id];
+        if (tk.empty()) continue;
+        // 跳过特殊 token（<unk>, <s>, </s>, <|zh|>, <|en|> 等）
+        if (tk[0] == '<') continue;
+        // ▁（U+2581, UTF-8: E2 96 81）→ 空格
+        if (tk.size() >= 3 && (unsigned char)tk[0] == 0xE2 &&
+            (unsigned char)tk[1] == 0x96 && (unsigned char)tk[2] == 0x81) {
+            result += ' ';
+            result += tk.substr(3);
         } else {
-            // 跳过 <s> </s> 等特殊 token
-            if (result[i] == '<') {
-                while (i < result.size() && result[i] != '>') ++i;
-                ++i; // skip >
-            } else {
-                final_text += result[i];
-                ++i;
-            }
+            result += tk;
         }
     }
 
     // 去掉首尾空格
-    size_t start = final_text.find_first_not_of(' ');
-    size_t end = final_text.find_last_not_of(' ');
+    size_t start = result.find_first_not_of(' ');
+    size_t end = result.find_last_not_of(' ');
     if (start != std::string::npos && end != std::string::npos) {
-        final_text = final_text.substr(start, end - start + 1);
+        result = result.substr(start, end - start + 1);
     } else if (start == std::string::npos) {
-        final_text.clear();
+        result.clear();
     }
 
-    return final_text;
+    return result;
 }
