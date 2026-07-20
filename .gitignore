@@ -107,3 +107,11 @@ by.txt
 config.json
 *.env
 *.env.local
+
+# ── 本地开发文件 ──
+CMakeLists - 副本.txt
+CLAUDE.md
+design-refinement.md
+test/
+ui/icons/LOGO1.png
+ui/icons/LOGO1.ico
