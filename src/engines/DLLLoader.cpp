@@ -120,6 +120,26 @@ namespace docmind {
         std::cout << "DocumentImageProcessor DLL loaded successfully" << std::endl;
         return true;
     }
+    bool DLLLoader::loadASRDLL(const std::string& dll_path) {
+        asr_handle_ = LOAD_DLL(dll_path.c_str());
+        if (!asr_handle_) {
+            std::cerr << "Failed to load ASR DLL: " << dll_path << std::endl;
+            return false;
+        }
+
+        asr_create = (ASRCreateFunc)GET_FUNC(asr_handle_, "asr_create");
+        asr_destroy = (ASRDestroyFunc)GET_FUNC(asr_handle_, "asr_destroy");
+        asr_recognize = (ASRRecognizeFunc)GET_FUNC(asr_handle_, "asr_recognize");
+
+        if (!asr_create || !asr_destroy || !asr_recognize) {
+            std::cerr << "Failed to get ASR functions from DLL" << std::endl;
+            unload();
+            return false;
+        }
+
+        std::cout << "ASR DLL loaded successfully" << std::endl;
+        return true;
+    }
     void DLLLoader::unload() {
         if (layout_handle_) {
             FREE_DLL(layout_handle_);
@@ -140,6 +160,10 @@ namespace docmind {
         if (docproc_handle_) {
             FREE_DLL(docproc_handle_);
             docproc_handle_ = nullptr;
+        }
+        if (asr_handle_) {
+            FREE_DLL(asr_handle_);
+            asr_handle_ = nullptr;
         }
     }
 

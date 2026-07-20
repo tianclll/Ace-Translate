@@ -8,6 +8,7 @@
 #include "docmind/engines/OCREngine.hpp"
 #include "docmind/engines/VLMEngine.hpp"
 #include "docmind/engines/TranslatorEngine.hpp"
+#include "docmind/engines/ASREngine.hpp"
 
 namespace docmind {
 
@@ -30,6 +31,7 @@ namespace docmind {
 
         // ASR 引擎
         void* getASRHandle() { return asr_handle_; }
+        ASREngine* getASREngine() { return asr_.get(); }
         bool isASRLoaded() const { return asr_loaded_; }
         void setBaseDir(const std::string& dir) { base_dir_ = dir; }
 
@@ -54,6 +56,7 @@ namespace docmind {
         // ASR
         void* asr_handle_ = nullptr;
         bool asr_loaded_ = false;
+        std::unique_ptr<ASREngine> asr_;
         std::string base_dir_;
     };
 

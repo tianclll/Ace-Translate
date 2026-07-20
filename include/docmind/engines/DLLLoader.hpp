@@ -122,12 +122,24 @@ namespace docmind {
         DocProcReleaseFunc docproc_release = nullptr;
         DocProcFreeOutputFunc docproc_free_output = nullptr;
 
+        // ---------- ASR 函数指针 ----------
+        using ASRCreateFunc = void* (*)(const char*, const char*, const char*, int);
+        using ASRDestroyFunc = void (*)(void*);
+        using ASRRecognizeFunc = char* (*)(void*, const short*, int);
+
+        ASRCreateFunc asr_create = nullptr;
+        ASRDestroyFunc asr_destroy = nullptr;
+        ASRRecognizeFunc asr_recognize = nullptr;
+
+        bool loadASRDLL(const std::string& dll_path);
+
         bool layoutLoaded() const { return layout_handle_ != nullptr; }
         bool ocrLoaded() const { return ocr_handle_ != nullptr; }
         bool vlmLoaded() const { return vlm_handle_ != nullptr; }
         bool translatorLoaded() const { return translator_handle_ != nullptr; }
         bool loadDocumentImageProcessorDLL(const std::string& dll_path);
         bool docprocLoaded() const { return docproc_handle_ != nullptr; }
+        bool asrLoaded() const { return asr_handle_ != nullptr; }
     private:
         void unload();
         DLL_HANDLE layout_handle_ = nullptr;
@@ -135,6 +147,7 @@ namespace docmind {
         DLL_HANDLE vlm_handle_ = nullptr;
         DLL_HANDLE translator_handle_ = nullptr;
         DLL_HANDLE docproc_handle_ = nullptr;
+        DLL_HANDLE asr_handle_ = nullptr;
     };
 
 } // namespace docmind
