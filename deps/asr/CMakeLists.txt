@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # CPU 版 ONNXRuntime
-set(ONNXRUNTIME_ROOT "D:/project/cpp/onnxruntime-win-x64-1.20.1")
+set(ONNXRUNTIME_ROOT "D:/project/cpp/onnxruntime-win-x64-gpu-1.20.1")
 
 include_directories(${ONNXRUNTIME_ROOT}/include)
 include_directories(include)

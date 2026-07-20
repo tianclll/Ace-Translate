@@ -17,8 +17,8 @@ set(OpenCV_INCLUDE_DIRS "D:/project/cpp/opencv/build/include")
 set(OpenCV_LIB_DIR "D:/project/cpp/opencv/build/x64/vc16/lib")
 set(OpenCV_BIN_DIR "D:/project/cpp/opencv/build/x64/vc16/bin")
 
-# ------------------ ONNXRuntime (CPU only) ------------------
-set(ONNXRUNTIME_ROOT "D:/project/cpp/onnxruntime-win-x64-1.20.1")
+# ------------------ ONNXRuntime (GPU) ------------------
+set(ONNXRUNTIME_ROOT "D:/project/cpp/onnxruntime-win-x64-gpu-1.20.1")
 
 # ------------------ PDFium ------------------
 set(PDFIUM_ROOT "${CMAKE_SOURCE_DIR}/third_party/pdfium")
@@ -89,7 +89,7 @@ target_link_libraries(${PROJECT_NAME} ${PDFIUM_LIBRARY})
 target_link_libraries(${PROJECT_NAME} Qt6::Widgets)
 target_link_libraries(${PROJECT_NAME} ole32 sapi winmm)
 
-# ====== deps 子项目（CPU 版：不定义 GGML_USE_CUDA）======
+# ====== deps 子项目（GPU 版：定义 GGML_USE_CUDA）======
 add_subdirectory(deps/translator)
 add_subdirectory(deps/vlm)
 add_subdirectory(deps/ocr)
@@ -122,10 +122,18 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     "C:/Windows/System32/libomp140.x86_64.dll" "${OUT_DIR}/"
 )
 
-# ONNXRuntime（CPU 版：仅复制核心 DLL，不复制 providers）
+# ONNXRuntime（GPU 版：复制核心 DLL + providers）
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ONNXRUNTIME_ROOT}/lib/onnxruntime.dll" "${OUT_DIR}/"
+)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${ONNXRUNTIME_ROOT}/lib/onnxruntime_providers_shared.dll" "${OUT_DIR}/"
+)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${ONNXRUNTIME_ROOT}/lib/onnxruntime_providers_cuda.dll" "${OUT_DIR}/"
 )
 
 # OpenCV
@@ -140,15 +148,23 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     "${PDFIUM_ROOT}/bin/pdfium.dll" "${OUT_DIR}/"
 )
 
-# llama 运行时 DLL（CPU 版：从 CPU build 复制，不含 ggml-cuda）
-set(LLAMA_BIN_DIR "D:/AceTranslatePro/tools/translator/TranslationApp/external/llama.cpp/build/bin/Release")
-foreach(DLL llama.dll llama-common.dll ggml.dll ggml-base.dll ggml-cpu.dll mtmd.dll)
+# llama 运行时 DLL（GPU 版：从 GPU build 复制，含 ggml-cuda）
+set(LLAMA_BIN_DIR "D:/AceTranslatePro/tools/translator/TranslationApp/external/llama.cpp/build_gpu/bin/Release")
+foreach(DLL llama.dll llama-common.dll ggml.dll ggml-base.dll ggml-cpu.dll ggml-cuda.dll mtmd.dll)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${LLAMA_BIN_DIR}/${DLL}" "${OUT_DIR}/"
     )
 endforeach()
-# 注意：CPU 版不复制 ggml-cuda.dll 和任何 CUDA 运行时 DLL
+
+# CUDA 运行时 DLL（GPU 版必需）
+set(CUDA_BIN_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.1/bin")
+foreach(DLL cublas64_12.dll cublasLt64_12.dll cudart64_12.dll cufft64_11.dll cusparse64_12.dll cusolver64_11.dll)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CUDA_BIN_DIR}/${DLL}" "${OUT_DIR}/"
+    )
+endforeach()
 
 # Qt DLL
 set(QT_BIN_DIR "${QT_DIR}/bin")
