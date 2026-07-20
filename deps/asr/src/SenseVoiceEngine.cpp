@@ -237,24 +237,8 @@ std::string SenseVoiceEngine::recognize(const float* fbank, int num_frames) {
 std::string SenseVoiceEngine::ctcDecode(const float* logits, int time_steps, int vocab_size) {
     if (!logits || time_steps <= 0) return {};
 
-    // 动态检测 blank_id：统计前 50 帧 argmax 分布
-    // 默认用 vocab_size - 1（常见 CTC 约定），如果某 id 占 >30% 则采用
+    // CTC blank 固定为 vocab_size - 1（SenseVoice 模型约定）
     blank_id_ = vocab_size - 1;
-    {
-        std::unordered_map<int, int> freq;
-        int limit = (time_steps < 50) ? time_steps : 50;
-        for (int t = 0; t < limit; ++t) {
-            const float* frame = logits + t * vocab_size;
-            int max_id = (int)(std::max_element(frame, frame + vocab_size) - frame);
-            freq[max_id]++;
-        }
-        int most_freq = 0, max_cnt = 0;
-        for (auto p = freq.begin(); p != freq.end(); ++p) {
-            if (p->second > max_cnt) { max_cnt = p->second; most_freq = p->first; }
-        }
-        if (max_cnt > (int)(limit * 0.3))
-            blank_id_ = most_freq;
-    }
 
     std::vector<int> ids;
     int prev_id = blank_id_;
@@ -273,8 +257,26 @@ std::string SenseVoiceEngine::ctcDecode(const float* logits, int time_steps, int
     }
 
     // 用 SentencePiece 风格拼接：▁ → 空格
-    // 调试：写入 ids 信息
-    { FILE* f = fopen("asr_ids.txt", "w"); if (f) { fprintf(f, "ids_count=%zu\n", ids.size()); for (int i = 0; i < (int)ids.size() && i < 5; ++i) fprintf(f, "id[%d]=%d token=%s\n", i, ids[i], tokens_[ids[i]].c_str()); fclose(f); } }
+    // 调试：写入详细的帧分析
+    {
+        FILE* f = fopen("asr_ids.txt", "w");
+        if (f) {
+            fprintf(f, "ids_count=%zu blank_id=%d\n", ids.size(), blank_id_);
+            int dbg_t = (time_steps < 20) ? time_steps : 20;
+            for (int t = 0; t < dbg_t; ++t) {
+                const float* frame = logits + t * vocab_size;
+                int max_id = (int)(std::max_element(frame, frame + vocab_size) - frame);
+                float blank_val = (blank_id_ < vocab_size) ? frame[blank_id_] : -999;
+                float uk_val = frame[0];
+                float top_val = frame[max_id];
+                fprintf(f, "t=%d max=%d top=%.2f blank=%.2f unk=%.2f\n",
+                        t, max_id, top_val, blank_val, uk_val);
+            }
+            for (int i = 0; i < (int)ids.size() && i < 5; ++i)
+                fprintf(f, "id[%d]=%d token=%s\n", i, ids[i], tokens_[ids[i]].c_str());
+            fclose(f);
+        }
+    }
 
     std::string result;
     for (int id : ids) {

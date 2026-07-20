@@ -3,16 +3,7 @@
 #include "Fbank.h"
 #include <algorithm>
 #include <cstring>
-
-#ifdef _MSC_VER
-#include <malloc.h>
-#define ALIGN_ALLOC(size) _aligned_malloc(size, 32)
-#define ALIGN_FREE(ptr) _aligned_free(ptr)
-#else
-#include <cstdlib>
-#define ALIGN_ALLOC(size) aligned_alloc(32, (size + 31) & ~31)
-#define ALIGN_FREE(ptr) free(ptr)
-#endif
+#include <opencv2/opencv.hpp>
 
 Fbank::Fbank()
     : window_size_(static_cast<int>(window_sec_ * sample_rate_))
@@ -70,32 +61,27 @@ void Fbank::preEmphasis(const short* pcm, int len, std::vector<double>& out) {
 std::vector<double> Fbank::fftPower(const std::vector<double>& frame) {
     int num_fft_bins = fft_size_ / 2 + 1;
 
-    // 准备复数数组，实部为加窗数据，虚部为0
-    size_t fft_size_bytes = fft_size_ * sizeof(double) * 2; // real + imag
-    double* fft_data = (double*)ALIGN_ALLOC(fft_size_bytes * 2);
-    if (!fft_data) return std::vector<double>(num_fft_bins, 0.0);
-
-    memset(fft_data, 0, fft_size_bytes * 2);
+    // 用 OpenCV 的 FFT（CV_64F）
+    cv::Mat cv_frame(1, fft_size_, CV_64F, cv::Scalar(0));
     for (int i = 0; i < window_size_ && i < (int)frame.size(); ++i) {
-        fft_data[i * 2] = frame[i] * hamming_window_[i];     // real
-        fft_data[i * 2 + 1] = 0.0;                            // imag
+        cv_frame.at<double>(0, i) = frame[i] * hamming_window_[i];
     }
 
-    // 使用 Ooura FFT 或直接调用 OpenCV？这里用朴素 DFT 实现
-    // 实际应用中应使用预编译的 FFT 库，这里用简单的 O(n²) 仅作为参考
-    // 生产代码应替换为 FFTW/cuFFT 等
+    cv::Mat planes[] = {cv_frame, cv::Mat::zeros(1, fft_size_, CV_64F)};
+    cv::Mat complex;
+    cv::merge(planes, 2, complex);
+    cv::dft(complex, complex);
+
+    cv::Mat split_planes[2];
+    cv::split(complex, split_planes);
+
     std::vector<double> power(num_fft_bins, 0.0);
     for (int k = 0; k < num_fft_bins; ++k) {
-        double real_sum = 0.0, imag_sum = 0.0;
-        for (int n = 0; n < fft_size_; ++n) {
-            double angle = 2.0 * M_PI * k * n / fft_size_;
-            real_sum += fft_data[n * 2] * cos(angle) + fft_data[n * 2 + 1] * sin(angle);
-            imag_sum += -fft_data[n * 2] * sin(angle) + fft_data[n * 2 + 1] * cos(angle);
-        }
-        power[k] = real_sum * real_sum + imag_sum * imag_sum;
+        double re = split_planes[0].at<double>(0, k);
+        double im = split_planes[1].at<double>(0, k);
+        power[k] = re * re + im * im;
     }
 
-    ALIGN_FREE(fft_data);
     return power;
 }
 
@@ -124,6 +110,11 @@ std::vector<float> Fbank::extract(const short* pcm, int pcm_len) {
         // FFT 功率谱
         auto power = fftPower(frame);
         int num_fft_bins = (int)power.size();
+
+        // 功率谱加 floor 防止 log(0)
+        for (int k = 0; k < num_fft_bins; ++k) {
+            if (power[k] < 1e-10) power[k] = 1e-10;
+        }
 
         // Mel 滤波 + log
         std::vector<float> fbank(num_fbank_, 0.0f);
