@@ -88,9 +88,11 @@ int main(int argc, char* argv[]) {
         splash.setProgress(70, QStringLiteral("引擎加载完成"));
         app.processEvents();
     } catch (const std::exception& e) {
-        qWarning() << "Engine init failed:" << e.what();
+        std::cerr << "Engine init failed: " << e.what() << std::endl;
+        std::cerr.flush();
     } catch (...) {
-        qWarning() << "Engine init failed with unknown error";
+        std::cerr << "Engine init failed with unknown error" << std::endl;
+        std::cerr.flush();
     }
 
     splash.setProgress(85, QStringLiteral("正在初始化界面…"));
