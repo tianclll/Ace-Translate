@@ -23,7 +23,7 @@ namespace docmind {
                 {"docproc", "models/uvdoc/UVDoc_grid.onnx"}
             }},
             {"defaults", {
-                {"target_language", "English"},
+                {"target_language", "中文"},
                 {"layout_threshold", 0.5f},
                 {"pdf_dpi", 200},
                 {"vlm_threads", 4},
@@ -36,7 +36,15 @@ namespace docmind {
                 {"enable_gpu_ocr", true},
                 {"enable_gpu_layout", true},
                 {"enable_gpu_docproc", true},
+                {"enable_gpu_asr", true},
                 {"gpu_device_id", 0},
+                {"ocr_model_size", "tiny"},
+                {"enable_ocr", true},
+                {"enable_translator", true},
+                {"enable_vlm", true},
+                {"enable_layout", true},
+                {"enable_docproc", true},
+                {"enable_asr", true},
             }}
         };
     }

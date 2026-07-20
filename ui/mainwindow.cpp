@@ -37,16 +37,25 @@
 #include <QPainter>
 #include <QPainterPath>
 
+#include <QTextCursor>
+#include <QThread>
+#include <QIcon>
+
 #include <sapi.h>
 #include <sphelper.h>
 #include <sstream>
+#include <mmsystem.h>
+
+// 前向声明：waveIn 回调
+static void CALLBACK WaveInProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
+                                 DWORD_PTR dwParam1, DWORD_PTR dwParam2);
 
 #include <opencv2/opencv.hpp>
 
 // ============================================================
-// 静态辅助：为下拉框填充118种语言
+// 静态辅助：为下拉框填充语言
 // ============================================================
-static void populateLanguages(QComboBox* combo, const QString& defaultLang = QStringLiteral("中文")) {
+static void populateLanguages(QComboBox* combo, const QString& defaultLang = QStringLiteral("中文"), bool useConfigDefault = false) {
     combo->setEditable(true);
     combo->setInsertPolicy(QComboBox::NoInsert);
     combo->addItems({
@@ -89,7 +98,12 @@ static void populateLanguages(QComboBox* combo, const QString& defaultLang = QSt
         QStringLiteral("维吾尔语"),
         QStringLiteral("粤语"),
     });
-    combo->setCurrentText(defaultLang);
+    if (useConfigDefault) {
+        auto& cfg = docmind::ConfigManager::getInstance();
+        combo->setCurrentText(QString::fromStdString(cfg.getDefaultLanguage()));
+    } else {
+        combo->setCurrentText(defaultLang);
+    }
 }
 
 // ============================================================
@@ -715,7 +729,7 @@ QWidget* MainWindow::createTextPanel() {
     langLayout->addWidget(targetLabel);
 
     textLangCombo_ = new QComboBox;
-    populateLanguages(textLangCombo_);
+    populateLanguages(textLangCombo_, QString(), true);
     textLangCombo_->setFixedHeight(30);
     textLangCombo_->setMinimumWidth(120);
     textLangCombo_->setStyleSheet(
@@ -725,7 +739,7 @@ QWidget* MainWindow::createTextPanel() {
 
     langLayout->addStretch();
 
-    auto* langHint = new QLabel(QStringLiteral("118 种语言"));
+    auto* langHint = new QLabel;
     langHint->setStyleSheet("font-size: 12px; color: #889096;");
     langLayout->addWidget(langHint);
 
@@ -744,7 +758,10 @@ QWidget* MainWindow::createTextPanel() {
     leftInner->setContentsMargins(14, 10, 14, 10);
     leftInner->setSpacing(6);
 
+    // 原文标题行
     auto* leftHeaderRow = new QHBoxLayout;
+    leftHeaderRow->setContentsMargins(0, 0, 0, 0);
+    leftHeaderRow->setSpacing(4);
     auto* leftIcon = new QLabel;
     QPixmap orgPix(":/icons/org_image.png");
     if (!orgPix.isNull())
@@ -758,7 +775,7 @@ QWidget* MainWindow::createTextPanel() {
     textPasteBtn_ = new QPushButton(QStringLiteral("粘贴"));
     textPasteBtn_->setCursor(Qt::PointingHandCursor);
     textPasteBtn_->setStyleSheet(
-        "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 0px 4px; border-radius: 4px; }"
         "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
     connect(textPasteBtn_, &QPushButton::clicked, this, [this]() {
         if (textInput_) textInput_->insertPlainText(QApplication::clipboard()->text());
@@ -770,12 +787,19 @@ QWidget* MainWindow::createTextPanel() {
     textClearBtn_->setStyleSheet(textPasteBtn_->styleSheet());
     connect(textClearBtn_, &QPushButton::clicked, this, [this]() {
         if (textInput_) { textInput_->clear(); }
+        if (textOutput_) { textOutput_->clear(); }
     });
     leftHeaderRow->addWidget(textClearBtn_);
 
     leftInner->addLayout(leftHeaderRow);
 
-    // 原文输入框 — 矮一些，用 stretch 填充空间
+    // 用容器包裹输入框 + footer（避免 footer 影响标题行间距）
+    auto* inputContainer = new QWidget;
+    inputContainer->setStyleSheet("background: transparent; border: none;");
+    auto* inputLay = new QVBoxLayout(inputContainer);
+    inputLay->setContentsMargins(0, 0, 0, 0);
+    inputLay->setSpacing(0);
+
     textInput_ = new QPlainTextEdit;
     textInput_->setPlaceholderText(QStringLiteral("请输入要翻译的文本…"));
     textInput_->setMaximumHeight(120);
@@ -783,11 +807,40 @@ QWidget* MainWindow::createTextPanel() {
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
         " color: #1A1A2E; padding: 2px 0; }"
         "QPlainTextEdit:focus { border: none; }");
-    leftInner->addWidget(textInput_, 1);
+    inputLay->addWidget(textInput_, 1);
 
+    // 底部条：0 字符 + 麦克风
+    auto* leftFooterRow = new QHBoxLayout;
+    leftFooterRow->setContentsMargins(0, 0, 0, 0);
     auto* leftFooter = new QLabel(QStringLiteral("0 字符"));
-    leftFooter->setStyleSheet("font-size: 11px; color: #C4C8CC; padding-top: 6px;");
-    leftInner->addWidget(leftFooter);
+    leftFooter->setStyleSheet("font-size: 11px; color: #C4C8CC;");
+    leftFooterRow->addWidget(leftFooter);
+    leftFooterRow->addStretch();
+
+    textMicBtn_ = new QPushButton;
+    textMicBtn_->setFocusPolicy(Qt::NoFocus);
+    textMicBtn_->setFlat(true);
+    QPixmap voicePix(":/icons/voice.png");
+    if (!voicePix.isNull()) {
+        textMicBtn_->setIcon(QIcon(voicePix.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+        textMicBtn_->setIconSize(QSize(16, 16));
+    } else {
+        textMicBtn_->setText(QStringLiteral("🎤"));
+    }
+    textMicBtn_->setCursor(Qt::PointingHandCursor);
+    textMicBtn_->setToolTip(QString());
+    textMicBtn_->setFixedSize(20, 14);
+    textMicBtn_->setStyleSheet(
+        "QPushButton { border: 0px; background: transparent; padding: 0px 2px; border-radius: 4px; }"
+        "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }"
+        "QPushButton:focus { outline: none; }");
+    connect(textMicBtn_, &QPushButton::clicked, this, [this]() {
+        onMicButtonClicked();
+    });
+    leftFooterRow->addWidget(textMicBtn_);
+    inputLay->addLayout(leftFooterRow);
+
+    leftInner->addWidget(inputContainer, 1);
 
     connect(textInput_, &QPlainTextEdit::textChanged, this, [leftFooter, this]() {
         leftFooter->setText(QStringLiteral("%1 字符").arg(textInput_->toPlainText().length()));
@@ -802,10 +855,12 @@ QWidget* MainWindow::createTextPanel() {
     rightPanel->setStyleSheet(
         "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
     auto* rightInner = new QVBoxLayout(rightPanel);
-    rightInner->setContentsMargins(14, 10, 14, 10);
-    rightInner->setSpacing(6);
+    rightInner->setContentsMargins(14, 28, 14, 10);
+    rightInner->setSpacing(4);
 
     auto* rightHeaderRow = new QHBoxLayout;
+    rightHeaderRow->setContentsMargins(0, 0, 0, 0);
+    rightHeaderRow->setSpacing(4);
     auto* rightIcon = new QLabel;
     rightIcon->setFixedSize(18, 18);
     rightIcon->setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;");
@@ -841,13 +896,32 @@ QWidget* MainWindow::createTextPanel() {
 
     rightInner->addLayout(rightHeaderRow);
 
+    // 用容器包裹输出框（与原文侧 inputContainer 对称，保持高度一致）
+    auto* rightContainer = new QWidget;
+    rightContainer->setStyleSheet("background: transparent; border: none;");
+    auto* rightLay = new QVBoxLayout(rightContainer);
+    rightLay->setContentsMargins(0, 0, 0, 0);
+    rightLay->setSpacing(0);
+
     textOutput_ = new QPlainTextEdit;
     textOutput_->setReadOnly(true);
+    textOutput_->setMaximumHeight(120);
     textOutput_->setPlaceholderText(QStringLiteral("翻译结果…"));
     textOutput_->setStyleSheet(
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
         " color: #1A1A2E; padding: 2px 0; }");
-    rightInner->addWidget(textOutput_, 1);
+    rightLay->addWidget(textOutput_, 1);
+
+    // 占位 footer（与原文的 0 字符+麦克风行等高）
+    auto* rightFooterRow = new QHBoxLayout;
+    rightFooterRow->setContentsMargins(0, 0, 0, 0);
+    rightFooterRow->setSpacing(0);
+    auto* rightFooter = new QLabel;
+    rightFooter->setFixedHeight(14);
+    rightFooterRow->addWidget(rightFooter);
+    rightLay->addLayout(rightFooterRow);
+
+    rightInner->addWidget(rightContainer, 1);
 
     gridLayout->addWidget(rightPanel, 1);
 
@@ -1084,7 +1158,7 @@ QWidget* MainWindow::createFloatConfigPanel() {
     optionsRow->addWidget(langLabel);
 
     auto* langCombo = new QComboBox;
-    populateLanguages(langCombo);
+    populateLanguages(langCombo, QString(), true);
     langCombo->setFixedWidth(160);
     optionsRow->addWidget(langCombo);
 
@@ -1439,7 +1513,7 @@ QWidget* MainWindow::createScreenshotPanel() {
     auto* ctrlRow = new QHBoxLayout;
     ctrlRow->addWidget(new QLabel(QStringLiteral("目标语言:")));
     screenshotLangCombo_ = new QComboBox;
-    populateLanguages(screenshotLangCombo_);
+    populateLanguages(screenshotLangCombo_, QString(), true);
     ctrlRow->addWidget(screenshotLangCombo_);
     ctrlRow->addStretch();
     ctrlRow->addWidget(new QLabel(QStringLiteral("Max Tokens:")));
@@ -1668,7 +1742,7 @@ QWidget* MainWindow::createPhotoPanel() {
 
     ctrlInner->addWidget(new QLabel(QStringLiteral("目标语言:")));
     photoLangCombo_ = new QComboBox;
-    populateLanguages(photoLangCombo_);
+    populateLanguages(photoLangCombo_, QString(), true);
     ctrlInner->addWidget(photoLangCombo_);
 
     ctrlInner->addStretch();
@@ -1813,7 +1887,7 @@ QWidget* MainWindow::createFilePanel() {
     // 目标语言
     paramLayout->addWidget(new QLabel(QStringLiteral("目标语言:")));
     fileLangCombo_ = new QComboBox;
-    populateLanguages(fileLangCombo_);
+    populateLanguages(fileLangCombo_, QString(), true);
     fileLangCombo_->setMaximumWidth(130);
     fileLangCombo_->setFixedHeight(28);
     fileLangCombo_->setStyleSheet(
@@ -2039,117 +2113,147 @@ QWidget* MainWindow::createSettingsPanel() {
     title->setObjectName("sectionTitle");
     layout->addWidget(title);
 
-    auto* hint = new QLabel(QStringLiteral("配置各引擎的模型路径与 DLL 路径（支持相对路径或绝对路径）"));
+    auto* hint = new QLabel(QStringLiteral("修改后需重启应用生效"));
     hint->setObjectName("sectionHint");
     hint->setWordWrap(true);
     layout->addWidget(hint);
 
-    // 获取配置
     auto& cfg = docmind::ConfigManager::getInstance();
 
-    // ===== 辅助: 创建配置行 =====
-    struct EngineConfig {
-        QString title;
-        QString modelLabel;
-        QString dllLabel;
-        std::string modelKey;
-        std::string dllKey;
-    };
-    EngineConfig engines[] = {
-        {QStringLiteral("OCR 配置"),       QStringLiteral("识别模型"),   QStringLiteral("DLL"),        "models.ocr_dir",     "dlls.ocr"},
-        {QStringLiteral("翻译引擎配置"),   QStringLiteral("模型地址"),   QStringLiteral("DLL"),        "models.translator",  "dlls.translator"},
-        {QStringLiteral("公式识别配置"),   QStringLiteral("模型地址(e.g. VLM)"), QStringLiteral("DLL"),  "models.vlm",         "dlls.vlm"},
-        {QStringLiteral("版面分析配置"),   QStringLiteral("模型地址"),   QStringLiteral("DLL"),        "models.layout",      "dlls.layout"},
-        {QStringLiteral("图片矫正配置"),   QStringLiteral("模型地址(e.g. UVDoc)"), QStringLiteral("DLL"), "models.docproc",    "dlls.docproc"},
-    };
+    // ===== GroupBox 通用样式 =====
+    auto groupStyle = QStringLiteral(
+        "QGroupBox { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px;"
+        " font-size: 13px; font-weight: 600; color: #134E4A;"
+        " margin-top: 14px; padding: 18px 18px 12px 18px; }"
+        "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left;"
+        " padding: 2px 8px; margin-left: 8px;"
+        " background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 6px;"
+        " color: #0B7C72; font-size: 11px; }");
 
-    for (const auto& eng : engines) {
-        auto* group = new QGroupBox(eng.title);
-        group->setStyleSheet(
-            "QGroupBox { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px;"
-            " font-size: 13px; font-weight: 600; color: #134E4A;"
-            " margin-top: 14px; padding: 18px 18px 12px 18px; }"
-            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left;"
-            " padding: 2px 8px; margin-left: 8px;"
-            " background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 6px;"
-            " color: #0B7C72; font-size: 11px; }");
+    // ===== 1. 默认语言 =====
+    {
+        auto* group = new QGroupBox(QStringLiteral("默认语言"));
+        group->setStyleSheet(groupStyle);
         auto* form = new QVBoxLayout(group);
         form->setSpacing(6);
 
-        // 模型路径行（标签 + 输入 + 浏览）
-        auto* modelLabel = new QLabel(eng.modelLabel + QStringLiteral(":"));
-        modelLabel->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280;");
-        form->addWidget(modelLabel);
-
-        auto* modelRow = new QHBoxLayout;
-        auto* modelEdit = new QLineEdit;
-        modelEdit->setText(QString::fromStdString(cfg.getNestedString(eng.modelKey)));
-        modelEdit->setPlaceholderText(QStringLiteral("留空使用默认"));
-        modelRow->addWidget(modelEdit, 1);
-        auto* modelBrowse = new QPushButton(QStringLiteral("浏览…"));
-        modelBrowse->setObjectName("secondaryBtn");
-        modelBrowse->setFixedSize(72, 30);
-        modelBrowse->setStyleSheet(
-            "QPushButton { background: transparent; color: #0B7C72; border: 1px solid #0B7C72; border-radius: 5px;"
-            " padding: 4px 10px; font-size: 12px; }"
-            "QPushButton:hover { background: #EDF5F4; }");
-        connect(modelBrowse, &QPushButton::clicked, this, [modelEdit]() {
-            QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择模型文件"),
-                QString(), QStringLiteral("模型文件 (*.onnx *.gguf *.pth *.pt);;所有文件 (*)"));
-            if (!path.isEmpty()) modelEdit->setText(path);
+        auto* langCombo = new QComboBox;
+        langCombo->setEditable(true);
+        langCombo->setInsertPolicy(QComboBox::NoInsert);
+        langCombo->addItems({
+            QStringLiteral("中文"), QStringLiteral("英语"), QStringLiteral("法语"),
+            QStringLiteral("葡萄牙语"), QStringLiteral("西班牙语"), QStringLiteral("日语"),
+            QStringLiteral("土耳其语"), QStringLiteral("俄语"), QStringLiteral("阿拉伯语"),
+            QStringLiteral("韩语"), QStringLiteral("泰语"), QStringLiteral("意大利语"),
+            QStringLiteral("德语"), QStringLiteral("越南语"), QStringLiteral("马来语"),
+            QStringLiteral("印尼语"), QStringLiteral("菲律宾语"), QStringLiteral("印地语"),
+            QStringLiteral("繁体中文"), QStringLiteral("波兰语"), QStringLiteral("捷克语"),
+            QStringLiteral("荷兰语"), QStringLiteral("高棉语"), QStringLiteral("缅甸语"),
+            QStringLiteral("波斯语"), QStringLiteral("古吉拉特语"), QStringLiteral("乌尔都语"),
+            QStringLiteral("泰卢固语"), QStringLiteral("马拉地语"), QStringLiteral("希伯来语"),
+            QStringLiteral("孟加拉语"), QStringLiteral("泰米尔语"), QStringLiteral("乌克兰语"),
+            QStringLiteral("藏语"), QStringLiteral("哈萨克语"), QStringLiteral("蒙古语"),
+            QStringLiteral("维吾尔语"), QStringLiteral("粤语"),
         });
-        modelRow->addWidget(modelBrowse);
-        form->addLayout(modelRow);
-
-        // DLL 路径行
-        auto* dllLabel = new QLabel(eng.dllLabel + QStringLiteral(":"));
-        dllLabel->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280;");
-        form->addWidget(dllLabel);
-
-        auto* dllRow = new QHBoxLayout;
-        auto* dllEdit = new QLineEdit;
-        dllEdit->setText(QString::fromStdString(cfg.getNestedString(eng.dllKey)));
-        dllEdit->setPlaceholderText(QStringLiteral("留空使用默认"));
-        dllRow->addWidget(dllEdit, 1);
-        auto* dllBrowse = new QPushButton(QStringLiteral("浏览…"));
-        dllBrowse->setObjectName("secondaryBtn");
-        dllBrowse->setFixedSize(72, 30);
-        dllBrowse->setStyleSheet(
-            "QPushButton { background: transparent; color: #0B7C72; border: 1px solid #0B7C72; border-radius: 5px;"
-            " padding: 4px 10px; font-size: 12px; }"
-            "QPushButton:hover { background: #EDF5F4; }");
-        connect(dllBrowse, &QPushButton::clicked, this, [dllEdit]() {
-            QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择 DLL 文件"),
-                QString(), QStringLiteral("DLL (*.dll);;所有文件 (*)"));
-            if (!path.isEmpty()) dllEdit->setText(path);
-        });
-        dllRow->addWidget(dllBrowse);
-        form->addLayout(dllRow);
-
-        // 保存修改（拷贝 eng 副本到 lambda，避免悬垂引用）
-        connect(modelEdit, &QLineEdit::editingFinished, this, [&cfg, eng, modelEdit]() {
-            cfg.setNestedString(eng.modelKey, modelEdit->text().toStdString());
+        langCombo->setCurrentText(QString::fromStdString(cfg.getDefaultLanguage()));
+        connect(langCombo, &QComboBox::currentTextChanged, this, [&cfg](const QString& text) {
+            cfg.setNestedString("defaults.target_language", text.toStdString());
             cfg.save();
         });
-        connect(dllEdit, &QLineEdit::editingFinished, this, [&cfg, eng, dllEdit]() {
-            cfg.setNestedString(eng.dllKey, dllEdit->text().toStdString());
+        form->addWidget(langCombo);
+        layout->addWidget(group);
+    }
+
+    // ===== 2. OCR 模型大小 =====
+    {
+        auto* group = new QGroupBox(QStringLiteral("OCR 模型大小"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* ocrSizeCombo = new QComboBox;
+        ocrSizeCombo->addItems({QStringLiteral("小 (tiny)"), QStringLiteral("中 (medium)"), QStringLiteral("大 (small)")});
+        std::string curSize = cfg.getNestedJson("defaults").value("ocr_model_size", "tiny");
+        if (curSize == "tiny") ocrSizeCombo->setCurrentIndex(0);
+        else if (curSize == "medium") ocrSizeCombo->setCurrentIndex(1);
+        else ocrSizeCombo->setCurrentIndex(2);
+
+        connect(ocrSizeCombo, &QComboBox::currentIndexChanged, this, [&cfg](int idx) {
+            std::string val = (idx == 0) ? "tiny" : (idx == 1) ? "medium" : "small";
+            cfg.setNestedString("defaults.ocr_model_size", val);
             cfg.save();
         });
+        form->addWidget(ocrSizeCombo);
+        layout->addWidget(group);
+    }
+
+    // ===== 3. 翻译模型大小 =====
+    {
+        auto* group = new QGroupBox(QStringLiteral("翻译模型大小"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* transCombo = new QComboBox;
+        transCombo->addItems({
+            QStringLiteral("Hy-MT2-1.8B-Q4_K_M (默认)"),
+            QStringLiteral("Hy-MT2-1.8B-Q6_K"),
+            QStringLiteral("HY-MT1.5-1.8B-Q4_K_M"),
+            QStringLiteral("HY-MT1.5-1.8B-Q6_K"),
+        });
+        std::string curTrans = cfg.getNestedJson("defaults").value("trans_model", "Hy-MT2-1.8B-Q4_K_M.gguf");
+        if (curTrans.find("Hy-MT2-1.8B-Q4_K_M") != std::string::npos) transCombo->setCurrentIndex(0);
+        else if (curTrans.find("Hy-MT2-1.8B-Q6_K") != std::string::npos) transCombo->setCurrentIndex(1);
+        else if (curTrans.find("HY-MT1.5-1.8B-Q4_K_M") != std::string::npos) transCombo->setCurrentIndex(2);
+        else transCombo->setCurrentIndex(3);
+
+        connect(transCombo, &QComboBox::currentIndexChanged, this, [&cfg](int idx) {
+            std::string files[] = {"Hy-MT2-1.8B-Q4_K_M.gguf", "Hy-MT2-1.8B-Q6_K.gguf",
+                                    "HY-MT1.5-1.8B-Q4_K_M.gguf", "HY-MT1.5-1.8B-Q6_K.gguf"};
+            cfg.setNestedString("defaults.trans_model", files[idx]);
+            cfg.save();
+        });
+        form->addWidget(transCombo);
+        layout->addWidget(group);
+    }
+
+    // ===== 4. 引擎启动加载 =====
+    {
+        auto* group = new QGroupBox(QStringLiteral("启动时加载引擎"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* loadHint = new QLabel(QStringLiteral("关闭可减少启动时间和内存占用，未加载的引擎在翻译时会自动提示"));
+        loadHint->setStyleSheet("font-size: 11px; color: #889096; font-weight: normal;");
+        loadHint->setWordWrap(true);
+        form->addWidget(loadHint);
+
+        auto makeLoadCheck = [&](const QString& label, const std::string& key) -> QCheckBox* {
+            auto* check = new QCheckBox(label);
+            check->setObjectName("toggleSwitch");
+            check->setChecked(cfg.getNestedJson("defaults").value(key, true));
+            connect(check, &QCheckBox::toggled, this, [&cfg, key](bool checked) {
+                cfg.setNestedBool("defaults." + key, checked);
+                cfg.save();
+            });
+            return check;
+        };
+
+        form->addWidget(makeLoadCheck(QStringLiteral("OCR 引擎"), "enable_ocr"));
+        form->addWidget(makeLoadCheck(QStringLiteral("翻译引擎"), "enable_translator"));
+        form->addWidget(makeLoadCheck(QStringLiteral("公式识别"), "enable_vlm"));
+        form->addWidget(makeLoadCheck(QStringLiteral("版面分析"), "enable_layout"));
+        form->addWidget(makeLoadCheck(QStringLiteral("图片矫正"), "enable_docproc"));
+        form->addWidget(makeLoadCheck(QStringLiteral("语音识别"), "enable_asr"));
 
         layout->addWidget(group);
     }
 
-    // ===== GPU 设置组 =====
+    // ===== 5. GPU 设置 =====
     {
         auto* gpuGroup = new QGroupBox(QStringLiteral("GPU 设置"));
-        gpuGroup->setStyleSheet(
-            "QGroupBox { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px;"
-            " font-size: 13px; font-weight: 600; color: #134E4A;"
-            " margin-top: 14px; padding: 18px 18px 12px 18px; }"
-            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left;"
-            " padding: 2px 8px; margin-left: 8px;"
-            " background: #E8F5F3; border: 1px solid #D0E8E4; border-radius: 6px;"
-            " color: #0B7C72; font-size: 11px; }");
+        gpuGroup->setStyleSheet(groupStyle);
         auto* gpuForm = new QVBoxLayout(gpuGroup);
         gpuForm->setSpacing(8);
 
@@ -2158,7 +2262,6 @@ QWidget* MainWindow::createSettingsPanel() {
         gpuHint->setWordWrap(true);
         gpuForm->addWidget(gpuHint);
 
-        // 总开关（分隔线之前）
         auto* gpuMasterCheck = new QCheckBox(QStringLiteral("启用全部 GPU 加速"));
         gpuMasterCheck->setObjectName("toggleSwitch");
         gpuMasterCheck->setChecked(true);
@@ -2171,7 +2274,6 @@ QWidget* MainWindow::createSettingsPanel() {
         );
         gpuForm->addWidget(gpuMasterCheck);
 
-        // 子开关容器（缩进，包含分隔线和所有子开关）
         auto* gpuSubWidget = new QWidget;
         auto* gpuSubLayout = new QVBoxLayout(gpuSubWidget);
         gpuSubLayout->setContentsMargins(28, 0, 0, 0);
@@ -2200,22 +2302,24 @@ QWidget* MainWindow::createSettingsPanel() {
         auto* gpuVlmCheck = makeGpuCheck(QStringLiteral("公式识别启用 GPU"), "enable_gpu_vlm");
         auto* gpuDocprocCheck = makeGpuCheck(QStringLiteral("图片矫正启用 GPU"), "enable_gpu_docproc");
         auto* gpuTransCheck = makeGpuCheck(QStringLiteral("翻译引擎启用 GPU"), "enable_gpu_translator");
+        auto* gpuAsrCheck = makeGpuCheck(QStringLiteral("语音识别启用 GPU"), "enable_gpu_asr");
 
         gpuSubLayout->addWidget(gpuLayoutCheck);
         gpuSubLayout->addWidget(gpuOcrCheck);
         gpuSubLayout->addWidget(gpuVlmCheck);
         gpuSubLayout->addWidget(gpuDocprocCheck);
         gpuSubLayout->addWidget(gpuTransCheck);
+        gpuSubLayout->addWidget(gpuAsrCheck);
 
         gpuForm->addWidget(gpuSubWidget);
 
-        // 总开关控制所有子开关
-        connect(gpuMasterCheck, &QCheckBox::toggled, this, [gpuLayoutCheck, gpuOcrCheck, gpuVlmCheck, gpuDocprocCheck, gpuTransCheck](bool checked) {
+        connect(gpuMasterCheck, &QCheckBox::toggled, this, [gpuLayoutCheck, gpuOcrCheck, gpuVlmCheck, gpuDocprocCheck, gpuTransCheck, gpuAsrCheck](bool checked) {
             gpuLayoutCheck->setChecked(checked);
             gpuOcrCheck->setChecked(checked);
             gpuVlmCheck->setChecked(checked);
             gpuDocprocCheck->setChecked(checked);
             gpuTransCheck->setChecked(checked);
+            gpuAsrCheck->setChecked(checked);
         });
 
         layout->addWidget(gpuGroup);
@@ -2658,6 +2762,181 @@ void MainWindow::runWorker(TranslateWorker* worker) {
         onHourglassTick();
     }
     thread->start();
+}
+
+// ============================================================
+// onMicButtonClicked — 语音输入
+// ============================================================
+void MainWindow::onMicButtonClicked() {
+    if (!isRecording_) {
+        // 开始录音
+        isRecording_ = true;
+        textMicBtn_->setStyleSheet(
+            "QPushButton { border: 0px; background: #E74C3C; color: white; font-size: 14px; padding: 2px 6px; border-radius: 4px; }"
+            "QPushButton:focus { outline: none; }");
+        textMicBtn_->setToolTip(QStringLiteral("点击停止录音"));
+        statusBar_->showMessage(QStringLiteral("录音中…点击 🎤 停止"), 0);
+        QString baseDir = QCoreApplication::applicationDirPath();
+
+        // 在后台线程录音（避免阻塞 UI）
+        asrThread_ = QThread::create([this, baseDir]() {
+            // 加载 ASR DLL
+            typedef void* (*ASRCreateFunc)(const char*, const char*, int);
+            typedef char* (*ASRRecognizeFunc)(void*, const short*, int);
+            typedef void (*ASRDestroyFunc)(void*);
+
+            HMODULE asrDll = LoadLibraryW(baseDir.toStdWString().c_str());
+            if (asrDll) FreeLibrary(asrDll);
+            asrDll = LoadLibraryA("asr.dll");
+            if (!asrDll) {
+                QMetaObject::invokeMethod(this, [this]() {
+                    statusBar_->showMessage(QStringLiteral("ASR 引擎未加载"), 3000);
+                    resetMicButton();
+                }, Qt::QueuedConnection);
+                return;
+            }
+
+            auto asrCreate = (ASRCreateFunc)GetProcAddress(asrDll, "asr_create");
+            auto asrRecognize = (ASRRecognizeFunc)GetProcAddress(asrDll, "asr_recognize");
+            auto asrDestroy = (ASRDestroyFunc)GetProcAddress(asrDll, "asr_destroy");
+            if (!asrCreate || !asrRecognize || !asrDestroy) {
+                FreeLibrary(asrDll);
+                QMetaObject::invokeMethod(this, [this]() {
+                    statusBar_->showMessage(QStringLiteral("ASR DLL 接口错误"), 3000);
+                    resetMicButton();
+                }, Qt::QueuedConnection);
+                return;
+            }
+
+            // 初始化 ASR 引擎（模型路径）
+            std::string modelPath = baseDir.toStdString() + "\\models\\ASR\\model_quant.onnx";
+            std::string tokensPath = baseDir.toStdString() + "\\models\\ASR\\tokens.json";
+            void* asrHandle = asrCreate(modelPath.c_str(), tokensPath.c_str(), 1);
+            if (!asrHandle) {
+                FreeLibrary(asrDll);
+                QMetaObject::invokeMethod(this, [this]() {
+                    statusBar_->showMessage(QStringLiteral("ASR 模型加载失败"), 3000);
+                    resetMicButton();
+                }, Qt::QueuedConnection);
+                return;
+            }
+
+            // 开始录音
+            HWAVEIN hWaveIn = nullptr;
+            WAVEHDR waveHeaders[2] = {};
+            const int bufSamples = 16000 * 5;
+            std::vector<short> bufs[2];
+            std::vector<short> allData;
+            allData.reserve(bufSamples * 4);
+
+            WAVEFORMATEX wfx = {};
+            wfx.wFormatTag = WAVE_FORMAT_PCM;
+            wfx.nChannels = 1;
+            wfx.nSamplesPerSec = 16000;
+            wfx.wBitsPerSample = 16;
+            wfx.nBlockAlign = 2;
+            wfx.nAvgBytesPerSec = 32000;
+
+            MMRESULT res = waveInOpen(&hWaveIn, WAVE_MAPPER, &wfx,
+                                       (DWORD_PTR)WaveInProc, (DWORD_PTR)&allData,
+                                       CALLBACK_FUNCTION);
+            if (res != MMSYSERR_NOERROR) {
+                asrDestroy(asrHandle);
+                FreeLibrary(asrDll);
+                QMetaObject::invokeMethod(this, [this]() {
+                    statusBar_->showMessage(QStringLiteral("麦克风打开失败"), 3000);
+                    resetMicButton();
+                }, Qt::QueuedConnection);
+                return;
+            }
+
+            for (int i = 0; i < 2; ++i) {
+                bufs[i].resize(bufSamples, 0);
+                waveHeaders[i].lpData = (LPSTR)bufs[i].data();
+                waveHeaders[i].dwBufferLength = bufSamples * sizeof(short);
+                waveHeaders[i].dwFlags = 0;
+                waveInPrepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+                waveInAddBuffer(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+            }
+            waveInStart(hWaveIn);
+
+            // 等待用户停止录音
+            while (isRecording_) {
+                Sleep(100);
+            }
+
+            // 停止录音
+            waveInStop(hWaveIn);
+            waveInReset(hWaveIn);
+            for (int i = 0; i < 2; ++i) {
+                waveInUnprepareHeader(hWaveIn, &waveHeaders[i], sizeof(WAVEHDR));
+            }
+            waveInClose(hWaveIn);
+
+            // 识别
+            if (!allData.empty()) {
+                char* result = asrRecognize(asrHandle, allData.data(), (int)allData.size());
+                if (result) {
+                    QString text = QString::fromUtf8(result);
+                    delete[] result;
+                    QMetaObject::invokeMethod(this, [this, text]() {
+                        if (textInput_) {
+                            textInput_->insertPlainText(text);
+                            textInput_->moveCursor(QTextCursor::End);
+                        }
+                        statusBar_->showMessage(QStringLiteral("语音识别完成"), 2000);
+                    }, Qt::QueuedConnection);
+                }
+            }
+
+            asrDestroy(asrHandle);
+            FreeLibrary(asrDll);
+
+            QMetaObject::invokeMethod(this, [this]() {
+                resetMicButton();
+            }, Qt::QueuedConnection);
+        });
+        asrThread_->start();
+    } else {
+        // 停止录音
+        isRecording_ = false;
+        statusBar_->showMessage(QStringLiteral("语音识别中…"));
+    }
+}
+
+void MainWindow::resetMicButton() {
+    isRecording_ = false;
+    if (textMicBtn_) {
+        textMicBtn_->setStyleSheet(
+            "QPushButton { border: 0px; background: transparent; padding: 2px 4px; border-radius: 4px; }"
+            "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }"
+            "QPushButton:focus { outline: none; }");
+        textMicBtn_->setToolTip(QStringLiteral("语音输入"));
+        textMicBtn_->setEnabled(true);
+    }
+}
+
+// 静态回调：waveIn 数据回调
+static void CALLBACK WaveInProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
+                                 DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
+    if (uMsg != WIM_DATA) return;
+    auto* allData = reinterpret_cast<std::vector<short>*>(dwInstance);
+    auto* header = reinterpret_cast<WAVEHDR*>(dwParam1);
+    if (!allData || !header) return;
+
+    int samples = header->dwBytesRecorded / sizeof(short);
+    if (samples > 0) {
+        auto* data = reinterpret_cast<short*>(header->lpData);
+        size_t old = allData->size();
+        allData->resize(old + samples);
+        memcpy(allData->data() + old, data, samples * sizeof(short));
+    }
+
+    // 重新提交
+    header->dwBytesRecorded = 0;
+    header->dwFlags = 0;
+    waveInPrepareHeader(hwi, header, sizeof(WAVEHDR));
+    waveInAddBuffer(hwi, header, sizeof(WAVEHDR));
 }
 
 void MainWindow::onWorkerFinished(const QString& result) {

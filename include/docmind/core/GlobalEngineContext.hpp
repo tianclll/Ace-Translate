@@ -28,6 +28,10 @@ namespace docmind {
         // 获取 DocumentImageProcessor 句柄（若已加载）
         void* getDocProcHandle() { return docproc_handle_; }
 
+        // ASR 引擎
+        void* getASRHandle() { return asr_handle_; }
+        void setBaseDir(const std::string& dir) { base_dir_ = dir; }
+
         bool isInitialized() const { return initialized_; }
 
     private:
@@ -45,6 +49,11 @@ namespace docmind {
         bool docproc_loaded_ = false;
         bool initialized_ = false;
         std::once_flag init_flag_;
+
+        // ASR
+        void* asr_handle_ = nullptr;
+        bool asr_loaded_ = false;
+        std::string base_dir_;
     };
 
 } // namespace docmind

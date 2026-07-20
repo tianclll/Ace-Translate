@@ -6,8 +6,8 @@
 
 **一站式本地翻译工具**
 
-> 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译  
-> 纯离线 · 隐私安全 · GPU/CPU 双模式
+> 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入  
+> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-blue?style=flat-square&logo=windows" alt="Windows"/>
@@ -26,29 +26,43 @@
 
 | 功能 | 说明 | 适用场景 |
 |------|------|----------|
-| 📝 **文本翻译** | 输入或粘贴文本，翻译到 118 种语言 | 日常翻译需求 |
+| 📝 **文本翻译** | 输入或粘贴文本，快速翻译 | 日常翻译需求 |
 | 🖱️ **划词翻译** | 选中任意应用文字，`Ctrl+Shift+C` 弹出翻译 | 阅读外语文档 |
-| 📷 **截图翻译** | 截取屏幕区域，自动 OCR + 翻译 | 图片中的文字 |
+| 📷 **截图翻译** | 截取屏幕区域，自动 OCR + 翻译，支持多种语言 | 图片中的文字 |
 | 🖼️ **图片翻译** | 上传图片，翻译后渲染回图片 | 漫画、海报、菜单 |
-| 📄 **文件翻译** | PDF/Word/Excel/PPT/MD/TXT | 批量文档翻译 |
+| 📄 **文件翻译** | PDF/Word/Excel/PPT/MD/TXT 批量文档翻译 | 批量文档处理 |
+| 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 | 语音输入 |
+| 🔊 **朗读** | 支持中文/英文/日文/韩文等多语言 TTS 朗读 | 听译文发音 |
 
 </div>
 
+---
+
 ## 🖼️ 界面预览
 
-<details open>
-<summary><b>主界面</b></summary>
+> *截图待补充——替换以下占位图为实际界面截图*
 
-> *截图待补充*
+![主界面](docs/images/main_window.png)
 
-</details>
+## 📸 翻译效果
 
-<details>
-<summary><b>各功能面板</b></summary>
+> *效果图待补充——替换以下占位图为实际翻译效果截图*
 
-> *截图待补充*
+### 文本翻译
 
-</details>
+![文本翻译效果](docs/images/demo_text.png)
+
+### 截图翻译
+
+![截图翻译效果](docs/images/demo_screenshot.png)
+
+### 图片翻译
+
+![图片翻译效果](docs/images/demo_photo.png)
+
+### 文件翻译
+
+![文件翻译效果](docs/images/demo_file.png)
 
 ---
 
@@ -151,23 +165,38 @@ cmake --build . --config Release
 ```
 models/
 ├── translation/
-│   └── HY-MT2-1.8B-Q4_K_M.gguf         # 翻译模型 (~1.8GB)
+│   ├── Hy-MT2-1.8B-Q4_K_M.gguf      # 翻译模型（默认）
+│   ├── Hy-MT2-1.8B-Q6_K.gguf        # 翻译模型（更高精度）
+│   ├── HY-MT1.5-1.8B-Q4_K_M.gguf    # 翻译模型（旧版）
+│   └── HY-MT1.5-1.8B-Q6_K.gguf      # 翻译模型（旧版高精度）
 ├── VLM/
 │   ├── PaddleOCR-VL-1.6-GGUF.gguf        # VLM 模型
 │   └── PaddleOCR-VL-1.6-GGUF-mmproj.gguf # mmproj 文件
 ├── layout/
 │   └── pp_doclayoutv2.onnx              # 版面分析模型
 ├── ocr/
-│   ├── det/                              # 文本检测模型
-│   ├── rec/                              # 文字识别模型
-│   └── cls/                              # 方向分类模型
+│   ├── tiny/                             # OCR 模型（轻量，默认）
+│   │   ├── det/det.onnx                 # 文本检测
+│   │   ├── rec/rec.onnx                 # 文字识别
+│   │   └── cls/cls.onnx                 # 方向分类
+│   ├── small/                           # OCR 模型（中等）
+│   │   ├── det/det.onnx
+│   │   ├── rec/rec.onnx
+│   │   └── cls/cls.onnx
+│   └── medium/                          # OCR 模型（高精度）
+│       ├── det/det.onnx
+│       ├── rec/rec.onnx
+│       └── cls/cls.onnx
+├── ASR/
+│   ├── model_quant.onnx                 # 语音识别模型
+│   └── tokens.json                      # 语音 token 映射
 └── uvdoc/
     └── UVDoc_grid.onnx                   # 图片矫正模型
 ```
 
 > **模型下载**：[Hugging Face 🤗](https://huggingface.co/your-username/your-repo)（待上传）
 
-> **注意**：本项目为追求轻量化，所有模块均使用了量化/轻量模型（翻译 Q4_K_M、OCR mobile 版、小型 VLM 等），翻译质量和识别精度可能不如全精度或大型模型。如果您有特定场景的更高精度需求（专业领域的翻译模型、高精度 OCR、大型 VLM 等），欢迎联系我定制。
+> **注意**：本项目为追求轻量化，所有模型均使用量化版本（翻译 Q4_K_M、OCR tiny、小型 VLM 等），在常见场景下表现良好。如果您有更高精度、更全语言覆盖的需求，欢迎联系我定制。
 
 ---
 
@@ -175,15 +204,19 @@ models/
 
 程序首次运行会在同目录生成 `config.json`，也可以在设置面板中修改：
 
-<!-- 配置截图 -->
-> *设置面板截图待补充*
+**常用设置**：
+
+- **默认语言**：设置翻译目标语言（所有面板统一）
+- **OCR 模型大小**：tiny（轻量）→ medium（高精度）
+- **翻译模型大小**：Q4_K_M（快速）→ Q6_K（高精度）
+- **启动加载引擎**：选择开机时自动加载哪些引擎，关闭可减少启动时间
 
 **GPU 设置**（设置 → GPU 设置）：
 
 - **总开关**：一键启用/关闭所有引擎的 GPU 加速
-- **独立开关**：分别为 OCR、版面分析、公式识别、图片矫正、翻译引擎设置
+- **独立开关**：分别为 OCR、版面分析、公式识别、图片矫正、翻译引擎、语音识别设置
 
-> 修改 GPU 设置后需重启应用生效。
+> 修改 GPU 设置和模型大小后需重启应用生效。
 
 ---
 
@@ -206,26 +239,27 @@ AceTranslatePro/
 ├── 📜 CMakeLists_cpu.txt     # CPU 版构建配置
 │
 ├── 📂 ui/                    # Qt6 图形界面
-│   ├── mainwindow.cpp        # 主窗口
+│   ├── mainwindow.cpp        # 主窗口（5 面板 + 状态栏 + 托盘 + 热键）
 │   ├── floatwindow.cpp       # 划词翻译悬浮窗
 │   ├── regioncapture.cpp     # 截图选区
-│   └── style.qss             # 样式表
+│   ├── toast.cpp             # 顶部通知组件
+│   ├── zoomablelabel.cpp     # 可缩放图片控件
+│   └── style.qss             # 全局样式表
 │
 ├── 📂 src/                   # C++ 核心代码
-│   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout）
+│   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout/ASR）
 │   ├── processors/           # 文档处理管线
 │   ├── modules/              # 业务逻辑模块
 │   ├── core/                 # 引擎上下文 & 配置管理
 │   └── utils/                # 工具函数
 │
-├── 📂 include/docmind/       # 公共接口头文件
-│
 ├── 📂 deps/                  # 引擎 DLL 源码
-│   ├── ocr/                  # PaddleOCR 封装
-│   ├── doclayout/            # 版面分析
-│   ├── vlm/                  # VLM 公式识别
-│   ├── translator/           # 翻译引擎
-│   └── uvdoc/                # 图片矫正
+│   ├── ocr/                  # PaddleOCR 封装（ONNXRuntime）
+│   ├── doclayout/            # 版面分析（ONNXRuntime）
+│   ├── vlm/                  # VLM 多模态（llama.cpp）
+│   ├── translator/           # 翻译引擎（llama.cpp）
+│   ├── uvdoc/                # 图片矫正（ONNXRuntime）
+│   └── asr/                  # 语音识别（SenseVoice + ONNXRuntime）
 │
 ├── 📂 script/                # 辅助工具
 │   └── office2md/            # Office → Markdown 转换
@@ -255,6 +289,8 @@ AceTranslatePro/
 | 📐 版面分析 | PPDocLayoutV2 (ONNXRuntime) |
 | 🧮 公式识别 | VLM 多模态模型 (llama.cpp) |
 | 🌐 翻译 | 本地 LLM (llama.cpp) |
+| 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime) |
+| 🔊 语音合成 | Windows SAPI |
 | 📄 文档解析 | PDFium + office2md (Python) |
 
 ---
@@ -267,6 +303,8 @@ AceTranslatePro/
 
 <div align="center">
 
-**Made with ❤️** · 如有定制需求，请加微信：`AceTranslatePro`
+**Made with ❤️**
+
+如需更高精度、更多语言覆盖的定制模型或服务器版本，请联系微信：`AceTranslatePro`
 
 </div>

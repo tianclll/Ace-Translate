@@ -113,6 +113,8 @@ private slots:
 
     // 文本翻译
     void onTranslateText();
+    void onMicButtonClicked();
+    void resetMicButton();
     // 文件翻译
     void onSelectInputFile();
     void onProcessFile();
@@ -193,6 +195,7 @@ private:
     QPushButton* textClearBtn_;
     QPushButton* textCopyBtn_;
     QPushButton* textSpeakBtn_;
+    QPushButton* textMicBtn_ = nullptr;
 
     // -- 文件翻译 --
     QLineEdit* fileInputPath_;
@@ -267,4 +270,8 @@ private:
     QFrame* photoOutputCard_ = nullptr;
     QFrame* floatConfigCard_ = nullptr;
     QFrame* historyCard_ = nullptr;
+
+    // -- 语音输入 --
+    bool isRecording_ = false;
+    QThread* asrThread_ = nullptr;
 };

@@ -23,5 +23,6 @@
         <file alias="setting.png">icons/setting.png</file>
         <file alias="yes.png">icons/yes.png</file>
         <file alias="OCR.png">icons/OCR.png</file>
+        <file alias="voice.png">icons/voice.png</file>
     </qresource>
 </RCC>

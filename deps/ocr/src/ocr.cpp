@@ -54,10 +54,30 @@ namespace ocr {
         Impl(const std::string& model_dir, bool use_gpu) {
             model_dir_ = model_dir.empty() ? "./models" : model_dir;
 
-            det_model_path_ = model_dir_ + "/ocr/tiny/det/det.onnx";
-            rec_model_path_ = model_dir_ + "/ocr/tiny/rec/rec.onnx";
-            rec_dict_path_ = model_dir_ + "/ocr/ppocrv6_tiny_dict.txt";
-            cls_model_path_ = model_dir_ + "/ocr/tiny/cls/cls.onnx";
+            // 如果 model_dir 直接就是某个 size 的路径（如 models/ocr/tiny），
+            // 直接在该目录下找 det/rec/cls
+            // 如果是旧版的 models 根目录，则拼 /ocr/tiny/...
+            std::string sep = "/";
+            if (model_dir_.find('\\') != std::string::npos) sep = "\\";
+
+            // 检查 model_dir/ocr/ 是否存在来判断是哪种传参方式
+            std::string test_path = model_dir_ + sep + "det" + sep + "det.onnx";
+            std::ifstream test_file(test_path);
+            if (test_file.good()) {
+                // model_dir 已经是 size 路径，直接使用
+                det_model_path_ = model_dir_ + sep + "det" + sep + "det.onnx";
+                rec_model_path_ = model_dir_ + sep + "rec" + sep + "rec.onnx";
+                cls_model_path_ = model_dir_ + sep + "cls" + sep + "cls.onnx";
+                // dict 在 model_dir 的上一级
+                size_t pos = model_dir_.find_last_of("\\/");
+                rec_dict_path_ = (pos != std::string::npos ? model_dir_.substr(0, pos) : model_dir_) + sep + "ppocrv6_tiny_dict.txt";
+            } else {
+                // 向后兼容：在 model_dir 后拼 /ocr/tiny
+                det_model_path_ = model_dir_ + "/ocr/tiny/det/det.onnx";
+                rec_model_path_ = model_dir_ + "/ocr/tiny/rec/rec.onnx";
+                rec_dict_path_ = model_dir_ + "/ocr/ppocrv6_tiny_dict.txt";
+                cls_model_path_ = model_dir_ + "/ocr/tiny/cls/cls.onnx";
+            }
 
             // 检查文件存在性（仅打印）
             std::cout << "Model directory: " << model_dir_ << std::endl;
