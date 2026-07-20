@@ -50,6 +50,12 @@ int main(int argc, char* argv[]) {
         styleFile.close();
     }
 
+    // ToolTip 样式（单独设置，确保覆盖 Windows 原生样式）
+    app.setStyleSheet(app.styleSheet() +
+        "QToolTip { border: 0px; border-radius: 4px;"
+        " background-color: #1A1A2E; color: #FFFFFF;"
+        " padding: 4px 8px; font-size: 12px; }");
+
     // 设置默认字体
     QFont defaultFont("Microsoft YaHei UI", 10);
     defaultFont.setStyleStrategy(QFont::PreferAntialias);

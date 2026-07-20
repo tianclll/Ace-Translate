@@ -391,3 +391,13 @@ QFrame#toast {
     background: #1A1A2E; border-radius: 8px;
     color: #FFFFFF; font-size: 13px; padding: 12px 20px;
 }
+
+/* ---------- ToolTip ---------- */
+QToolTip {
+    border: 0px;
+    border-radius: 4px;
+    background-color: #1A1A2E;
+    color: #FFFFFF;
+    padding: 4px 8px;
+    font-size: 12px;
+}

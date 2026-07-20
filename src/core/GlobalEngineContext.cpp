@@ -2,6 +2,12 @@
 #include "docmind/core/ConfigManager.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <windows.h>
+
+// ASR DLL 函数指针类型
+using ASRCreateFunc = void* (*)(const char*, const char*, int);
+using ASRRecognizeFunc = char* (*)(void*, const short*, int);
+using ASRDestroyFunc = void (*)(void*);
 
 namespace docmind {
 
@@ -38,6 +44,7 @@ namespace docmind {
             bool trans_gpu = ConfigManager::getInstance().getNestedJson("defaults").value("enable_gpu_translator", true);
             bool layout_gpu = ConfigManager::getInstance().getNestedJson("defaults").value("enable_gpu_layout", true);
             bool docproc_gpu = ConfigManager::getInstance().getNestedJson("defaults").value("enable_gpu_docproc", true);
+            bool asr_gpu = ConfigManager::getInstance().getNestedJson("defaults").value("enable_gpu_asr", true);
             int docproc_device = ConfigManager::getInstance().getNestedJson("defaults").value("gpu_device_id", 0);
             int vlm_gpu_layers = vlm_gpu ? config.getInt("gpu_layers", 99) : 0;
             int trans_gpu_layers = trans_gpu ? config.getInt("gpu_layers", 99) : 0;
@@ -63,7 +70,11 @@ namespace docmind {
 
             // 创建引擎
             layout_ = std::make_unique<LayoutDetector>(*dll_loader_, base + "\\" + models.value("layout", "models/layout/pp_doclayoutv2.onnx"), docproc_gpu, docproc_device);
-            ocr_ = std::make_unique<OCREngine>(*dll_loader_, base + "\\" + models.value("ocr_dir", "models"), ocr_gpu);
+
+            // OCR：根据模型大小拼接路径
+            std::string ocr_size = ConfigManager::getInstance().getNestedJson("defaults").value("ocr_model_size", "tiny");
+            std::string ocr_base = base + "\\models\\ocr\\" + ocr_size;
+            ocr_ = std::make_unique<OCREngine>(*dll_loader_, ocr_base, ocr_gpu);
 
             if (dll_loader_->vlmLoaded()) {
                 vlm_ = std::make_unique<VLMEngine>(
@@ -78,12 +89,37 @@ namespace docmind {
 
             if (dll_loader_->translatorLoaded()) {
                 std::string default_lang = ConfigManager::getInstance().getDefaultLanguage();
+                std::string trans_model = ConfigManager::getInstance().getNestedJson("defaults").value("trans_model", "Hy-MT2-1.8B-Q4_K_M.gguf");
                 translator_ = std::make_unique<TranslatorEngine>(
                         *dll_loader_,
-                        base + "\\" + models.value("translator", "models/translation/Hy-MT2-1.8B-Q4_K_M.gguf"),
-                        default_lang,  // 默认语言，实际翻译时动态指定
+                        base + "\\models\\translation\\" + trans_model,
+                        default_lang,
                         trans_gpu_layers
                 );
+            }
+
+            // 加载 ASR 引擎（可选）
+            std::string asr_dll_path = base + "\\" + dlls.value("asr", "asr.dll");
+            HMODULE asr_dll = LoadLibraryA(asr_dll_path.c_str());
+            if (asr_dll) {
+                auto asr_create_fn = (ASRCreateFunc)GetProcAddress(asr_dll, "asr_create");
+                if (asr_create_fn) {
+                    std::string asr_model = base + "\\" + models.value("asr_model", "models/ASR/model_quant.onnx");
+                    std::string asr_tokens = base + "\\" + models.value("asr_tokens", "models/ASR/tokens.json");
+                    asr_handle_ = asr_create_fn(asr_model.c_str(), asr_tokens.c_str(), asr_gpu ? 1 : 0);
+                    asr_loaded_ = (asr_handle_ != nullptr);
+                    if (asr_loaded_) {
+                        std::cout << "ASR engine initialized." << std::endl;
+                    } else {
+                        std::cerr << "ASR engine init failed." << std::endl;
+                        FreeLibrary(asr_dll);
+                    }
+                } else {
+                    std::cerr << "ASR DLL missing asr_create export." << std::endl;
+                    FreeLibrary(asr_dll);
+                }
+            } else {
+                std::cerr << "Warning: ASR DLL not loaded." << std::endl;
             }
 
             initialized_ = true;
