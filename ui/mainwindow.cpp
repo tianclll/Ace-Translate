@@ -152,6 +152,8 @@ void TranslateWorker::run() {
                         return;
                     }
                     // 先做 OCR 获取原文
+                    docmind::GlobalEngineContext::getInstance().ensureOCREngine();
+                    docmind::GlobalEngineContext::getInstance().ensureTranslatorEngine();
                     QString ocrText;
                     {
                         auto* ocr = docmind::GlobalEngineContext::getInstance().getOCREngine();
@@ -2607,6 +2609,14 @@ void MainWindow::onCaptureComplete() {
     cv::Mat mat = regionCapture_->capturedImage();
     if (mat.empty()) {
         statusBar_->showMessage(QStringLiteral("截图取消"), 3000);
+        return;
+    }
+
+    // 确保 OCR 引擎已加载（如果启动时未勾选，现在懒加载）
+    if (!docmind::GlobalEngineContext::getInstance().ensureOCREngine()) {
+        QMessageBox::warning(this, QStringLiteral("截图翻译不可用"),
+                             QStringLiteral("OCR 引擎加载失败，请检查模型文件是否存在。\n"
+                                            "路径：models/ocr/[tiny/small/medium]/"));
         return;
     }
 

@@ -1,5 +1,6 @@
 #include "floatwindow.h"
 #include "docmind/DocumentEngine.h"
+#include "docmind/core/ConfigManager.hpp"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -91,9 +92,51 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     langCombo_ = new QComboBox(this);
     langCombo_->setEditable(true);
     langCombo_->setInsertPolicy(QComboBox::NoInsert);
-    langCombo_->addItems({QStringLiteral("中文"), QStringLiteral("English"),
-        QStringLiteral("日本語"), QStringLiteral("한국어")});
-    langCombo_->setCurrentText(QStringLiteral("中文"));
+    langCombo_->addItems({
+        QStringLiteral("中文"),
+        QStringLiteral("英语"),
+        QStringLiteral("法语"),
+        QStringLiteral("葡萄牙语"),
+        QStringLiteral("西班牙语"),
+        QStringLiteral("日语"),
+        QStringLiteral("土耳其语"),
+        QStringLiteral("俄语"),
+        QStringLiteral("阿拉伯语"),
+        QStringLiteral("韩语"),
+        QStringLiteral("泰语"),
+        QStringLiteral("意大利语"),
+        QStringLiteral("德语"),
+        QStringLiteral("越南语"),
+        QStringLiteral("马来语"),
+        QStringLiteral("印尼语"),
+        QStringLiteral("菲律宾语"),
+        QStringLiteral("印地语"),
+        QStringLiteral("繁体中文"),
+        QStringLiteral("波兰语"),
+        QStringLiteral("捷克语"),
+        QStringLiteral("荷兰语"),
+        QStringLiteral("高棉语"),
+        QStringLiteral("缅甸语"),
+        QStringLiteral("波斯语"),
+        QStringLiteral("古吉拉特语"),
+        QStringLiteral("乌尔都语"),
+        QStringLiteral("泰卢固语"),
+        QStringLiteral("马拉地语"),
+        QStringLiteral("希伯来语"),
+        QStringLiteral("孟加拉语"),
+        QStringLiteral("泰米尔语"),
+        QStringLiteral("乌克兰语"),
+        QStringLiteral("藏语"),
+        QStringLiteral("哈萨克语"),
+        QStringLiteral("蒙古语"),
+        QStringLiteral("维吾尔语"),
+        QStringLiteral("粤语"),
+    });
+    // 从 ConfigManager 读取用户设置的默认语言
+    {
+        auto& cfg = docmind::ConfigManager::getInstance();
+        langCombo_->setCurrentText(QString::fromStdString(cfg.getDefaultLanguage()));
+    }
     langCombo_->setFixedHeight(30);
     langCombo_->setMinimumWidth(110);
     langCombo_->setStyleSheet(
