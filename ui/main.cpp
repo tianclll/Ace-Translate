@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QSharedMemory>
+#include <QToolTip>
+#include <QEvent>
 #include "mainwindow.h"
 #include "splashscreen.h"
 
@@ -40,6 +42,23 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    // 全局 ToolTip 过滤器：拦截所有 QEvent::ToolTip
+    class ToolTipFilter : public QObject {
+    public:
+        using QObject::QObject;
+    protected:
+        bool eventFilter(QObject* obj, QEvent* event) override {
+            if (event->type() == QEvent::ToolTip)
+                return true;
+            return QObject::eventFilter(obj, event);
+        }
+    };
+    auto* toolTipFilter = new ToolTipFilter(&app);
+    app.installEventFilter(toolTipFilter);
+
+    // 禁用 QToolTip 字体
+    QToolTip::setFont(QFont("", 1));
+
     // 设置应用图标
     app.setWindowIcon(QIcon(":/icons/LOGO.png"));
 
@@ -49,12 +68,6 @@ int main(int argc, char* argv[]) {
         app.setStyleSheet(styleFile.readAll());
         styleFile.close();
     }
-
-    // ToolTip 样式（单独设置，确保覆盖 Windows 原生样式）
-    app.setStyleSheet(app.styleSheet() +
-        "QToolTip { border: 0px; border-radius: 4px;"
-        " background-color: #1A1A2E; color: #FFFFFF;"
-        " padding: 4px 8px; font-size: 12px; }");
 
     // 设置默认字体
     QFont defaultFont("Microsoft YaHei UI", 10);

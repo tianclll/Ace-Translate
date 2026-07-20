@@ -290,15 +290,14 @@ QFrame#separator {
 
 /* ---------- Tooltip ---------- */
 QToolTip {
-    background-color: #1A1A2E;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 12px;
+    background-color: transparent;
+    color: transparent;
+    border: 0px;
+    border-radius: 0px;
+    padding: 0px;
+    margin: 0px;
+    font-size: 0px;
 }
-
-/* ---------- Language Bar ---------- */
 QFrame#languageBar {
     background: #F5F7F7;
     border: 1px solid #E8ECEF;
@@ -390,14 +389,4 @@ QCheckBox#toggleSwitch::indicator:checked:hover {
 QFrame#toast {
     background: #1A1A2E; border-radius: 8px;
     color: #FFFFFF; font-size: 13px; padding: 12px 20px;
-}
-
-/* ---------- ToolTip ---------- */
-QToolTip {
-    border: 0px;
-    border-radius: 4px;
-    background-color: #1A1A2E;
-    color: #FFFFFF;
-    padding: 4px 8px;
-    font-size: 12px;
 }
