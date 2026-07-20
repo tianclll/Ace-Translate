@@ -345,10 +345,10 @@ namespace docmind {
 
         // 在输出目录生成临时 .md 文件（不通过 .tmp）
         std::string temp_dir = output_dir.empty() ? "." : output_dir;
-        // 创建目录（若不存在）
+        // 创建目录（若不存在），同时确保 assets 子目录存在（office2md 会往 assets/ 写图片）
         std::error_code ec;
-        if (!std::filesystem::create_directories(temp_dir, ec) && ec)
-            throw std::runtime_error("Failed to create temp directory: " + temp_dir);
+        std::filesystem::create_directories(temp_dir, ec);
+        std::filesystem::create_directories(temp_dir + "/assets", ec);
 
         // 使用随机数生成唯一文件名（与 get_temp_md_path 一致）
         static std::mt19937 rng(static_cast<unsigned>(std::time(nullptr) + GetCurrentProcessId()));
@@ -448,6 +448,16 @@ namespace docmind {
             output_dir = final_output.substr(0, slash + 1);  // 包含末尾分隔符
         } else {
             output_dir = "./";  // 当前目录
+        }
+
+        // 确保输出目录和 assets 子目录存在（office2md 会往 assets/ 写图片）
+        {
+            std::error_code ec;
+            std::filesystem::create_directories(output_dir, ec);
+            std::string assets_path = output_dir + "assets";
+            std::filesystem::create_directories(assets_path, ec);
+            std::cout << "[FileTranslation] output_dir=" << output_dir
+                      << " assets=" << assets_path << std::endl;
         }
 
         std::string result_content;
