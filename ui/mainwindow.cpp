@@ -106,6 +106,23 @@ static void populateLanguages(QComboBox* combo, const QString& defaultLang = QSt
     }
 }
 
+// 递归复制目录（下载时同时复制 assets）
+static bool copyDirectory(const QString& src, const QString& dst) {
+    QDir srcDir(src);
+    if (!srcDir.exists()) return false;
+    QDir dstDir(dst);
+    if (!dstDir.exists()) dstDir.mkpath(".");
+    bool ok = true;
+    for (const QFileInfo& info : srcDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot)) {
+        if (info.isDir()) {
+            ok &= copyDirectory(info.absoluteFilePath(), dst + "/" + info.fileName());
+        } else {
+            ok &= QFile::copy(info.absoluteFilePath(), dst + "/" + info.fileName());
+        }
+    }
+    return ok;
+}
+
 // ============================================================
 // TranslateWorker — 在工作线程中调用翻译接口
 // ============================================================
@@ -2060,6 +2077,17 @@ void MainWindow::addFileToList(const QString& filePath) {
         if (savePath.isEmpty()) return;
         if (QFile::exists(outPath)) {
             if (QFile::copy(outPath, savePath)) {
+                // 同时复制 assets 目录（如果存在）
+                {
+                    QString srcAssets = QFileInfo(outPath).absolutePath() + "/assets";
+                    QString dstAssets = QFileInfo(savePath).absolutePath() + "/assets";
+                    if (QDir(srcAssets).exists()) {
+                        copyDirectory(srcAssets, dstAssets);
+                        QDir(srcAssets).removeRecursively();
+                    }
+                }
+                // 删除源目录的 .md 和 assets
+                QFile::remove(outPath);
                 // 清除"翻译完成"状态
                 if (statusLabel_) statusLabel_->setText(QString());
                 if (statusIcon_) statusIcon_->hide();
