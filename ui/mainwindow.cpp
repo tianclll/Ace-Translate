@@ -2865,9 +2865,24 @@ void MainWindow::onMicButtonClicked() {
                 fseek(f, 0, SEEK_END);
                 long fsize = ftell(f);
                 fseek(f, 0, SEEK_SET);
-                // WAV 头部通常是 44 字节
-                fseek(f, 44, SEEK_SET);
-                long dataBytes = fsize - 44;
+                // 搜索 data chunk（WAV 头部可能大于 44 字节）
+                long dataStart = 0;
+                long dataBytes = 0;
+                char chunkId[5] = {};
+                unsigned int chunkSize = 0;
+                fread(chunkId, 1, 4, f); // "RIFF"
+                fread(&chunkSize, 4, 1, f);
+                fread(chunkId, 1, 4, f); // "WAVE"
+                while (fread(chunkId, 1, 4, f) == 4) {
+                    chunkId[4] = '\0';
+                    fread(&chunkSize, 4, 1, f);
+                    if (strcmp(chunkId, "data") == 0) {
+                        dataStart = ftell(f);
+                        dataBytes = chunkSize;
+                        break;
+                    }
+                    fseek(f, chunkSize, SEEK_CUR);
+                }
                 if (dataBytes > 0) {
                     allData.resize(dataBytes / 2);
                     fread(allData.data(), 1, dataBytes, f);
