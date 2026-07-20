@@ -7,7 +7,7 @@
 **一站式本地翻译工具**
 
 > 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入  
-> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别
+> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别 · 多语言 TTS 朗读
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-blue?style=flat-square&logo=windows" alt="Windows"/>
@@ -32,7 +32,7 @@
 | 🖼️ **图片翻译** | 上传图片，翻译后渲染回图片 | 漫画、海报、菜单 |
 | 📄 **文件翻译** | PDF/Word/Excel/PPT/MD/TXT 批量文档翻译 | 批量文档处理 |
 | 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 | 语音输入 |
-| 🔊 **朗读** | 支持中文/英文/日文/韩文等多语言 TTS 朗读 | 听译文发音 |
+| 🔊 **朗读** | 支持中文/英文/日文/韩文/泰米尔/印地语等多语言 TTS 朗读 | 听译文发音 |
 
 </div>
 
@@ -70,7 +70,7 @@
 
 - **操作系统**：Windows 10/11 64-bit
 - **CPU**：支持 AVX2 指令集（2013 年后 Intel/AMD 处理器均可）
-- **GPU（可选）**：NVIDIA 显卡 + CUDA 12.1，加速 OCR/翻译推理
+- **GPU（可选）**：NVIDIA 显卡 + CUDA 12.1，加速 OCR/翻译/ASR 推理
 - **内存**：建议 16GB 以上
 - **硬盘**：约 15GB（含模型文件）
 
@@ -99,26 +99,23 @@
 
 #### 1. 编译 llama.cpp
 
-llama.cpp 需提前编译好，依赖 CUDA Toolkit 12.1（GPU 版需要）。
+llama.cpp 需提前编译好，GPU 版依赖 CUDA Toolkit 12.1。
 
 ```bash
 # 从 llama.cpp 官方仓库下载源码（master 分支）
 # https://github.com/ggml-org/llama.cpp
-# 或使用项目自带的 external 源码
 
-# 配置（GPU 版）
+# GPU 版
+cd external/llama.cpp
 cmake -B build_gpu -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-
-# 编译
 cmake --build build_gpu --config Release
+
+# CPU 版
+cmake -B build -DGGML_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
 ```
 
-编译完成后，`build_gpu/bin/Release/` 目录下会生成以下 DLL：
-
-```
-llama.dll  llama-common.dll  ggml.dll  ggml-base.dll
-ggml-cpu.dll  ggml-cuda.dll  mtmd.dll
-```
+编译产物在 `build_gpu/bin/Release/`（GPU）或 `build/bin/Release/`（CPU）。
 
 #### 2. 编译主程序
 
@@ -164,34 +161,28 @@ cmake --build . --config Release
 
 ```
 models/
-├── translation/
+├── translation/                     # 翻译模型（需自行准备）
 │   ├── Hy-MT2-1.8B-Q4_K_M.gguf      # 翻译模型（默认）
 │   ├── Hy-MT2-1.8B-Q6_K.gguf        # 翻译模型（更高精度）
 │   ├── HY-MT1.5-1.8B-Q4_K_M.gguf    # 翻译模型（旧版）
 │   └── HY-MT1.5-1.8B-Q6_K.gguf      # 翻译模型（旧版高精度）
 ├── VLM/
-│   ├── PaddleOCR-VL-1.6-GGUF.gguf        # VLM 模型
-│   └── PaddleOCR-VL-1.6-GGUF-mmproj.gguf # mmproj 文件
+│   └── PaddleOCR-VL-1.6-GGUF*.gguf  # VLM 多模态公式识别模型
 ├── layout/
-│   └── pp_doclayoutv2.onnx              # 版面分析模型
+│   └── pp_doclayoutv2.onnx          # 版面分析模型
 ├── ocr/
-│   ├── tiny/                             # OCR 模型（轻量，默认）
-│   │   ├── det/det.onnx                 # 文本检测
-│   │   ├── rec/rec.onnx                 # 文字识别
-│   │   └── cls/cls.onnx                 # 方向分类
-│   ├── small/                           # OCR 模型（中等）
-│   │   ├── det/det.onnx
-│   │   ├── rec/rec.onnx
-│   │   └── cls/cls.onnx
-│   └── medium/                          # OCR 模型（高精度）
-│       ├── det/det.onnx
-│       ├── rec/rec.onnx
-│       └── cls/cls.onnx
+│   ├── tiny/                        # OCR 模型（轻量，默认）
+│   │   ├── det/det.onnx             # 文本检测
+│   │   ├── rec/rec.onnx             # 文字识别
+│   │   └── cls/cls.onnx             # 方向分类
+│   ├── small/                       # OCR 模型（中等）
+│   └── medium/                      # OCR 模型（高精度）
 ├── ASR/
-│   ├── model_quant.onnx                 # 语音识别模型
-│   └── tokens.json                      # 语音 token 映射
+│   ├── model_quant.onnx             # 语音识别模型（SenseVoiceSmall）
+│   ├── am.mvn                       # CMVN 归一化文件（推荐）
+│   └── tokens.json                  # 语音 token 映射
 └── uvdoc/
-    └── UVDoc_grid.onnx                   # 图片矫正模型
+    └── UVDoc_grid.onnx              # 图片矫正模型
 ```
 
 > **模型下载**：[Hugging Face 🤗](https://huggingface.co/your-username/your-repo)（待上传）
@@ -206,10 +197,10 @@ models/
 
 **常用设置**：
 
-- **默认语言**：设置翻译目标语言（所有面板统一）
+- **默认语言**：设置翻译目标语言（35 种语言可选，所有面板统一）
 - **OCR 模型大小**：tiny（轻量）→ medium（高精度）
-- **翻译模型大小**：Q4_K_M（快速）→ Q6_K（高精度）
-- **启动加载引擎**：选择开机时自动加载哪些引擎，关闭可减少启动时间
+- **翻译模型**：自动扫描 `models/translation/` 目录，列出所有 `.gguf` 文件
+- **启动加载引擎**：选择开机时自动加载哪些引擎，关闭可减少启动时间。默认仅加载翻译引擎
 
 **GPU 设置**（设置 → GPU 设置）：
 
@@ -224,8 +215,8 @@ models/
 
 | 快捷键 | 功能 | 自定义 |
 |--------|------|--------|
-| `Ctrl+Shift+C` | 划词翻译 | ✅ 可在设置中修改 |
-| `Ctrl+Shift+Z` | 截图翻译 | ✅ 可在设置中修改 |
+| `Ctrl+Shift+C` | 划词翻译 | ✅ 可在浮窗配置中修改 |
+| `Ctrl+Shift+Z` | 截图翻译 | ✅ 可在截图面板中修改 |
 
 ---
 
@@ -234,12 +225,12 @@ models/
 ```
 AceTranslatePro/
 ├── 📜 build_all.bat          # GPU 版编译脚本
-├── 📜 build_cpu.bat          # CPU 版编译脚本
+├── 📜 build_cpu.bat          # CPU 版编译脚本（自动替换 CMakeLists）
 ├── 📜 CMakeLists.txt         # GPU 版构建配置
 ├── 📜 CMakeLists_cpu.txt     # CPU 版构建配置
 │
 ├── 📂 ui/                    # Qt6 图形界面
-│   ├── mainwindow.cpp        # 主窗口（5 面板 + 状态栏 + 托盘 + 热键）
+│   ├── mainwindow.cpp        # 主窗口（6 面板 + 状态栏 + 托盘 + 热键 + 语音）
 │   ├── floatwindow.cpp       # 划词翻译悬浮窗
 │   ├── regioncapture.cpp     # 截图选区
 │   ├── toast.cpp             # 顶部通知组件
@@ -247,25 +238,30 @@ AceTranslatePro/
 │   └── style.qss             # 全局样式表
 │
 ├── 📂 src/                   # C++ 核心代码
-│   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout/ASR）
+│   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout/ASR/DocProc）
 │   ├── processors/           # 文档处理管线
 │   ├── modules/              # 业务逻辑模块
 │   ├── core/                 # 引擎上下文 & 配置管理
 │   └── utils/                # 工具函数
 │
-├── 📂 deps/                  # 引擎 DLL 源码
-│   ├── ocr/                  # PaddleOCR 封装（ONNXRuntime）
+├── 📂 deps/                  # 引擎 DLL 源码（add_subdirectory）
+│   ├── asr/                  # SenseVoice 语音识别（ONNXRuntime + OpenCV）
+│   │   ├── SenseVoiceEngine  # ONNX 推理 + CTC 解码 + CMVN
+│   │   ├── Fbank             # FBank 特征提取（OpenCV FFT, LFR）
+│   │   ├── CMVN              # CMVN 归一化（am.mvn 解析）
+│   │   └── AudioCapture      # waveIn API 录音
+│   ├── ocr/                  # PaddleOCR（ONNXRuntime）
 │   ├── doclayout/            # 版面分析（ONNXRuntime）
-│   ├── vlm/                  # VLM 多模态（llama.cpp）
+│   ├── vlm/                  # VLM 多模态公式识别（llama.cpp）
 │   ├── translator/           # 翻译引擎（llama.cpp）
-│   ├── uvdoc/                # 图片矫正（ONNXRuntime）
-│   └── asr/                  # 语音识别（SenseVoice + ONNXRuntime）
+│   └── uvdoc/                # 图片矫正（ONNXRuntime）
 │
 ├── 📂 script/                # 辅助工具
 │   └── office2md/            # Office → Markdown 转换
 │
 └── 📂 third_party/           # 第三方库
-    └── pdfium/               # PDF 解析引擎
+    ├── pdfium/               # PDF 解析引擎
+    └── nlohmann/             # JSON 解析库
 ```
 
 ---
@@ -289,8 +285,8 @@ AceTranslatePro/
 | 📐 版面分析 | PPDocLayoutV2 (ONNXRuntime) |
 | 🧮 公式识别 | VLM 多模态模型 (llama.cpp) |
 | 🌐 翻译 | 本地 LLM (llama.cpp) |
-| 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime) |
-| 🔊 语音合成 | Windows SAPI |
+| 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime + OpenCV FFT) |
+| 🔊 语音合成 | Windows SAPI（多语言自动匹配） |
 | 📄 文档解析 | PDFium + office2md (Python) |
 
 ---
