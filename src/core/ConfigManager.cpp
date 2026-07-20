@@ -39,12 +39,12 @@ namespace docmind {
                 {"enable_gpu_asr", true},
                 {"gpu_device_id", 0},
                 {"ocr_model_size", "tiny"},
-                {"enable_ocr", true},
+                {"enable_ocr", false},
                 {"enable_translator", true},
-                {"enable_vlm", true},
-                {"enable_layout", true},
-                {"enable_docproc", true},
-                {"enable_asr", true},
+                {"enable_vlm", false},
+                {"enable_layout", false},
+                {"enable_docproc", false},
+                {"enable_asr", false},
             }}
         };
     }

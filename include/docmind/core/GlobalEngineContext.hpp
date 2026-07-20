@@ -30,6 +30,7 @@ namespace docmind {
 
         // ASR 引擎
         void* getASRHandle() { return asr_handle_; }
+        bool isASRLoaded() const { return asr_loaded_; }
         void setBaseDir(const std::string& dir) { base_dir_ = dir; }
 
         bool isInitialized() const { return initialized_; }

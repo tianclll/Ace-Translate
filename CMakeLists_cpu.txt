@@ -77,6 +77,7 @@ message(STATUS "SOURCES: ${SOURCES}")
 
 # ------------------ 可执行文件 ------------------
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ACE_PRO_CPU=1)
 
 # ------------------ 链接库 ------------------
 target_link_libraries(${PROJECT_NAME}

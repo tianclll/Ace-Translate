@@ -989,6 +989,9 @@ QWidget* MainWindow::createFloatConfigPanel() {
     floatHotkeyBtn_->setCursor(Qt::PointingHandCursor);
     // hotkey click dialog (same as before)
     connect(floatHotkeyBtn_, &QPushButton::clicked, this, [this]() {
+        // 打开对话框前先注销快捷键，防止 QKeySequenceEdit 捕获按键时触发 WM_HOTKEY
+        UnregisterHotKey((HWND)winId(), floatHotkeyId_);
+
         // 获取当前快捷键
         QString currentText = floatHotkeyBtn_->text();
 
@@ -1083,8 +1086,7 @@ QWidget* MainWindow::createFloatConfigPanel() {
             QString newText = ks.toString();
             // 检查是否与当前快捷键相同
             if (newText == currentText) {
-                QMessageBox::information(dialog, QStringLiteral("提示"),
-                    QStringLiteral("该快捷键与当前设置相同，无需修改。"));
+                dialog->reject();
                 return;
             }
 
@@ -1136,6 +1138,8 @@ QWidget* MainWindow::createFloatConfigPanel() {
         });
 
         dialog->exec();
+        // 对话框关闭后重新注册快捷键
+        RegisterHotKey((HWND)winId(), floatHotkeyId_, floatHotkeyMods_, floatHotkeyKey_);
         dialog->deleteLater();
     });
     hotkeyRow->addWidget(floatHotkeyBtn_);
@@ -1245,6 +1249,9 @@ QWidget* MainWindow::createScreenshotPanel() {
     screenshotHotkeyBtn_->setCursor(Qt::PointingHandCursor);
     screenshotHotkeyBtn_->setMaximumWidth(160);
     connect(screenshotHotkeyBtn_, &QPushButton::clicked, this, [this]() {
+        // 打开对话框前先注销快捷键，防止 QKeySequenceEdit 捕获按键时触发 WM_HOTKEY
+        UnregisterHotKey((HWND)winId(), screenshotHotkeyId_);
+
         QString currentText = screenshotHotkeyBtn_->text();
 
         auto* dialog = new QDialog(this);
@@ -1325,8 +1332,7 @@ QWidget* MainWindow::createScreenshotPanel() {
 
             QString newText = ks.toString();
             if (newText == currentText) {
-                QMessageBox::information(dialog, QStringLiteral("提示"),
-                    QStringLiteral("该快捷键与当前设置相同，无需修改。"));
+                dialog->reject();
                 return;
             }
 
@@ -1364,6 +1370,8 @@ QWidget* MainWindow::createScreenshotPanel() {
         });
 
         dialog->exec();
+        // 对话框关闭后重新注册快捷键
+        RegisterHotKey((HWND)winId(), screenshotHotkeyId_, screenshotHotkeyMods_, screenshotHotkeyKey_);
         dialog->deleteLater();
     });
     actionRow->addWidget(screenshotHotkeyBtn_);
@@ -2187,30 +2195,37 @@ QWidget* MainWindow::createSettingsPanel() {
         layout->addWidget(group);
     }
 
-    // ===== 3. 翻译模型大小 =====
+    // ===== 3. 翻译模型 =====
     {
-        auto* group = new QGroupBox(QStringLiteral("翻译模型大小"));
+        auto* group = new QGroupBox(QStringLiteral("翻译模型"));
         group->setStyleSheet(groupStyle);
         auto* form = new QVBoxLayout(group);
         form->setSpacing(6);
 
         auto* transCombo = new QComboBox;
-        transCombo->addItems({
-            QStringLiteral("Hy-MT2-1.8B-Q4_K_M (默认)"),
-            QStringLiteral("Hy-MT2-1.8B-Q6_K"),
-            QStringLiteral("HY-MT1.5-1.8B-Q4_K_M"),
-            QStringLiteral("HY-MT1.5-1.8B-Q6_K"),
-        });
+        // 扫描 models/translator/ 下的 .gguf 文件
+        QString modelDir = QCoreApplication::applicationDirPath() + "/models/translator";
+        QDir dir(modelDir);
+        QStringList filters;
+        filters << "*.gguf";
+        QStringList ggufFiles = dir.entryList(filters, QDir::Files, QDir::Name);
+        if (ggufFiles.isEmpty()) {
+            // 回退硬编码列表
+            ggufFiles = {
+                QStringLiteral("Hy-MT2-1.8B-Q4_K_M.gguf"),
+                QStringLiteral("Hy-MT2-1.8B-Q6_K.gguf"),
+                QStringLiteral("HY-MT1.5-1.8B-Q4_K_M.gguf"),
+                QStringLiteral("HY-MT1.5-1.8B-Q6_K.gguf"),
+            };
+        }
+        transCombo->addItems(ggufFiles);
         std::string curTrans = cfg.getNestedJson("defaults").value("trans_model", "Hy-MT2-1.8B-Q4_K_M.gguf");
-        if (curTrans.find("Hy-MT2-1.8B-Q4_K_M") != std::string::npos) transCombo->setCurrentIndex(0);
-        else if (curTrans.find("Hy-MT2-1.8B-Q6_K") != std::string::npos) transCombo->setCurrentIndex(1);
-        else if (curTrans.find("HY-MT1.5-1.8B-Q4_K_M") != std::string::npos) transCombo->setCurrentIndex(2);
-        else transCombo->setCurrentIndex(3);
+        int curIdx = ggufFiles.indexOf(QString::fromStdString(curTrans));
+        if (curIdx < 0) curIdx = 0;
+        transCombo->setCurrentIndex(curIdx);
 
-        connect(transCombo, &QComboBox::currentIndexChanged, this, [&cfg](int idx) {
-            std::string files[] = {"Hy-MT2-1.8B-Q4_K_M.gguf", "Hy-MT2-1.8B-Q6_K.gguf",
-                                    "HY-MT1.5-1.8B-Q4_K_M.gguf", "HY-MT1.5-1.8B-Q6_K.gguf"};
-            cfg.setNestedString("defaults.trans_model", files[idx]);
+        connect(transCombo, &QComboBox::currentIndexChanged, this, [&cfg, transCombo](int idx) {
+            cfg.setNestedString("defaults.trans_model", transCombo->currentText().toStdString());
             cfg.save();
         });
         form->addWidget(transCombo);
@@ -2764,6 +2779,15 @@ void MainWindow::runWorker(TranslateWorker* worker) {
     thread->start();
 }
 
+// 安全加载 ASR DLL（用 SEH 保护避免因缺少依赖闪退）
+static HMODULE tryLoadASRDLL() {
+    __try {
+        return LoadLibraryA("asr.dll");
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return nullptr;
+    }
+}
+
 // ============================================================
 // onMicButtonClicked — 语音输入
 // ============================================================
@@ -2780,14 +2804,12 @@ void MainWindow::onMicButtonClicked() {
 
         // 在后台线程录音（避免阻塞 UI）
         asrThread_ = QThread::create([this, baseDir]() {
-            // 加载 ASR DLL
+            // 加载 ASR DLL（用 SEH 保护，避免因缺少 CUDA 依赖闪退）
             typedef void* (*ASRCreateFunc)(const char*, const char*, int);
             typedef char* (*ASRRecognizeFunc)(void*, const short*, int);
             typedef void (*ASRDestroyFunc)(void*);
 
-            HMODULE asrDll = LoadLibraryW(baseDir.toStdWString().c_str());
-            if (asrDll) FreeLibrary(asrDll);
-            asrDll = LoadLibraryA("asr.dll");
+            HMODULE asrDll = tryLoadASRDLL();
             if (!asrDll) {
                 QMetaObject::invokeMethod(this, [this]() {
                     statusBar_->showMessage(QStringLiteral("ASR 引擎未加载"), 3000);
@@ -2811,7 +2833,7 @@ void MainWindow::onMicButtonClicked() {
             // 初始化 ASR 引擎（模型路径）
             std::string modelPath = baseDir.toStdString() + "\\models\\ASR\\model_quant.onnx";
             std::string tokensPath = baseDir.toStdString() + "\\models\\ASR\\tokens.json";
-            void* asrHandle = asrCreate(modelPath.c_str(), tokensPath.c_str(), 1);
+            void* asrHandle = asrCreate(modelPath.c_str(), tokensPath.c_str(), 0);
             if (!asrHandle) {
                 FreeLibrary(asrDll);
                 QMetaObject::invokeMethod(this, [this]() {
