@@ -301,6 +301,8 @@ AceTranslatePro/
 
 本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) 文件。
 
+> 📌 旧版（Python 版）已迁移至 [`archive/old-python-version`](https://github.com/tianclll/Ace-Translate/tree/archive/old-python-version) 分支
+
 ---
 
 <div align="center">
