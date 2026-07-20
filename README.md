@@ -309,6 +309,6 @@ AceTranslatePro/
 
 **Made with ❤️**
 
-如需更高精度、更多语言覆盖的定制模型或服务器版本，请联系微信：`AceTranslatePro`
+如需更高精度、更多语言覆盖的定制模型或服务器版本，请联系微信：`kriswu1106tc`
 
 </div>
