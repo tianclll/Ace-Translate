@@ -135,40 +135,42 @@ std::vector<float> Fbank::extract(const short* pcm, int pcm_len) {
 
     // 拼接上下文（7帧：左右各3帧）
     auto result = applyContextFrames(all_fbanks);
-    // 更新帧数：applyContextFrames 会去掉前后各3帧 → 总帧数减6
-    // 但若原帧数 <= 6 则 pad 为 1 帧
+    // 更新帧数：按跳帧后的有效帧数
     int raw_frames = num_frames_;
-    num_frames_ = (raw_frames > 6) ? (raw_frames - 6) : ((raw_frames > 0) ? 1 : 0);
+    static constexpr int ctx = 3;
+    static constexpr int frame_skip = 6;
+    num_frames_ = (raw_frames > 2 * ctx) ? ((raw_frames - 2 * ctx + frame_skip - 1) / frame_skip) : 1;
     return result;
 }
 
 std::vector<float> applyContextFrames(const std::vector<std::vector<float>>& fbank_feats) {
     // 每帧 80-dim，拼接前后各3帧 → 560-dim
+    // 并按 frame_skip=6 跳帧（SenseVoice 官方 LFR 策略）
     static constexpr int ctx = 3;      // 左右各3帧
     static constexpr int dim = 80;     // fbank 维度
     static constexpr int ctx_dim = 560; // dim * (1 + ctx*2) = 80 * 7
+    static constexpr int frame_skip = 6; // 跳帧
 
     if (fbank_feats.empty()) return {};
 
     int num_frames = (int)fbank_feats.size();
-    int num_valid_frames = num_frames - 2 * ctx;
-    if (num_valid_frames <= 0) {
-        // 帧数太少，pad 到能凑出至少1帧
-        num_valid_frames = 1;
-    }
+    // 跳帧后有效帧数
+    int num_valid_frames = (num_frames - 2 * ctx + frame_skip - 1) / frame_skip;
+    if (num_valid_frames <= 0) num_valid_frames = 1;
 
     std::vector<float> result;
     result.reserve(num_valid_frames * ctx_dim);
 
     for (int i = 0; i < num_valid_frames; ++i) {
-        int center = i + ctx;
+        int center = i * frame_skip + ctx;
+        // 如果超出范围，用最后一帧
+        if (center >= num_frames) center = num_frames - 1 - ctx;
         for (int j = -ctx; j <= ctx; ++j) {
             int idx = center + j;
             if (idx >= 0 && idx < num_frames) {
                 const auto& src = fbank_feats[idx];
                 result.insert(result.end(), src.begin(), src.end());
             } else {
-                // padding 补零
                 result.insert(result.end(), dim, 0.0f);
             }
         }
