@@ -25,4 +25,9 @@
         <file alias="OCR.png">icons/OCR.png</file>
         <file alias="voice.png">icons/voice.png</file>
     </qresource>
+    <qresource prefix="/translations">
+        <file alias="zh_CN.qm">../translations/zh_CN.qm</file>
+        <file alias="en_US.qm">../translations/en_US.qm</file>
+        <file alias="ja_JP.qm">../translations/ja_JP.qm</file>
+    </qresource>
 </RCC>

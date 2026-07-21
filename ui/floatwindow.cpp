@@ -32,7 +32,7 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     titleIcon->setPixmap(QIcon(":/icons/selection.png").pixmap(18, 18));
     titleIcon->setFixedSize(18, 18);
 
-    auto* titleLabel = new QLabel(QStringLiteral("划词翻译"));
+    auto* titleLabel = new QLabel(tr("Selection Translation"));
     titleLabel->setStyleSheet("color: white; font-weight: bold; font-size: 13px;");
 
     lockBtn_ = new QPushButton(QStringLiteral("🔓"));
@@ -71,7 +71,7 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     sourceText_->setMaximumHeight(50);
     sourceText_->setStyleSheet(
         "QTextEdit { border: none; padding: 4px 0; font-size: 12px; color: #6B7280; background: transparent; }");
-    sourceText_->setPlaceholderText(QStringLiteral("选中的文本将显示在这里…"));
+    sourceText_->setPlaceholderText(tr("Selected text will appear here…"));
 
     // Separator
     QFrame* separator = new QFrame(this);
@@ -84,7 +84,7 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     resultText_->setMinimumHeight(30);
     resultText_->setStyleSheet(
         "QTextEdit { border: none; padding: 6px 0; font-size: 13px; color: #1D1D1F; background: transparent; }");
-    resultText_->setPlaceholderText(QStringLiteral("翻译结果将显示在这里…"));
+    resultText_->setPlaceholderText(tr("Translation result will appear here…"));
 
     // ============================================================
     // Bottom bar
@@ -93,44 +93,44 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     langCombo_->setEditable(true);
     langCombo_->setInsertPolicy(QComboBox::NoInsert);
     langCombo_->addItems({
-        QStringLiteral("中文"),
-        QStringLiteral("英语"),
-        QStringLiteral("法语"),
-        QStringLiteral("葡萄牙语"),
-        QStringLiteral("西班牙语"),
-        QStringLiteral("日语"),
-        QStringLiteral("土耳其语"),
-        QStringLiteral("俄语"),
-        QStringLiteral("阿拉伯语"),
-        QStringLiteral("韩语"),
-        QStringLiteral("泰语"),
-        QStringLiteral("意大利语"),
-        QStringLiteral("德语"),
-        QStringLiteral("越南语"),
-        QStringLiteral("马来语"),
-        QStringLiteral("印尼语"),
-        QStringLiteral("菲律宾语"),
-        QStringLiteral("印地语"),
-        QStringLiteral("繁体中文"),
-        QStringLiteral("波兰语"),
-        QStringLiteral("捷克语"),
-        QStringLiteral("荷兰语"),
-        QStringLiteral("高棉语"),
-        QStringLiteral("缅甸语"),
-        QStringLiteral("波斯语"),
-        QStringLiteral("古吉拉特语"),
-        QStringLiteral("乌尔都语"),
-        QStringLiteral("泰卢固语"),
-        QStringLiteral("马拉地语"),
-        QStringLiteral("希伯来语"),
-        QStringLiteral("孟加拉语"),
-        QStringLiteral("泰米尔语"),
-        QStringLiteral("乌克兰语"),
-        QStringLiteral("藏语"),
-        QStringLiteral("哈萨克语"),
-        QStringLiteral("蒙古语"),
-        QStringLiteral("维吾尔语"),
-        QStringLiteral("粤语"),
+        tr("Chinese"),
+        tr("English"),
+        tr("French"),
+        tr("Portuguese"),
+        tr("Spanish"),
+        tr("Japanese"),
+        tr("Turkish"),
+        tr("Russian"),
+        tr("Arabic"),
+        tr("Korean"),
+        tr("Thai"),
+        tr("Italian"),
+        tr("German"),
+        tr("Vietnamese"),
+        tr("Malay"),
+        tr("Indonesian"),
+        tr("Filipino"),
+        tr("Hindi"),
+        tr("Traditional Chinese"),
+        tr("Polish"),
+        tr("Czech"),
+        tr("Dutch"),
+        tr("Khmer"),
+        tr("Burmese"),
+        tr("Persian"),
+        tr("Gujarati"),
+        tr("Urdu"),
+        tr("Telugu"),
+        tr("Marathi"),
+        tr("Hebrew"),
+        tr("Bengali"),
+        tr("Tamil"),
+        tr("Ukrainian"),
+        tr("Tibetan"),
+        tr("Kazakh"),
+        tr("Mongolian"),
+        tr("Uyghur"),
+        tr("Cantonese"),
     });
     // 从 ConfigManager 读取用户设置的默认语言
     {
@@ -142,12 +142,12 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     langCombo_->setStyleSheet(
         "QComboBox { border: 1px solid #D1D1D6; border-radius: 6px; padding: 4px 8px; font-size: 12px; background: white; }");
 
-    translateBtn_ = new QPushButton(QStringLiteral("翻译"));
+    translateBtn_ = new QPushButton(tr("Translate"));
     translateBtn_->setIconSize(QSize(16, 16));
     translateBtn_->setFixedHeight(30);
     translateBtn_->setObjectName("primaryBtn");
 
-    copyBtn_ = new QPushButton(QStringLiteral("复制"));
+    copyBtn_ = new QPushButton(tr("Copy"));
     copyBtn_->setFixedHeight(30);
     copyBtn_->setObjectName("secondaryBtn");
 

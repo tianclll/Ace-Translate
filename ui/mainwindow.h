@@ -27,6 +27,7 @@
 #include <QVBoxLayout>
 #include <QScrollArea>
 #include <QPropertyAnimation>
+#include "zoomablelabel.h"
 
 #include "zoomablelabel.h"
 #include "docmind/core/ConfigManager.hpp"
@@ -137,6 +138,9 @@ private slots:
     void onFloatHotkey();
     void onScreenshotHotkey();
 
+    // 语言切换
+    static void switchLanguage(const QString& langCode);
+
     // 系统托盘
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void onShowWindow();
@@ -217,7 +221,7 @@ private:
 
     // -- 截图翻译 --
     QPushButton* screenshotCaptureBtn_;
-    QLabel* screenshotPreview_;
+    ZoomableLabel* screenshotPreview_;
     QComboBox* screenshotLangCombo_;
     QSpinBox* screenshotMaxTokens_;
     QTextEdit* screenshotResult_;

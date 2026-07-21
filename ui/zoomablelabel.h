@@ -38,6 +38,8 @@ public:
         originalFullPixmap_ = QPixmap();
         zoom_ = 1.0;
         QLabel::clear();
+        setFixedSize(360, 240);
+        updateGeometry();
     }
 
     bool hasImage() const { return !originalFullPixmap_.isNull(); }

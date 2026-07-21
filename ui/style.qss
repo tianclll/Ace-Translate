@@ -18,6 +18,14 @@ QWidget#navPanel {
     border-right: 1px solid #E8ECEF;
 }
 
+/* ---------- Splitter Handle ---------- */
+QSplitter::handle {
+    background: #E8ECEF;
+}
+QSplitter::handle:hover {
+    background: #0B7C72;
+}
+
 /* ---------- Card ---------- */
 QFrame#card,
 QGroupBox#card,

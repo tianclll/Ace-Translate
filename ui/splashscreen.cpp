@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QFont>
 #include <QApplication>
+#include <QTranslator>
 
 SplashScreen::SplashScreen()
     : QSplashScreen()
@@ -34,7 +35,7 @@ SplashScreen::SplashScreen()
         "QProgressBar::chunk { background: #0B7C72; border-radius: 2px; }");
 
     // 消息标签
-    messageLabel_ = new QLabel(QStringLiteral("正在初始化…"), this);
+    messageLabel_ = new QLabel(QStringLiteral("Initializing…"), this);
     messageLabel_->setStyleSheet("font-size: 12px; color: #889096; background: transparent;");
     messageLabel_->move(500 / 2 - 50, 200);
     messageLabel_->adjustSize();
