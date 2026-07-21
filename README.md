@@ -1,19 +1,11 @@
-<div align="center">
-
-# AceTranslatePro
-
-**🌐 中文 · [English](./README_en.md) · [日本語](./README_ja.md)**
-
-</div>
-
----
-
 <div id="zh" align="center">
 <img src="ui/icons/LOGO.png" width="100" height="100" alt="AceTranslatePro Logo"/>
 
 # AceTranslatePro
 
 **一站式本地翻译工具**
+
+**🌐 中文 · [English](./README_en.md) · [日本語](./README_ja.md)**
 
 > 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入  
 > 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别 · 多语言 TTS 朗读

@@ -1,19 +1,11 @@
 <div align="center">
-
-# AceTranslatePro
-
-**🌐 [中文](./README.md) · [English](./README_en.md) · 日本語**
-
-</div>
-
----
-
-<div align="center">
 <img src="ui/icons/LOGO.png" width="100" height="100" alt="AceTranslatePro ロゴ"/>
 
 # AceTranslatePro
 
 **オールインワンローカル翻訳ツール**
+
+**🌐 [中文](./README.md) · [English](./README_en.md) · 日本語**
 
 > テキスト翻訳 · 選択翻訳 · スクリーンショット翻訳 · 画像翻訳 · ファイル翻訳 · 音声入力  
 > 完全オフライン · プライバシー安全 · GPU/CPU デュアルモード · 多言語ASR · 多言語TTS
