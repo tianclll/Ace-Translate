@@ -52,7 +52,7 @@
 
 > *画像をクリックで拡大*
 
-![メイン画面](docs/images/text_translate.png)
+![メイン画面](docs/images/text_translate_ja.png)
 
 ## 📸 翻訳デモ
 
@@ -60,26 +60,26 @@
 
 ### テキスト翻訳
 
-![テキスト翻訳](docs/images/text_translate.png)
+![テキスト翻訳](docs/images/text_translate_ja.png)
 
 ### 選択翻訳
 
-![選択翻訳](docs/images/selection_translate1.png)
+![選択翻訳](docs/images/selection_translate1_ja.png)
 
-![選択翻訳 2](docs/images/selection_translate2.png)
+![選択翻訳 2](docs/images/selection_translate2_ja.png)
 
 ### スクリーンショット翻訳
 
-![スクリーンショット翻訳](docs/images/ScreenShot_translate.png)
+![スクリーンショット翻訳](docs/images/ScreenShot_translate_ja.png)
 
 ### 画像翻訳
 
-![画像翻訳](docs/images/image_translate.png)
+![画像翻訳](docs/images/image_translate_ja.png)
 
 ### ファイル翻訳
 
-![ファイル翻訳](docs/images/document_translation1.png)
-<img src="docs/images/document_translate2.jpg" width="48%"> <img src="docs/images/document_translate3.png" width="48%">
+![ファイル翻訳](docs/images/document_translation1_ja.png)
+<img src="docs/images/document_translate2.jpg" width="48%"> <img src="docs/images/document_translate3_ja.png" width="48%">
 
 ---
 
