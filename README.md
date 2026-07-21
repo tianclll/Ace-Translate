@@ -32,6 +32,7 @@
 | 📄 **文件翻译** | PDF/Word/Excel/PPT/MD/TXT 批量文档翻译 | 批量文档处理 |
 | 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 | 语音输入 |
 | 🔊 **朗读** | 支持中文/英文/日文/韩文/泰米尔/印地语等多语言 TTS 朗读 | 听译文发音 |
+| 🌐 **多语言界面** | 支持中文/English/日本語 界面切换，拖拽调整导航栏宽度 | 多语言用户 |
 
 </div>
 
@@ -204,6 +205,7 @@ models/
 **常用设置**：
 
 - **默认语言**：设置翻译目标语言（35 种语言可选，所有面板统一）
+- **界面语言**：切换软件界面语言（中文 / English / 日本語），重启后生效
 - **OCR 模型大小**：tiny（轻量）→ medium（高精度）
 - **翻译模型**：自动扫描 `models/translation/` 目录，列出所有 `.gguf` 文件
 - **启动加载引擎**：选择开机时自动加载哪些引擎，关闭可减少启动时间。默认仅加载翻译引擎
@@ -241,7 +243,10 @@ AceTranslatePro/
 │   ├── regioncapture.cpp     # 截图选区
 │   ├── toast.cpp             # 顶部通知组件
 │   ├── zoomablelabel.cpp     # 可缩放图片控件
-│   └── style.qss             # 全局样式表
+│   ├── style.qss             # 全局样式表
+│   └── i18n/                 # 国际化翻译（.ts/.qm 文件）
+│
+├── 📂 translations/           # Qt 翻译文件（zh_CN/en_US/ja_JP）
 │
 ├── 📂 src/                   # C++ 核心代码
 │   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout/ASR/DocProc）
@@ -285,7 +290,7 @@ AceTranslatePro/
 
 | 组件 | 技术 |
 |------|------|
-| 🖥️ 界面 | Qt 6.5.2 Widgets |
+| 🖥️ 界面 | Qt 6.5.2 Widgets（中/英/日 多语言，可拖拽导航栏） |
 | 🖼️ 图像处理 | OpenCV 4.8 |
 | 🔍 OCR | PaddleOCR (ONNXRuntime) |
 | 📐 版面分析 | PPDocLayoutV2 (ONNXRuntime) |
