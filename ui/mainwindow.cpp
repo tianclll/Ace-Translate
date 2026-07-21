@@ -1828,7 +1828,7 @@ QWidget* MainWindow::createPhotoPanel() {
     ctrlInner->addSpacing(12);
     auto* transBtn = new QPushButton(tr("Translate Image"));
     transBtn->setObjectName("primaryBtn");
-    transBtn->setFixedWidth(100);
+    transBtn->setMinimumWidth(100);
     photoTranslateBtn_ = transBtn;
     connect(transBtn, &QPushButton::clicked, this, &MainWindow::onProcessPhoto);
     ctrlInner->addWidget(transBtn);

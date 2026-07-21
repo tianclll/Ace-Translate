@@ -84,6 +84,7 @@ tests/
 *.gif
 *.ico
 !.gitkeep
+!docs/images/*_en.png
 
 # ── 系统文件 ──
 *.bak
