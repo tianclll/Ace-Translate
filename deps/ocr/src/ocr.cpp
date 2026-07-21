@@ -68,9 +68,16 @@ namespace ocr {
                 det_model_path_ = model_dir_ + sep + "det" + sep + "det.onnx";
                 rec_model_path_ = model_dir_ + sep + "rec" + sep + "rec.onnx";
                 cls_model_path_ = model_dir_ + sep + "cls" + sep + "cls.onnx";
-                // dict 在 model_dir 的上一级
+                // dict 在 model_dir 的上一级，根据 size 选择对应字典
                 size_t pos = model_dir_.find_last_of("\\/");
-                rec_dict_path_ = (pos != std::string::npos ? model_dir_.substr(0, pos) : model_dir_) + sep + "ppocrv6_tiny_dict.txt";
+                std::string parent_dir = (pos != std::string::npos ? model_dir_.substr(0, pos) : model_dir_);
+                // 从 model_dir 提取 size 名：如 models/ocr/tiny → tiny
+                std::string size_name = model_dir_.substr((pos != std::string::npos) ? pos + 1 : 0);
+                if (size_name == "tiny") {
+                    rec_dict_path_ = parent_dir + sep + "ppocrv6_tiny_dict.txt";
+                } else {
+                    rec_dict_path_ = parent_dir + sep + "ppocrv6_dict.txt";
+                }
             } else {
                 // 向后兼容：在 model_dir 后拼 /ocr/tiny
                 det_model_path_ = model_dir_ + "/ocr/tiny/det/det.onnx";
@@ -91,12 +98,14 @@ namespace ocr {
                       << (std::ifstream(cls_model_path_).good() ? " [OK]" : " [MISSING]") << std::endl;
 
             use_gpu_ = use_gpu;
-            // 如果 cls 模型文件不存在，传空字符串（TextSystem 会跳过 cls）
+            // 如果 cls 模型文件不存在或太小（<1KB 视为无效），传空字符串跳过
             std::string cls_path = cls_model_path_;
-            if (!std::ifstream(cls_model_path_).good()) {
-                std::cout << "  Classifier: [SKIPPED - file not found]" << std::endl;
+            std::ifstream cls_test(cls_model_path_, std::ios::binary | std::ios::ate);
+            if (!cls_test.good() || cls_test.tellg() < 1024) {
+                std::cout << "  Classifier: [SKIPPED - file missing or too small (" << cls_test.tellg() << " bytes)]" << std::endl;
                 cls_path = "";
             }
+            cls_test.close();
             ocr_system_ = std::make_unique<TextSystem>(
                     det_model_path_, rec_model_path_, rec_dict_path_,
                     cls_path, use_gpu_
