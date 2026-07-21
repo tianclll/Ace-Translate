@@ -52,7 +52,7 @@
 
 > *Click images to enlarge*
 
-![Main Interface](docs/images/text_translate.png)
+![Main Interface](docs/images/text_translate_en.png)
 
 ## 📸 Translation Showcase
 
@@ -60,25 +60,25 @@
 
 ### Text Translation
 
-![Text Translation](docs/images/text_translate.png)
+![Text Translation](docs/images/text_translate_en.png)
 
 ### Selection Translation
 
-![Selection Translation](docs/images/selection_translate1.png)
+![Selection Translation](docs/images/selection_translate1_en.png)
 
-![Selection Translation 2](docs/images/selection_translate2.png)
+![Selection Translation 2](docs/images/selection_translate2_en.png)
 
 ### Screenshot Translation
 
-![Screenshot Translation](docs/images/ScreenShot_translate.png)
+![Screenshot Translation](docs/images/ScreenShot_translate_en.png)
 
 ### Image Translation
 
-![Image Translation](docs/images/image_translate.png)
+![Image Translation](docs/images/image_translate_en.png)
 
 ### File Translation
 
-![File Translation](docs/images/document_translation1.png)
+![File Translation](docs/images/document_translation1_en.png)
 <img src="docs/images/document_translate2.jpg" width="48%"> <img src="docs/images/document_translate3.png" width="48%">
 
 ---
