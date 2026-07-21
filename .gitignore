@@ -85,6 +85,7 @@ tests/
 *.ico
 !.gitkeep
 !docs/images/*_en.png
+!docs/images/*_ja.png
 
 # ── 系统文件 ──
 *.bak
