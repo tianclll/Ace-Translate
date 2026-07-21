@@ -1,4 +1,14 @@
 <div align="center">
+
+# AceTranslatePro
+
+**🌐 [中文](./README.md) · English · [日本語](./README_ja.md)**
+
+</div>
+
+---
+
+<div align="center">
 <img src="ui/icons/LOGO.png" width="100" height="100" alt="AceTranslatePro Logo"/>
 
 # AceTranslatePro
