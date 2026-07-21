@@ -32,6 +32,9 @@
 #include "zoomablelabel.h"
 #include "docmind/core/ConfigManager.hpp"
 #include <QTimer>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 // Undefine winsock's connect macro so Qt's connect works
 #ifdef connect

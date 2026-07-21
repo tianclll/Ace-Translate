@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QFile>
 #include <QFont>
-#include <QIcon>
 #include <QDebug>
 #include <QMessageBox>
 #include <QTimer>
@@ -11,6 +10,12 @@
 #include <QTranslator>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
 #include "mainwindow.h"
 #include "splashscreen.h"
 
@@ -43,11 +48,15 @@ int main(int argc, char* argv[]) {
     // 后续可在设置中动态切换
 
     // 单实例限制：使用 QSharedMemory 检测是否已有实例运行
+    // 如果已有实例，通知它显示窗口，然后自身退出
+    constexpr UINT WM_SHOW_APP = WM_APP + 0x100;
     QSharedMemory sharedMem("AceTranslatePro-Instance-Mutex");
     if (!sharedMem.create(1)) {
-        QMessageBox::warning(nullptr,
-            QApplication::translate("MainWindow", "Prompt"),
-            QApplication::translate("MainWindow", "AceTranslatePro is already running."));
+        // 查找已运行的窗口（按标题匹配），通知它显示到前台
+        HWND hwnd = FindWindowW(nullptr, L"AceTranslatePro");
+        if (hwnd) {
+            SendMessageW(hwnd, WM_SHOW_APP, 0, 0);
+        }
         return 0;
     }
 

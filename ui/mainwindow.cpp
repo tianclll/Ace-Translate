@@ -1515,6 +1515,8 @@ QWidget* MainWindow::createScreenshotPanel() {
         "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
     connect(screenshotClearPreviewBtn, &QPushButton::clicked, this, [this]() {
         screenshotPreview_->clearImage();
+        screenshotPreview_->setFixedSize(360, 240);
+        screenshotPreview_->setMinimumSize(200, 140);
         screenshotPreview_->setText(tr("Waiting for screenshot…"));
         if (screenshotOcrResult_) screenshotOcrResult_->clear();
         if (screenshotResult_) screenshotResult_->clear();
@@ -2625,7 +2627,7 @@ void MainWindow::registerGlobalHotkeys() {
 }
 
 // ============================================================
-// nativeEventFilter — 捕获全局热键消息
+// nativeEventFilter — 捕获全局热键消息 + 单实例显示请求
 // ============================================================
 bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
     MSG* msg = static_cast<MSG*>(message);
@@ -2638,6 +2640,11 @@ bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, q
             onScreenshotHotkey();
             return true;
         }
+    }
+    // 单实例通知：另一个实例请求本窗口显示到前台
+    if (msg->message == WM_APP + 0x100) {
+        onShowWindow();
+        return true;
     }
     return false;
 }
