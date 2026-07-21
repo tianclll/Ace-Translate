@@ -62,6 +62,7 @@ EN_TO_ZH = {
     "Screenshot is empty": "截图图像为空",
     "Enter text to translate…": "请输入要翻译的文本…",
     "0 characters": "0 字符",
+    "%1 characters": "%1 字符",
     "Ready": "就绪",
     "Processing, please wait…": "正在处理中，请等待…",
     "Loading config…": "正在加载配置…",
@@ -297,6 +298,9 @@ EN_TO_JA.update({
     " Translation Complete": " 翻訳完了",
     " Translation Complete: %1": " 翻訳完了: %1",
     "OCR Model Size": "OCRモデルサイズ",
+    "0 characters": "0文字",
+    "%1 characters": "%1文字",
+    "Characters": "文字数",
 })
 
 def fill_ts(ts_path, trans_map):

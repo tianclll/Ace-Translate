@@ -91,9 +91,15 @@ namespace ocr {
                       << (std::ifstream(cls_model_path_).good() ? " [OK]" : " [MISSING]") << std::endl;
 
             use_gpu_ = use_gpu;
+            // 如果 cls 模型文件不存在，传空字符串（TextSystem 会跳过 cls）
+            std::string cls_path = cls_model_path_;
+            if (!std::ifstream(cls_model_path_).good()) {
+                std::cout << "  Classifier: [SKIPPED - file not found]" << std::endl;
+                cls_path = "";
+            }
             ocr_system_ = std::make_unique<TextSystem>(
                     det_model_path_, rec_model_path_, rec_dict_path_,
-                    cls_model_path_, use_gpu_
+                    cls_path, use_gpu_
             );
             std::cout << "OCR system initialized." << std::endl;
         }

@@ -34,7 +34,12 @@ namespace ocr {
             recognizer_ = std::make_unique<TextRecognizer>(rec_model_path, rec_dict_path, use_gpu);
 
             std::cout << "Loading cls model..." << std::endl;
-            classifier_ = std::make_unique<TextClassifier>(cls_model_path, use_gpu);
+            if (!cls_model_path.empty()) {
+                classifier_ = std::make_unique<TextClassifier>(cls_model_path, use_gpu);
+            } else {
+                std::cout << "  [SKIPPED - no cls model]" << std::endl;
+                classifier_ = nullptr;
+            }
 
             drop_score_ = 0.3f;
             std::cout << "All models loaded!" << std::endl;

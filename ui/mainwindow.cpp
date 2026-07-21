@@ -37,6 +37,8 @@
 #include <QEasingCurve>
 #include <QPainter>
 #include <QPainterPath>
+#include <QCompleter>
+#include <QStringListModel>
 
 #include <QTextCursor>
 #include <QThread>
@@ -60,7 +62,7 @@ static void CALLBACK WaveInProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
 static void populateLanguages(QComboBox* combo, const QString& defaultLang = QStringLiteral("Chinese"), bool useConfigDefault = false) {
     combo->setEditable(true);
     combo->setInsertPolicy(QComboBox::NoInsert);
-    combo->addItems({
+    QStringList langs = {
         QApplication::translate("MainWindow", "Chinese"),
         QApplication::translate("MainWindow", "English"),
         QApplication::translate("MainWindow", "French"),
@@ -99,12 +101,40 @@ static void populateLanguages(QComboBox* combo, const QString& defaultLang = QSt
         QApplication::translate("MainWindow", "Mongolian"),
         QApplication::translate("MainWindow", "Uyghur"),
         QApplication::translate("MainWindow", "Cantonese"),
-    });
+    };
+    combo->addItems(langs);
     if (useConfigDefault) {
         auto& cfg = docmind::ConfigManager::getInstance();
         combo->setCurrentText(QString::fromStdString(cfg.getDefaultLanguage()));
     } else {
         combo->setCurrentText(defaultLang);
+    }
+
+    // 模糊搜索自动补全：输入时过滤匹配项
+    auto* completer = new QCompleter(langs, combo);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setFilterMode(Qt::MatchContains);
+    completer->setCompletionMode(QCompleter::PopupCompletion);
+    completer->setMaxVisibleItems(10);
+    combo->setCompleter(completer);
+
+    // 失去焦点或确认时，只允许下拉列表中的值
+    auto validateInput = [combo, langs]() {
+        QString text = combo->currentText().trimmed();
+        if (text.isEmpty()) return;
+        for (const auto& lang : langs) {
+            if (lang.compare(text, Qt::CaseInsensitive) == 0) {
+                // 统一大小写
+                combo->setCurrentText(lang);
+                return;
+            }
+        }
+        // 输入不在列表中，回退到列表第一个
+        combo->setCurrentIndex(0);
+    };
+    // combo 的 lineEdit 在 setEditable(true) 后可用
+    if (auto* lineEdit = combo->lineEdit()) {
+        QObject::connect(lineEdit, &QLineEdit::editingFinished, combo, validateInput);
     }
 }
 
@@ -2284,7 +2314,7 @@ QWidget* MainWindow::createSettingsPanel() {
         form->setSpacing(6);
 
         auto* ocrSizeCombo = new QComboBox;
-        ocrSizeCombo->addItems({tr("Tiny"), tr("Medium"), tr("Large")});
+        ocrSizeCombo->addItems({"Tiny", "Medium", "Small"});
         std::string curSize = cfg.getNestedJson("defaults").value("ocr_model_size", "tiny");
         if (curSize == "tiny") ocrSizeCombo->setCurrentIndex(0);
         else if (curSize == "medium") ocrSizeCombo->setCurrentIndex(1);
