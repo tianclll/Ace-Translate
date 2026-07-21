@@ -106,6 +106,12 @@
 | CUDA Toolkit | 12.1 | [Download](https://developer.nvidia.com/cuda-toolkit) (GPU only) |
 | Python | 3.8+ | [Download](https://www.python.org/downloads/) (only needed for office2md) |
 
+> **Python Dependencies**: Building `office2md.exe` requires:
+> ```bash
+> pip install pyinstaller python-docx python-pptx openpyxl lxml pylatexenc
+> ```
+> A virtual environment (e.g. `tools/office2md/clean_env/`) is recommended.
+
 #### 1. Build llama.cpp
 
 llama.cpp must be built in advance. GPU build requires CUDA Toolkit 12.1.
@@ -126,7 +132,23 @@ cmake --build build --config Release
 
 Outputs: `build_gpu/bin/Release/` (GPU) or `build/bin/Release/` (CPU).
 
-#### 2. Build Main Application
+#### 2. Build office2md.exe (required for File Translation)
+
+```bash
+cd script
+# Activate virtual environment (e.g. tools/office2md/clean_env/) or use global Python
+pyinstaller --onefile --name office2md --clean ^
+    --hidden-import=docx ^
+    --hidden-import=pptx ^
+    --hidden-import=openpyxl ^
+    --hidden-import=lxml ^
+    --hidden-import=pylatexenc ^
+    cli_converter.py
+```
+
+Output: `script/office2md.exe` — CMake POST_BUILD copies it to the output directory automatically.
+
+#### 3. Build Main Application
 
 ```bash
 git clone https://github.com/yourusername/AceTranslatePro.git

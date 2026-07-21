@@ -104,7 +104,13 @@
 | ONNXRuntime (GPU) | 1.20.1 (CUDA 12.1) | [下载](https://github.com/microsoft/onnxruntime/releases) |
 | ONNXRuntime (CPU) | 1.20.1 | [下载](https://github.com/microsoft/onnxruntime/releases) |
 | CUDA Toolkit | 12.1 | [下载](https://developer.nvidia.com/cuda-toolkit)（仅 GPU 版需要） |
-| Python | 3.8+ | [下载](https://www.python.org/downloads/)（仅编译 office2md 需要） |
+| Python | 3.8+ | [下载](https://www.python.org/downloads/)（编译 office2md 需要） |
+
+> **Python 依赖**：编译 `office2md.exe` 需要安装以下包：
+> ```bash
+> pip install pyinstaller python-docx python-pptx openpyxl lxml pylatexenc
+> ```
+> 建议使用虚拟环境（如 `tools/office2md/clean_env/`）隔离依赖。
 
 #### 1. 编译 llama.cpp
 
@@ -126,7 +132,25 @@ cmake --build build --config Release
 
 编译产物在 `build_gpu/bin/Release/`（GPU）或 `build/bin/Release/`（CPU）。
 
-#### 2. 编译主程序
+#### 2. 编译 office2md.exe（文件翻译必需）
+
+```bash
+# 进入 office2md 目录
+cd script
+# 激活虚拟环境（如 tools/office2md/clean_env/）或直接使用全局 Python
+# 编译为单个 exe
+pyinstaller --onefile --name office2md --clean ^
+    --hidden-import=docx ^
+    --hidden-import=pptx ^
+    --hidden-import=openpyxl ^
+    --hidden-import=lxml ^
+    --hidden-import=pylatexenc ^
+    cli_converter.py
+```
+
+编译产物为 `script/office2md.exe`，CMake 的 POST_BUILD 会自动将其复制到输出目录。
+
+#### 3. 编译主程序
 
 ```bash
 # 克隆仓库

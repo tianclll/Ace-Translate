@@ -106,6 +106,12 @@
 | CUDA Toolkit | 12.1 | [ダウンロード](https://developer.nvidia.com/cuda-toolkit)（GPU版のみ） |
 | Python | 3.8+ | [ダウンロード](https://www.python.org/downloads/)（office2mdにのみ必要） |
 
+> **Python 依存関係**: `office2md.exe` のビルドには以下が必要です：
+> ```bash
+> pip install pyinstaller python-docx python-pptx openpyxl lxml pylatexenc
+> ```
+> 仮想環境（例：`tools/office2md/clean_env/`）の使用を推奨します。
+
 #### 1. llama.cpp をビルド
 
 llama.cpp は事前にビルドしておく必要があります。GPU版は CUDA Toolkit 12.1 が必要です。
@@ -126,7 +132,23 @@ cmake --build build --config Release
 
 出力先: `build_gpu/bin/Release/`（GPU）または `build/bin/Release/`（CPU）。
 
-#### 2. メインアプリケーションをビルド
+#### 2. office2md.exe をビルド（ファイル翻訳に必須）
+
+```bash
+cd script
+# 仮想環境を有効化（例：tools/office2md/clean_env/）またはグローバル Python を使用
+pyinstaller --onefile --name office2md --clean ^
+    --hidden-import=docx ^
+    --hidden-import=pptx ^
+    --hidden-import=openpyxl ^
+    --hidden-import=lxml ^
+    --hidden-import=pylatexenc ^
+    cli_converter.py
+```
+
+出力: `script/office2md.exe` — CMake POST_BUILD が自動的に出力ディレクトリにコピーします。
+
+#### 3. メインアプリケーションをビルド
 
 ```bash
 git clone https://github.com/yourusername/AceTranslatePro.git
