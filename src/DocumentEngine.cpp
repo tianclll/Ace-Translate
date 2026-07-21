@@ -45,6 +45,7 @@ std::string process_photo(
         throw std::runtime_error("Failed to load image: " + image_path);
     }
 
+    // 不写磁盘，用临时文件传递（后续会改直接返回 cv::Mat）
     std::string final_output = output_path;
     if (final_output.empty()) {
         std::filesystem::path p(image_path);

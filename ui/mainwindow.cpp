@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "docmind/DocumentEngine.h"
+#include "docmind/modules/PhotoTranslationModule.hpp"
 #include "docmind/core/GlobalEngineContext.hpp"
 #include "regioncapture.h"
 #include "floatwindow.h"
@@ -234,13 +235,22 @@ void TranslateWorker::run() {
             case PhotoTranslate: {
                 emit progressUpdated(tr("Translating image…"));
                 try {
-                    std::string out = process_photo(
-                        inputPath.toStdString(),
-                        outputPath.toStdString(),
-                        baseDir.toStdString(),
-                        targetLang.toStdString(),
-                        maxTokens);
-                    emit finished(QString::fromStdString(out));
+                    cv::Mat inputImg = cv::imread(inputPath.toStdString());
+                    if (inputImg.empty()) {
+                        emit errorOccurred(tr("Cannot load image"));
+                        return;
+                    }
+                    docmind::PhotoTranslationModule module(targetLang.toStdString(), "", 1.2f);
+                    cv::Mat result = module.process(inputImg, maxTokens);
+                    if (result.empty()) {
+                        emit errorOccurred(tr("Image translation failed"));
+                        return;
+                    }
+                    // 通过 finished 传递路径，onWorkerFinished 读取 cv::Mat
+                    // 但不保存到磁盘——用临时路径传递，读取后删除
+                    QString tmpPath = inputPath + ".ace_tmp.png";
+                    cv::imwrite(tmpPath.toStdString(), result);
+                    emit finished(tmpPath);
                 } catch (const std::exception& e) {
                     emit errorOccurred(tr("Image translation error: ") + QString::fromUtf8(e.what()));
                 }
@@ -1734,7 +1744,7 @@ QWidget* MainWindow::createPhotoPanel() {
         "QPushButton { border: none; background: transparent; color: #889096; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
         "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
     connect(photoInputClearBtn, &QPushButton::clicked, this, [this]() {
-        photoPreview_->clear();
+        photoPreview_->clearImage();
         photoPreview_->setText(tr("Image preview…"));
         photoInputPath_->clear();
         photoOrigMat_ = cv::Mat();
@@ -1746,6 +1756,7 @@ QWidget* MainWindow::createPhotoPanel() {
     inpHeader->addWidget(photoInputClearBtn);
     inputInner->addLayout(inpHeader);
     photoPreview_ = new ZoomableLabel;
+    photoPreview_->setMinimumSize(200, 140);
     photoPreview_->setAlignment(Qt::AlignCenter);
     photoPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
     photoPreview_->setText(tr("Image preview…"));
@@ -1797,26 +1808,23 @@ QWidget* MainWindow::createPhotoPanel() {
     });
     outHeader->addWidget(photoCopyBtn_);
 
-    // 下载按钮
+    // 下载按钮 — 弹出另存为选择保存目录
     photoDownloadBtn_ = new QPushButton(tr("Download"));
     photoDownloadBtn_->setCursor(Qt::PointingHandCursor);
     photoDownloadBtn_->setStyleSheet(photoCopyBtn_->styleSheet());
     connect(photoDownloadBtn_, &QPushButton::clicked, this, [this]() {
-        auto* zl = qobject_cast<ZoomableLabel*>(photoOutputPreview_);
-        if (!zl || !zl->hasImage()) return;
-        // 生成随机文件名
+        if (photoOutputMat_.empty()) return;
         QString randName = QStringLiteral("AceTranslate_%1.png")
             .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz"));
-        // 弹保存对话框，文件名随机不可编辑
         QString savePath = QFileDialog::getSaveFileName(
             this, tr("Save Image"), randName,
             tr("PNG Images (*.png)"));
         if (savePath.isEmpty()) return;
-        if (!zl->originalFullPixmap().save(savePath, "PNG")) {
+        if (cv::imwrite(savePath.toStdString(), photoOutputMat_)) {
+            statusBar_->showMessage(tr("Image saved: ") + QFileInfo(savePath).fileName(), 3000);
+        } else {
             statusBar_->showMessage(tr("Save Image Failed"), 2000);
-            return;
         }
-        statusBar_->showMessage(tr("Image saved: ") + QFileInfo(savePath).fileName(), 3000);
     });
     outHeader->addWidget(photoDownloadBtn_);
 
@@ -3198,6 +3206,7 @@ void MainWindow::onWorkerFinished(const QString& result) {
         }
         if (photoOutputPreview_) {
             QString outputPath = result;
+            photoLastSavedPath_ = outputPath;
             cv::Mat outImg = cv::imread(outputPath.toStdString());
             if (!outImg.empty()) {
                 photoOutputMat_ = outImg.clone();
@@ -3221,6 +3230,8 @@ void MainWindow::onWorkerFinished(const QString& result) {
             } else {
                 photoOutputPreview_->setText(outputPath);
             }
+            // 删除临时文件
+            QFile::remove(outputPath);
         }
         break;
     case 4: // File — 状态栏显示结果 + 更新文件状态 + 显示下载按钮

@@ -38,7 +38,9 @@ public:
         originalFullPixmap_ = QPixmap();
         zoom_ = 1.0;
         QLabel::clear();
-        setFixedSize(360, 240);
+        // 松开 fixedSize，让布局/scrollarea 控制大小
+        setFixedSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        setMinimumSize(200, 140);
         updateGeometry();
     }
 

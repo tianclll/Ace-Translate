@@ -233,7 +233,8 @@ private:
     QSpinBox* photoMaxTokens_;
     QPushButton* photoCopyBtn_;
     QPushButton* photoDownloadBtn_;
-    QLabel* photoPreview_;
+    QString photoLastSavedPath_;
+    ZoomableLabel* photoPreview_;
     QLabel* photoOutputPreview_;
     QScrollArea* photoInputScroll_;
     QScrollArea* photoOutputScroll_;

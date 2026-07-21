@@ -89,7 +89,7 @@
 - **CPU**: AVX2 support (Intel/AMD processors from 2013+)
 - **GPU (optional)**: NVIDIA GPU + CUDA 12.1 for accelerated OCR/Translation/ASR
 - **RAM**: 16GB+ recommended
-- **Storage**: ~15GB (including model files)
+- **Storage**: ~5GB (including model files)
 
 ---
 
