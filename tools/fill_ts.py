@@ -69,6 +69,8 @@ EN_TO_ZH = {
     "Loading config…": "正在加载配置…",
     "Loading engines…": "正在加载引擎…",
     "Engines loaded": "引擎加载完成",
+    "Disable to reduce startup time. Engines load on demand.": "关闭后可减少启动时间，引擎在需要时按需加载。",
+    "Disable GPU to reduce VRAM. Restart required.": "关闭 GPU 以节省显存。修改后需重启应用生效。",
     "Initializing UI…": "正在初始化界面…",
     "Startup complete": "启动完成",
     "AceTranslatePro is already running.": "AceTranslatePro 已在运行中，请勿重复启动。",
