@@ -2145,7 +2145,7 @@ void MainWindow::addFileToList(const QString& filePath) {
     fileItem->setLineWidth(0);
     fileItem->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 8px; }"
-        "QFrame:hover { border-color: #0B7C72; }");
+        "QFrame:hover { background: rgba(11, 124, 114, 0.06); }");
     auto* itemLayout = new QHBoxLayout(fileItem);
     itemLayout->setContentsMargins(10, 8, 10, 8);
     itemLayout->setSpacing(10);
@@ -2163,9 +2163,8 @@ void MainWindow::addFileToList(const QString& filePath) {
     else iconRes = ":/icons/file.png";
 
     auto* iconLabel = new QLabel;
-    iconLabel->setPixmap(QPixmap(iconRes).scaled(28, 28, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    iconLabel->setFixedSize(32, 32);
-    iconLabel->setAlignment(Qt::AlignCenter);
+    iconLabel->setPixmap(QPixmap(iconRes).scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setStyleSheet("QLabel { background: transparent; border: none; }");
     itemLayout->addWidget(iconLabel);
 
     // 文件名 + 大小/时间 — 单个 QLabel，无多余框
