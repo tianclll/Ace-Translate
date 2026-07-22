@@ -229,6 +229,8 @@ private:
     QSpinBox* screenshotMaxTokens_;
     QTextEdit* screenshotResult_;
     QTextEdit* screenshotOcrResult_ = nullptr;
+    QPixmap screenshotFullPix_;
+    QScrollArea* screenshotScroll_ = nullptr;
 
     // -- 图片翻译 (Photo) --
     QLineEdit* photoInputPath_;

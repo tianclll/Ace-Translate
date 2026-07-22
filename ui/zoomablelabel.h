@@ -25,21 +25,19 @@ public:
         updateZoom();
     }
 
-    // 设置原始全分辨率图（用于缩放），同时显示适配视图的缩略图
     void setFullImage(const QPixmap& fullPix, const QPixmap& displayPix) {
         originalFullPixmap_ = fullPix;
-        // zoom_ 设为实际显示比例（缩略图相对全分辨率），避免 resizeEvent 跳回全尺寸
         zoom_ = (double)displayPix.width() / fullPix.width();
+        autoFit_ = true;
         setPixmap(displayPix);
-        setFixedSize(displayPix.size());
+        updateGeometry();
     }
 
     void clearImage() {
         originalFullPixmap_ = QPixmap();
         zoom_ = 1.0;
+        autoFit_ = false;
         QLabel::clear();
-        // 松开 fixedSize，让布局/scrollarea 控制大小
-        setFixedSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
         setMinimumSize(200, 140);
         updateGeometry();
     }
@@ -59,6 +57,7 @@ protected:
         double newZoom = std::max(minZoom_, std::min(maxZoom_, zoom_ * factor));
         if (newZoom != zoom_) {
             zoom_ = newZoom;
+            autoFit_ = false;
             updateZoom();
             emit zoomChanged(zoom_);
         }
@@ -107,8 +106,21 @@ protected:
 
     void resizeEvent(QResizeEvent* event) override {
         QLabel::resizeEvent(event);
-        if (!originalFullPixmap_.isNull() && zoom_ == 1.0 && width() > 1 && height() > 1)
-            updateZoom();
+        // autoFit_ 模式下：控件大小变化时自动缩放图片填满控件
+        if (autoFit_ && !originalFullPixmap_.isNull() && width() > 50 && height() > 50) {
+            double newZoom = qMin((double)width() / originalFullPixmap_.width(),
+                                 (double)height() / originalFullPixmap_.height());
+            if (std::abs(newZoom - zoom_) / std::max(newZoom, zoom_) > 0.05) {
+                zoom_ = newZoom;
+                updateZoom();
+            }
+        }
+    }
+
+    QSize sizeHint() const override {
+        if (!pixmap().isNull())
+            return pixmap().size();
+        return QSize(360, 240);
     }
 
 private:
@@ -117,6 +129,7 @@ private:
         QSize baseSize = originalFullPixmap_.size();
         QSize newSize(qMax(1, (int)(baseSize.width() * zoom_)), qMax(1, (int)(baseSize.height() * zoom_)));
         setPixmap(originalFullPixmap_.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        // 缩放后也释放固定大小，让 ScrollArea 能滚动查看大图
         setFixedSize(newSize);
     }
 
@@ -125,5 +138,6 @@ private:
     double minZoom_;
     double maxZoom_;
     bool dragging_ = false;
+    bool autoFit_ = false;
     QPoint dragStartPos_;
 };

@@ -18,6 +18,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QFrame>
+#include <QComboBox>
 #include <QStackedWidget>
 #include <QSplitter>
 #include <QDialog>
@@ -31,6 +32,7 @@
 #include <QDateTime>
 #include <QDateTime>
 #include <QCloseEvent>
+#include <QTimer>
 #include <QMenu>
 #include <QAction>
 #include <QGraphicsOpacityEffect>
@@ -416,6 +418,19 @@ void MainWindow::resizeEvent(QResizeEvent* event) {
     };
     tryZoomLabel(qobject_cast<ZoomableLabel*>(photoPreview_), photoInputScroll_, photoOrigMat_);
     tryZoomLabel(qobject_cast<ZoomableLabel*>(photoOutputPreview_), photoOutputScroll_, photoOutputMat_);
+
+    // 截图预览框和图片跟随窗口缩放
+    if (!screenshotFullPix_.isNull() && screenshotScroll_) {
+        auto* zl = qobject_cast<ZoomableLabel*>(screenshotPreview_);
+        if (zl && zl->hasImage()) {
+            int maxW = screenshotScroll_->viewport()->width();
+            int maxH = screenshotScroll_->viewport()->height();
+            maxW = qMax(50, maxW);
+            maxH = qMax(50, maxH);
+            QPixmap displayPix = screenshotFullPix_.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            zl->setFullImage(screenshotFullPix_, displayPix);
+        }
+    }
 }
 
 QTranslator s_translator;
@@ -459,6 +474,22 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 // eventFilter — 导航按钮悬浮放大 + 文本卡片悬浮动效
 // ============================================================
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
+    // ---- 阻止 QComboBox 鼠标滚轮改变选项（仍允许页面滚动） ----
+    if (event->type() == QEvent::Wheel) {
+        if (qobject_cast<QComboBox*>(obj) && qobject_cast<QComboBox*>(obj)->isVisible()) {
+            // 向上查找 QScrollArea，传递滚轮事件到其 viewport
+            QWidget* p = qobject_cast<QComboBox*>(obj)->parentWidget();
+            while (p) {
+                auto* sa = qobject_cast<QScrollArea*>(p);
+                if (sa) {
+                    QApplication::sendEvent(sa->viewport(), event);
+                    break;
+                }
+                p = p->parentWidget();
+            }
+            return true;
+        }
+    }
     // ---- 导航按钮: 图标放大 ----
     auto* btn = qobject_cast<QPushButton*>(obj);
     if (btn && btn->objectName() == "navBtn") {
@@ -710,6 +741,10 @@ void MainWindow::setupUI() {
     hourglassTimer_ = new QTimer(this);
     hourglassTimer_->setInterval(500);
     connect(hourglassTimer_, &QTimer::timeout, this, &MainWindow::onHourglassTick);
+
+    // 阻止所有 QComboBox 鼠标滚轮改变选项
+    for (auto* cb : findChildren<QComboBox*>())
+        cb->installEventFilter(this);
 }
 
 // ============================================================
@@ -1516,25 +1551,32 @@ QWidget* MainWindow::createScreenshotPanel() {
     connect(screenshotClearPreviewBtn, &QPushButton::clicked, this, [this]() {
         screenshotPreview_->clearImage();
         screenshotPreview_->setFixedSize(360, 240);
-        screenshotPreview_->setMinimumSize(200, 140);
         screenshotPreview_->setText(tr("Waiting for screenshot…"));
+        screenshotFullPix_ = QPixmap();
         if (screenshotOcrResult_) screenshotOcrResult_->clear();
         if (screenshotResult_) screenshotResult_->clear();
+        // 恢复默认大小后取消固定，让布局重新控制
+        QTimer::singleShot(0, this, [this]() {
+            screenshotPreview_->setFixedSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+            screenshotPreview_->setMinimumSize(200, 140);
+        });
     });
     previewHeader->addWidget(screenshotClearPreviewBtn);
     previewInner->addLayout(previewHeader);
     screenshotPreview_ = new ZoomableLabel;
-    screenshotPreview_->setFixedSize(360, 240);
     screenshotPreview_->setMinimumSize(200, 140);
     screenshotPreview_->setAlignment(Qt::AlignCenter);
     screenshotPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
     screenshotPreview_->setText(tr("Waiting for screenshot…"));
     auto* previewScroll = new QScrollArea;
+    screenshotScroll_ = previewScroll;
     previewScroll->setWidget(screenshotPreview_);
-    previewScroll->setWidgetResizable(false);
+    previewScroll->setWidgetResizable(true);
     previewScroll->setMinimumHeight(160);
+    previewScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    previewScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     previewScroll->setStyleSheet("QScrollArea { border: none; background: transparent; }");
-    previewInner->addWidget(previewScroll, 1, Qt::AlignCenter);
+    previewInner->addWidget(previewScroll, 1);
     contentRow->addWidget(previewCard, 1);
 
     // 右: 结果
@@ -1621,7 +1663,7 @@ QWidget* MainWindow::createScreenshotPanel() {
     transContainer->addLayout(resultBtnRow);
     resultInner->addLayout(transContainer, 1);
     contentRow->addWidget(resultCard, 1);
-    lay->addLayout(contentRow);
+    lay->addLayout(contentRow, 1);
 
     // 参数行
     auto* ctrlRow = new QHBoxLayout;
@@ -2772,7 +2814,13 @@ void MainWindow::onCaptureComplete() {
     cv::cvtColor(mat, rgbMat, cv::COLOR_BGR2RGB);
     QImage qimg(rgbMat.data, rgbMat.cols, rgbMat.rows, static_cast<int>(rgbMat.step), QImage::Format_RGB888);
     QPixmap fullPix = QPixmap::fromImage(qimg);
-    QPixmap thumbPix = fullPix.scaled(360, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    screenshotFullPix_ = fullPix;
+    // 根据 ScrollArea viewport 大小计算缩略图
+    int maxW = screenshotScroll_ ? screenshotScroll_->viewport()->width() : 360;
+    int maxH = screenshotScroll_ ? screenshotScroll_->viewport()->height() : 240;
+    maxW = qMax(50, maxW);
+    maxH = qMax(50, maxH);
+    QPixmap thumbPix = fullPix.scaled(maxW, maxH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     screenshotPreview_->setFullImage(fullPix, thumbPix);
     screenshotPreview_->setText(QString());
 
