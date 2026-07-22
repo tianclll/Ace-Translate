@@ -56,6 +56,7 @@ EN_TO_ZH = {
     "Hotkey": "快捷键",
     "Hotkey Conflict": "快捷键冲突",
     "Screenshot Preview": "截图预览",
+    "Capture screen area for OCR and translation": "截图即可进行 OCR 识别和翻译",
     "Recognition Result": "识别结果",
     "OCR Text…": "OCR 识别文本…",
     "Recognizing…": "OCR 识别截图…",
