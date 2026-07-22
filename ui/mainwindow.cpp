@@ -1789,6 +1789,7 @@ QWidget* MainWindow::createPhotoPanel() {
         "QPushButton:hover { background: rgba(11, 124, 114, 0.08); color: #0B7C72; }");
     connect(photoInputClearBtn, &QPushButton::clicked, this, [this]() {
         photoPreview_->clearImage();
+        photoPreview_->setFixedSize(360, 240);
         photoPreview_->setText(tr("Image preview…"));
         photoInputPath_->clear();
         photoOrigMat_ = cv::Mat();
@@ -1796,6 +1797,10 @@ QWidget* MainWindow::createPhotoPanel() {
         if (zl) zl->clearImage();
         photoOutputPreview_->setText(tr("Result shows after translation…"));
         photoOutputMat_ = cv::Mat();
+        QTimer::singleShot(0, this, [this]() {
+            photoPreview_->setFixedSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+            photoPreview_->setMinimumSize(200, 140);
+        });
     });
     inpHeader->addWidget(photoInputClearBtn);
     inputInner->addLayout(inpHeader);
