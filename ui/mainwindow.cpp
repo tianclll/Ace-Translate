@@ -1607,9 +1607,8 @@ QWidget* MainWindow::createScreenshotPanel() {
     screenshotOcrResult_ = new QTextEdit;
     screenshotOcrResult_->setReadOnly(true);
     screenshotOcrResult_->setPlaceholderText(tr("OCR Text…"));
-    screenshotOcrResult_->setMaximumHeight(100);
     screenshotOcrResult_->setStyleSheet("QTextEdit { border: 1px solid #E8ECEF; border-radius: 6px; background: transparent; font-size: 12px; color: #374151; padding: 4px; }");
-    resultInner->addWidget(screenshotOcrResult_);
+    resultInner->addWidget(screenshotOcrResult_, 1);
 
     // 翻译结果子框（带图标）
     auto* transHeader = new QHBoxLayout;
@@ -1627,18 +1626,23 @@ QWidget* MainWindow::createScreenshotPanel() {
     transHeader->addStretch();
     resultInner->addLayout(transHeader);
 
-    // 翻译结果框 + 按钮行（框在上，按钮在右侧）
+    // 翻译结果框 + 按钮行（放在带边框的容器中，按钮看起来在框内）
     auto* transContainer = new QVBoxLayout;
     transContainer->setSpacing(4);
+    auto* transFrame = new QFrame;
+    transFrame->setStyleSheet("QFrame { border: 1px solid #D0E8E4; border-radius: 6px; background: transparent; }");
+    auto* transFrameLayout = new QVBoxLayout(transFrame);
+    transFrameLayout->setContentsMargins(0, 0, 0, 0);
+    transFrameLayout->setSpacing(0);
     screenshotResult_ = new QTextEdit;
     screenshotResult_->setReadOnly(true);
     screenshotResult_->setPlaceholderText(tr("Translation Result…"));
-    screenshotResult_->setStyleSheet("QTextEdit { border: 1px solid #D0E8E4; border-radius: 6px; background: transparent; font-size: 13px; color: #1C1C1E; padding: 6px; }");
-    screenshotResult_->setMinimumHeight(120);
-    transContainer->addWidget(screenshotResult_, 1);
+    screenshotResult_->setStyleSheet("QTextEdit { border: none; background: transparent; font-size: 13px; color: #1C1C1E; padding: 6px; }");
+    transFrameLayout->addWidget(screenshotResult_, 1);
 
-    // 复制 + 朗读按钮在右下
+    // 复制 + 朗读按钮在框内右下
     auto* resultBtnRow = new QHBoxLayout;
+    resultBtnRow->setContentsMargins(4, 0, 4, 2);
     resultBtnRow->setSpacing(4);
     resultBtnRow->addStretch();
     auto* screenshotCopyBtn = new QPushButton(tr("Copy"));
@@ -1660,7 +1664,8 @@ QWidget* MainWindow::createScreenshotPanel() {
         speakText(screenshotResult_ ? screenshotResult_->toPlainText() : QString());
     });
     resultBtnRow->addWidget(screenshotSpeakBtn);
-    transContainer->addLayout(resultBtnRow);
+    transFrameLayout->addLayout(resultBtnRow);
+    transContainer->addWidget(transFrame, 1);
     resultInner->addLayout(transContainer, 1);
     contentRow->addWidget(resultCard, 1);
     lay->addLayout(contentRow, 1);
