@@ -24,6 +24,8 @@
         <file alias="yes.png">icons/yes.png</file>
         <file alias="OCR.png">icons/OCR.png</file>
         <file alias="voice.png">icons/voice.png</file>
+        <file alias="Lock.png">icons/Lock.png</file>
+        <file alias="unLock.png">icons/unLock.png</file>
     </qresource>
     <qresource prefix="/translations">
         <file alias="zh_CN.qm">../translations/zh_CN.qm</file>

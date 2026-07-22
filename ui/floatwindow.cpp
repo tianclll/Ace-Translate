@@ -35,12 +35,14 @@ FloatTranslateWindow::FloatTranslateWindow(QWidget* parent)
     auto* titleLabel = new QLabel(tr("Selection Translation"));
     titleLabel->setStyleSheet("color: white; font-weight: bold; font-size: 13px;");
 
-    lockBtn_ = new QPushButton(QStringLiteral("🔓"));
+    lockBtn_ = new QPushButton;
     lockBtn_->setFixedSize(28, 28);
     lockBtn_->setCursor(Qt::PointingHandCursor);
     lockBtn_->setStyleSheet(
-        "QPushButton { background: transparent; color: white; border: none; font-size: 14px; border-radius: 14px; }"
+        "QPushButton { background: transparent; border: none; border-radius: 14px; }"
         "QPushButton:hover { background: rgba(255,255,255,0.2); }");
+    lockBtn_->setIcon(QIcon(":/icons/unLock.png"));
+    lockBtn_->setIconSize(QSize(22, 22));
     connect(lockBtn_, &QPushButton::clicked, this, &FloatTranslateWindow::onToggleLock);
 
     auto* closeBtn = new QPushButton(this);
@@ -263,7 +265,8 @@ void FloatTranslateWindow::onCopyResult() {
 
 void FloatTranslateWindow::onToggleLock() {
     locked_ = !locked_;
-    lockBtn_->setText(locked_ ? QStringLiteral("🔒") : QStringLiteral("🔓"));
+    lockBtn_->setIcon(QIcon(locked_ ? QStringLiteral(":/icons/Lock.png") : QStringLiteral(":/icons/unLock.png")));
+    lockBtn_->setIconSize(QSize(22, 22));
     setStayOnTop(locked_);
 }
 
