@@ -72,16 +72,11 @@ namespace docmind {
 
         std::ifstream file(config_path);
         if (!file.is_open()) {
-            std::cerr << "Warning: config.json not found, using defaults." << std::endl;
-            // 使用默认配置（硬编码）
             config_ = defaultConfig();
         } else {
             try {
                 file >> config_;
-                std::cout << "Config loaded from " << config_path << std::endl;
-            } catch (const std::exception& e) {
-                std::cerr << "Failed to parse config.json: " << e.what() << std::endl;
-                // 回退默认配置
+            } catch (const std::exception&) {
                 config_ = defaultConfig();
             }
             file.close();

@@ -1219,7 +1219,6 @@ QWidget* MainWindow::createFloatConfigPanel() {
             if (ks.isEmpty()) return;
 
             QString newText = ks.toString();
-            // 检查是否与当前快捷键相同
             if (newText == currentText) {
                 dialog->reject();
                 return;
@@ -1249,8 +1248,8 @@ QWidget* MainWindow::createFloatConfigPanel() {
             // 保存并注册
             {
                 auto& c = docmind::ConfigManager::getInstance();
-                c.setString("hotkey.float.key", std::to_string(key));
-                c.setString("hotkey.float.mods", std::to_string(mods));
+                c.setNestedString("defaults.float_hotkey_key", std::to_string(key));
+                c.setNestedString("defaults.float_hotkey_mods", std::to_string(mods));
                 c.save();
             }
             floatHotkeyKey_ = key;
@@ -1476,9 +1475,10 @@ QWidget* MainWindow::createScreenshotPanel() {
 
             int key = ks[0].key();
             int mods = MOD_NOREPEAT;
-            if (key & Qt::CTRL) mods |= MOD_CONTROL;
-            if (key & Qt::SHIFT) mods |= MOD_SHIFT;
-            if (key & Qt::ALT) mods |= MOD_ALT;
+            Qt::KeyboardModifiers qMods = ks[0].keyboardModifiers();
+            if (qMods & Qt::ControlModifier) mods |= MOD_CONTROL;
+            if (qMods & Qt::ShiftModifier) mods |= MOD_SHIFT;
+            if (qMods & Qt::AltModifier) mods |= MOD_ALT;
             key = key & ~(Qt::CTRL | Qt::SHIFT | Qt::ALT | Qt::META);
 
             // 检查是否与划词快捷键冲突
@@ -1490,6 +1490,12 @@ QWidget* MainWindow::createScreenshotPanel() {
 
             screenshotHotkeyKey_ = key;
             screenshotHotkeyMods_ = mods;
+            {
+                auto& c = docmind::ConfigManager::getInstance();
+                c.setNestedString("defaults.screenshot_hotkey_key", std::to_string(key));
+                c.setNestedString("defaults.screenshot_hotkey_mods", std::to_string(mods));
+                c.save();
+            }
             UnregisterHotKey((HWND)winId(), screenshotHotkeyId_);
             BOOL ok = RegisterHotKey((HWND)winId(), screenshotHotkeyId_, screenshotHotkeyMods_, screenshotHotkeyKey_);
             if (!ok) {
@@ -2646,8 +2652,10 @@ void MainWindow::registerGlobalHotkeys() {
     // 从配置读取自定义快捷键
     {
         auto& cfg = docmind::ConfigManager::getInstance();
-        std::string savedKey = cfg.getString("hotkey.float.key", "");
-        std::string savedMods = cfg.getString("hotkey.float.mods", "");
+
+        // 划词翻译热键
+        std::string savedKey = cfg.getNestedString("defaults.float_hotkey_key", "");
+        std::string savedMods = cfg.getNestedString("defaults.float_hotkey_mods", "");
         if (!savedKey.empty()) {
             floatHotkeyKey_ = std::stoi(savedKey);
             floatHotkeyMods_ = std::stoi(savedMods);
@@ -2658,6 +2666,22 @@ void MainWindow::registerGlobalHotkeys() {
                 if (floatHotkeyMods_ & MOD_ALT) txt += "Alt+";
                 txt += QChar(floatHotkeyKey_);
                 floatHotkeyBtn_->setText(txt);
+            }
+        }
+
+        // 截图热键
+        savedKey = cfg.getNestedString("defaults.screenshot_hotkey_key", "");
+        savedMods = cfg.getNestedString("defaults.screenshot_hotkey_mods", "");
+        if (!savedKey.empty()) {
+            screenshotHotkeyKey_ = std::stoi(savedKey);
+            screenshotHotkeyMods_ = std::stoi(savedMods);
+            if (screenshotHotkeyBtn_) {
+                QString txt;
+                if (screenshotHotkeyMods_ & MOD_CONTROL) txt += "Ctrl+";
+                if (screenshotHotkeyMods_ & MOD_SHIFT) txt += "Shift+";
+                if (screenshotHotkeyMods_ & MOD_ALT) txt += "Alt+";
+                txt += QChar(screenshotHotkeyKey_);
+                screenshotHotkeyBtn_->setText(txt);
             }
         }
     }
