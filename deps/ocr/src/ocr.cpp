@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include <cstring>
 #include <opencv2/opencv.hpp>
 
@@ -256,7 +257,17 @@ namespace ocr {
             for (size_t i = 0; i < results.size(); ++i) {
                 if (i > 0) json << ",";
                 json << "{"
-                     << "\"text\":\"" << results[i].text << "\","
+                     << "\"text\":\"";
+                for (char ch : results[i].text) {
+                    if (ch == '"') json << "\\\"";
+                    else if (ch == '\\') json << "\\\\";
+                    else if (ch == '\n') json << "\\n";
+                    else if (ch == '\r') json << "\\r";
+                    else if (ch == '\t') json << "\\t";
+                    else if (static_cast<unsigned char>(ch) < 0x20) json << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)ch << std::dec;
+                    else json << ch;
+                }
+                json << "\","
                      << "\"score\":" << results[i].score << ","
                      << "\"box\":[";
                 for (size_t j = 0; j < results[i].box.size(); ++j) {
@@ -289,7 +300,17 @@ namespace ocr {
             for (size_t i = 0; i < results.size(); ++i) {
                 if (i > 0) json << ",";
                 json << "{"
-                     << "\"text\":\"" << results[i].text << "\","
+                     << "\"text\":\"";
+                for (char ch : results[i].text) {
+                    if (ch == '"') json << "\\\"";
+                    else if (ch == '\\') json << "\\\\";
+                    else if (ch == '\n') json << "\\n";
+                    else if (ch == '\r') json << "\\r";
+                    else if (ch == '\t') json << "\\t";
+                    else if (static_cast<unsigned char>(ch) < 0x20) json << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)ch << std::dec;
+                    else json << ch;
+                }
+                json << "\","
                      << "\"score\":" << results[i].score << ","
                      << "\"box\":[";
                 for (size_t j = 0; j < results[i].box.size(); ++j) {
