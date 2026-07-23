@@ -28,7 +28,7 @@ namespace ocr {
         // ========== 与 Python PPOCRv6 tiny 完全对齐 ==========
         int input_size_ = 736;              // det_limit_side_len
         float db_thresh_ = 0.2f;            // det_db_thresh
-        float box_thresh_ = 0.7f;           // det_db_box_thresh (tiny 模型使用 0.4)
+        float box_thresh_ = 0.4f;           // det_db_box_thresh (降低以检测彩色/弱对比文字)
         float unclip_ratio_ = 1.4f;         // det_db_unclip_ratio
         int max_candidates_ = 3000;         // det_db_max_candidates
         int min_size_ = 3;                  // 最小尺寸
