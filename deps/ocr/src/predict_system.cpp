@@ -123,18 +123,6 @@ namespace ocr {
                 }
             }
 
-            // ===== 调试：各阶段数量 =====
-            {
-                FILE* f = fopen("C:\\Users\\admin\\Desktop\\ocr_stage.txt", "a");
-                if (f) {
-                    char buf[256];
-                    int n = snprintf(buf, sizeof(buf), "boxes=%zu crops=%zu rec=%zu final=%zu drop=%.2f\n",
-                                     boxes.size(), crop_images.size(), rec_results.size(), results.size(), drop_score_);
-                    fwrite(buf, 1, n, f);
-                    fclose(f);
-                }
-            }
-
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
