@@ -512,72 +512,61 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     }
 
     // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
+    // ---- 各模块卡片: 悬浮放大 + 边框高亮 ----
     {
-        // 收集所有卡片
         QFrame* card = nullptr;
-        bool isSource = false, isResult = false;
-        if (obj == textSourceCard_) { card = textSourceCard_; isSource = true; }
-        else if (obj == textResultCard_) { card = textResultCard_; isResult = true; }
-        else if (obj == screenshotPreviewCard_) { card = screenshotPreviewCard_; isSource = true; }
-        else if (obj == screenshotResultCard_) { card = screenshotResultCard_; isResult = true; }
-        else if (obj == photoInputCard_) { card = photoInputCard_; isSource = true; }
-        else if (obj == photoOutputCard_) { card = photoOutputCard_; isResult = true; }
-        else if (obj == floatConfigCard_) { card = floatConfigCard_; isSource = true; }
-        else if (obj == historyCard_) { card = historyCard_; isSource = true; }
+        if (obj == textSourceCard_) { card = textSourceCard_; }
+        else if (obj == textResultCard_) { card = textResultCard_; }
+        else if (obj == screenshotPreviewCard_) { card = screenshotPreviewCard_; }
+        else if (obj == screenshotResultCard_) { card = screenshotResultCard_; }
+        else if (obj == photoInputCard_) { card = photoInputCard_; }
+        else if (obj == photoOutputCard_) { card = photoOutputCard_; }
+        else if (obj == floatConfigCard_) { card = floatConfigCard_; }
+        else if (obj == historyCard_) { card = historyCard_; }
 
         if (card) {
-            if (event->type() == QEvent::Enter) {
-                QString base;
-                // ★ 核心修改：针对 textResultCard_ 单独设置带 padding 的高亮样式 ★
-                if (obj == textResultCard_) {
-                    base = "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; padding-left: 16px; padding-right: 16px; }";
-                } else if (obj == screenshotResultCard_) {
-                    // 截图翻译的右面板不缩进，不需要 padding
-                    base = "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }";
-                } else {
-                    base = isResult
-                           ? "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }"
-                           : "QFrame#card { background-color: #FFFFFF; border: 1px solid #0B7C72; border-radius: 8px; padding: 16px; }";
-                }
-                card->setStyleSheet(base);
+            bool isPhotoCard = (obj == photoInputCard_ || obj == photoOutputCard_);
+            ZoomableLabel* targetLabel = nullptr;
+            if (isPhotoCard) {
+                targetLabel = (obj == photoInputCard_) ? photoPreview_ : photoOutputPreview_;
+            }
 
-                // 阴影弹出效果
+            if (event->type() == QEvent::Enter) {
+                // 1. 触发全局 QSS 高亮（变绿）
+                card->setProperty("hover", true);
+                card->style()->unpolish(card);
+                card->style()->polish(card);
+
+                // 2. 恢复阴影效果（保持与其他卡片一致）
                 auto* shadow = new QGraphicsDropShadowEffect;
                 shadow->setBlurRadius(20);
                 shadow->setOffset(0, 4);
                 shadow->setColor(QColor(11, 124, 114, 50));
                 card->setGraphicsEffect(shadow);
 
-                // 微放大
-                int grow = 6;
-                card->setFixedHeight(card->height() + grow);
+                // 3. 锁定图片翻译卡片的内层自适应，防止闪烁
+                if (isPhotoCard) targetLabel->setAutoFitEnabled(false);
 
             } else if (event->type() == QEvent::Leave) {
-                // ★ 核心修改：恢复时也区分 textResultCard_ ★
-                if (obj == textResultCard_) {
-                    // 文本翻译：恢复到带 16px padding 的初始状态
-                    card->setStyleSheet(
-                            "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; padding-left: 16px; padding-right: 16px; }");
-                } else if (obj == screenshotResultCard_) {
-                    // 截图翻译：恢复到没有 padding 的状态
-                    card->setStyleSheet(
-                            "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
-                } else {
-                    if (isResult) {
-                        card->setStyleSheet(
-                                "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
-                    } else {
-                        card->setStyleSheet(
-                                "QFrame#card { background-color: #FFFFFF; border: 1px solid #E8ECEF;"
-                                " border-radius: 8px; padding: 16px; }");
-                    }
-                }
+                QPoint p = card->mapFromGlobal(QCursor::pos());
+                if (card->rect().contains(p)) return true; // 拦截进入子控件的Leave
 
-                // 移除阴影
+                // 1. 取消全局 QSS 高亮（恢复白底）
+                card->setProperty("hover", false);
+                card->style()->unpolish(card);
+                card->style()->polish(card);
+
+                // 2. 移除阴影
                 card->setGraphicsEffect(nullptr);
 
-                // 恢复大小
-                card->setFixedHeight(QWIDGETSIZE_MAX);
+                // 3. 解锁图片翻译卡片的内层自适应
+                if (isPhotoCard) targetLabel->setAutoFitEnabled(true);
             }
             return QMainWindow::eventFilter(obj, event);
         }
@@ -1005,11 +994,12 @@ QWidget* MainWindow::createTextPanel() {
     // ---- 右栏: 译文 ----
     auto* rightPanel = new QFrame;
     textResultCard_ = rightPanel;
+    rightPanel->setObjectName("card");  // ★ 必须加上这一行，否则 QSS 匹配不到 ★
     rightPanel->installEventFilter(this);
-    rightPanel->setStyleSheet(
-        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px;  padding-left: 16px; padding-right: 16px;}");
+//    rightPanel->setStyleSheet(
+//        "QFrame { background: #FFFFFF; border: 1px solid #D0E8E4; border-radius: 8px;  padding-left: 16px; padding-right: 16px;}");
     auto* rightInner = new QVBoxLayout(rightPanel);
-    rightInner->setContentsMargins(14, 28, 14, 10);
+    rightInner->setContentsMargins(14, 10, 14, 10);
     rightInner->setSpacing(4);
 
     auto* rightHeaderRow = new QHBoxLayout;
@@ -1608,15 +1598,17 @@ QWidget* MainWindow::createScreenshotPanel() {
     // 右: 结果
     auto* resultCard = new QFrame;
     screenshotResultCard_ = resultCard;
+    resultCard->setObjectName("card");  // ★ 必须加上这一行 ★
     resultCard->installEventFilter(this);
-    resultCard->setStyleSheet(
-        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+//    resultCard->setStyleSheet(
+//        "QFrame { background: #FFFFFF; border: 1px solid #D0E8E4; border-radius: 8px; }");
     auto* resultInner = new QVBoxLayout(resultCard);
     resultInner->setContentsMargins(14, 10, 14, 10);
     resultInner->setSpacing(6);
 
     // 识别结果子框（带图标）
     auto* ocrHeader = new QHBoxLayout;
+    ocrHeader->setSpacing(6);
     ocrHeader->setSpacing(6);
     auto* ocrIcon = new QLabel;
     ocrIcon->setFixedSize(18, 18);
@@ -1854,8 +1846,8 @@ QWidget* MainWindow::createPhotoPanel() {
     outputCard->setObjectName("card");
     photoOutputCard_ = outputCard;
     outputCard->installEventFilter(this);
-    outputCard->setStyleSheet(
-        "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+//    outputCard->setStyleSheet(
+//        "QFrame#card { background: #FFFFFF; border: 1px solid #D0E8E4; border-radius: 8px; }");
     auto* outputInner = new QVBoxLayout(outputCard);
     outputInner->setContentsMargins(12, 8, 12, 8);
     outputInner->setSpacing(4);
@@ -1911,7 +1903,9 @@ QWidget* MainWindow::createPhotoPanel() {
     outputInner->addLayout(outHeader);
     photoOutputPreview_ = new ZoomableLabel;
     photoOutputPreview_->setAlignment(Qt::AlignCenter);
-    photoOutputPreview_->setStyleSheet("background: #F5F7F7; border-radius:4px; color:#86868B; font-size: 13px;");
+    photoOutputPreview_->setStyleSheet(
+            "background: #F5F7F7; border: none; border-radius: 4px; color: #86868B; font-size: 13px;"
+    );
     photoOutputPreview_->setText(tr("Result shows after translation…"));
     photoOutputScroll_ = new QScrollArea;
     photoOutputScroll_->setWidget(photoOutputPreview_);
@@ -1926,6 +1920,10 @@ QWidget* MainWindow::createPhotoPanel() {
     // --- 底部控制栏 ---
     auto* ctrlCard = new QFrame;
     ctrlCard->setObjectName("card");
+    // ★ 单独设置背景色为浅绿色，确保框整体与图片翻译界面风格统一 ★
+    ctrlCard->setStyleSheet(
+            "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }"
+    );
     auto* ctrlInner = new QHBoxLayout(ctrlCard);
     ctrlInner->setContentsMargins(12, 8, 12, 8);
     ctrlInner->setSpacing(12);

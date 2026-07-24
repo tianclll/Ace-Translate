@@ -10,10 +10,11 @@
 #include <cmath>
 
 class ZoomableLabel : public QLabel {
-    Q_OBJECT
+Q_OBJECT
 public:
+    void setAutoFitEnabled(bool enable) { autoFit_ = enable; }
     explicit ZoomableLabel(QWidget* parent = nullptr)
-        : QLabel(parent), zoom_(1.0), minZoom_(0.3), maxZoom_(8.0) {
+            : QLabel(parent), zoom_(1.0), minZoom_(0.3), maxZoom_(8.0) {
         setAlignment(Qt::AlignCenter);
         setMouseTracking(true);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -106,11 +107,11 @@ protected:
 
     void resizeEvent(QResizeEvent* event) override {
         QLabel::resizeEvent(event);
-        // autoFit_ 模式下：控件大小变化时自动缩放图片填满控件
+        // 窗口调整大小时，视口大小变化，ZoomableLabel 自适应
         if (autoFit_ && !originalFullPixmap_.isNull() && width() > 50 && height() > 50) {
             double newZoom = qMin((double)width() / originalFullPixmap_.width(),
-                                 (double)height() / originalFullPixmap_.height());
-            if (std::abs(newZoom - zoom_) / std::max(newZoom, zoom_) > 0.05) {
+                                  (double)height() / originalFullPixmap_.height());
+            if (std::abs(newZoom - zoom_) / std::max(newZoom, zoom_) > 0.02) {
                 zoom_ = newZoom;
                 updateZoom();
             }
@@ -119,7 +120,7 @@ protected:
 
     QSize sizeHint() const override {
         if (!pixmap().isNull())
-            return pixmap().size();
+            return pixmap().size(); // 尺寸由 QScrollArea 通过布局控制
         return QSize(360, 240);
     }
 
@@ -129,8 +130,8 @@ private:
         QSize baseSize = originalFullPixmap_.size();
         QSize newSize(qMax(1, (int)(baseSize.width() * zoom_)), qMax(1, (int)(baseSize.height() * zoom_)));
         setPixmap(originalFullPixmap_.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        // 缩放后也释放固定大小，让 ScrollArea 能滚动查看大图
-        setFixedSize(newSize);
+        // ★ 核心：彻底移除 setFixedSize(newSize)，让 QScrollArea 直接管理它的物理大小，
+        // 彻底切断因外层样式变化导致图片强行布局闪烁的源头！
     }
 
     QPixmap originalFullPixmap_;

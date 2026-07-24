@@ -28,12 +28,27 @@ QSplitter::handle:hover {
 
 /* ---------- Card ---------- */
 QFrame#card,
-QGroupBox#card,
-QWidget#card {
+QFrame#cardNoPad {
     background-color: #FFFFFF;
     border: 1px solid #E8ECEF;
     border-radius: 8px;
+}
+
+/* 原文框/译文框默认保留 16px 内边距 */
+QFrame#card {
     padding: 16px;
+}
+
+/* 图片翻译的译文框需要 0px 内边距 */
+QFrame#cardNoPad {
+    padding: 0px;
+}
+
+/* ★ 统一高亮规则：只要有 hover 属性，立马变绿 ★ */
+QFrame#card[hover="true"],
+QFrame#cardNoPad[hover="true"] {
+    background-color: #F0F7F6;
+    border: 1px solid #0B7C72;
 }
 
 /* ---------- Primary Button ---------- */

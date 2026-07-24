@@ -240,7 +240,7 @@ private:
     QPushButton* photoDownloadBtn_;
     QString photoLastSavedPath_;
     ZoomableLabel* photoPreview_;
-    QLabel* photoOutputPreview_;
+    ZoomableLabel* photoOutputPreview_;
     QScrollArea* photoInputScroll_;
     QScrollArea* photoOutputScroll_;
     QPushButton* photoTranslateBtn_;
