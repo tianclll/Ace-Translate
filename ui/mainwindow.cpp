@@ -527,10 +527,18 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 
         if (card) {
             if (event->type() == QEvent::Enter) {
-                // 细边框高亮 (1px)
-                QString base = isResult
-                    ? "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }"
-                    : "QFrame#card { background-color: #FFFFFF; border: 1px solid #0B7C72; border-radius: 8px; padding: 16px; }";
+                QString base;
+                // ★ 核心修改：针对 textResultCard_ 单独设置带 padding 的高亮样式 ★
+                if (obj == textResultCard_) {
+                    base = "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; padding-left: 16px; padding-right: 16px; }";
+                } else if (obj == screenshotResultCard_) {
+                    // 截图翻译的右面板不缩进，不需要 padding
+                    base = "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }";
+                } else {
+                    base = isResult
+                           ? "QFrame { background: #F0F7F6; border: 1px solid #0B7C72; border-radius: 8px; }"
+                           : "QFrame#card { background-color: #FFFFFF; border: 1px solid #0B7C72; border-radius: 8px; padding: 16px; }";
+                }
                 card->setStyleSheet(base);
 
                 // 阴影弹出效果
@@ -545,14 +553,24 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
                 card->setFixedHeight(card->height() + grow);
 
             } else if (event->type() == QEvent::Leave) {
-                // 恢复原始边框
-                if (isResult) {
+                // ★ 核心修改：恢复时也区分 textResultCard_ ★
+                if (obj == textResultCard_) {
+                    // 文本翻译：恢复到带 16px padding 的初始状态
                     card->setStyleSheet(
-                        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+                            "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; padding-left: 16px; padding-right: 16px; }");
+                } else if (obj == screenshotResultCard_) {
+                    // 截图翻译：恢复到没有 padding 的状态
+                    card->setStyleSheet(
+                            "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
                 } else {
-                    card->setStyleSheet(
-                        "QFrame#card { background-color: #FFFFFF; border: 1px solid #E8ECEF;"
-                        " border-radius: 8px; padding: 16px; }");
+                    if (isResult) {
+                        card->setStyleSheet(
+                                "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+                    } else {
+                        card->setStyleSheet(
+                                "QFrame#card { background-color: #FFFFFF; border: 1px solid #E8ECEF;"
+                                " border-radius: 8px; padding: 16px; }");
+                    }
                 }
 
                 // 移除阴影
@@ -942,6 +960,7 @@ QWidget* MainWindow::createTextPanel() {
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
         " color: #1A1A2E; padding: 2px 0; }"
         "QPlainTextEdit:focus { border: none; }");
+    textInput_->document()->setDocumentMargin(0);
     inputLay->addWidget(textInput_, 1);
 
     // 底部条：0 字符 + 麦克风
@@ -988,7 +1007,7 @@ QWidget* MainWindow::createTextPanel() {
     textResultCard_ = rightPanel;
     rightPanel->installEventFilter(this);
     rightPanel->setStyleSheet(
-        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px; }");
+        "QFrame { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 8px;  padding-left: 16px; padding-right: 16px;}");
     auto* rightInner = new QVBoxLayout(rightPanel);
     rightInner->setContentsMargins(14, 28, 14, 10);
     rightInner->setSpacing(4);
@@ -1011,7 +1030,7 @@ QWidget* MainWindow::createTextPanel() {
     textCopyBtn_ = new QPushButton(tr("Copy"));
     textCopyBtn_->setCursor(Qt::PointingHandCursor);
     textCopyBtn_->setStyleSheet(
-        "QPushButton { border: none; background: transparent; color: #0B7C72; font-size: 12px; padding: 2px 6px; border-radius: 4px; }"
+        "QPushButton { border: none; background: transparent; color: #0B7C72; font-size: 12px; padding: 0px 4px; border-radius: 4px; }"
         "QPushButton:hover { background: rgba(11, 124, 114, 0.12); }");
     connect(textCopyBtn_, &QPushButton::clicked, this, [this]() {
         if (textOutput_ && !textOutput_->toPlainText().isEmpty()) {
@@ -1045,6 +1064,7 @@ QWidget* MainWindow::createTextPanel() {
     textOutput_->setStyleSheet(
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
         " color: #1A1A2E; padding: 2px 0; }");
+    textOutput_->document()->setDocumentMargin(0);
     rightLay->addWidget(textOutput_, 1);
 
     // 占位 footer（与原文的 0 字符+麦克风行等高）
