@@ -898,7 +898,7 @@ QWidget* MainWindow::createTextPanel() {
     leftPanel->installEventFilter(this);
     auto* leftInner = new QVBoxLayout(leftPanel);
     leftInner->setContentsMargins(14, 10, 14, 10);
-    leftInner->setSpacing(6);
+    leftInner->setSpacing(18);
 
     // 原文标题行
     auto* leftHeaderRow = new QHBoxLayout;
@@ -944,7 +944,7 @@ QWidget* MainWindow::createTextPanel() {
 
     textInput_ = new QPlainTextEdit;
     textInput_->setPlaceholderText(tr("Enter text to translate…"));
-    textInput_->setMaximumHeight(120);
+//    textInput_->setMaximumHeight(200);
     textInput_->setStyleSheet(
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
         " color: #1A1A2E; padding: 2px 0; }"
@@ -1000,7 +1000,7 @@ QWidget* MainWindow::createTextPanel() {
 //        "QFrame { background: #FFFFFF; border: 1px solid #D0E8E4; border-radius: 8px;  padding-left: 16px; padding-right: 16px;}");
     auto* rightInner = new QVBoxLayout(rightPanel);
     rightInner->setContentsMargins(14, 10, 14, 10);
-    rightInner->setSpacing(4);
+    rightInner->setSpacing(16);
 
     auto* rightHeaderRow = new QHBoxLayout;
     rightHeaderRow->setContentsMargins(0, 0, 0, 0);
@@ -1039,7 +1039,8 @@ QWidget* MainWindow::createTextPanel() {
     rightHeaderRow->addWidget(textSpeakBtn_);
 
     rightInner->addLayout(rightHeaderRow);
-
+    // 加入弹性弹簧，把下面的整个输出框区域推到最底部
+//    rightInner->addStretch();
     // 用容器包裹输出框（与原文侧 inputContainer 对称，保持高度一致）
     auto* rightContainer = new QWidget;
     rightContainer->setStyleSheet("background: transparent; border: none;");
@@ -1049,7 +1050,7 @@ QWidget* MainWindow::createTextPanel() {
 
     textOutput_ = new QPlainTextEdit;
     textOutput_->setReadOnly(true);
-    textOutput_->setMaximumHeight(120);
+//    textOutput_->setMaximumHeight(200);
     textOutput_->setPlaceholderText(tr("Translation Result…"));
     textOutput_->setStyleSheet(
         "QPlainTextEdit { border: none; background: transparent; font-size: 14px;"
