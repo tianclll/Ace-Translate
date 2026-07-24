@@ -2146,7 +2146,29 @@ QWidget* MainWindow::createFilePanel() {
     fileProcessBtn_ = fileTranslateBtn_;
     connect(fileTranslateBtn_, &QPushButton::clicked, this, [this]() {
         if (!filePendingPaths_.isEmpty()) {
+            // 找到第一个未完成的文件开始翻译
             fileCurrentIdx_ = 0;
+            // 跳过已完成的文件
+            for (int i = 0; i < fileListLayout_->count(); ++i) {
+                auto* item = fileListLayout_->itemAt(i);
+                if (!item || !item->widget()) continue;
+                if (i >= filePendingPaths_.size()) break;
+                QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+                bool completed = false;
+                for (int li = 0; li < labels.size(); ++li) {
+                    if (labels[li]->property("fileStatus").isValid() &&
+                        labels[li]->text() == tr("Completed")) {
+                        completed = true;
+                        break;
+                    }
+                }
+                if (!completed) {
+                    fileCurrentIdx_ = i;
+                    break;
+                }
+                // 全部已完成后重新从0开始
+                if (i == filePendingPaths_.size() - 1) fileCurrentIdx_ = 0;
+            }
             onProcessFile();
         }
     });
