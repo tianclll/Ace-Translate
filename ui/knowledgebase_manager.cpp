@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QTextStream>
+#include <string>
+#include <windows.h>
 
 KnowledgeBaseManager& KnowledgeBaseManager::getInstance() {
     static KnowledgeBaseManager inst;
@@ -31,15 +33,19 @@ bool KnowledgeBaseManager::initialize(const QString& dbPath) {
     QString path = dbPath.isEmpty() ? (storagePath() + "knowledge.db") : dbPath;
     QDir().mkpath(QFileInfo(path).absolutePath());
 
-    // 检查连接名是否已存在
-    if (QSqlDatabase::contains("knowledge_connection")) {
-        db_ = QSqlDatabase::database("knowledge_connection");
+    // 使用命名连接避免与其他 SQLite 连接冲突
+    if (!QSqlDatabase::contains("kb_conn")) {
+        db_ = QSqlDatabase::addDatabase("QSQLITE", "kb_conn");
     } else {
-        db_ = QSqlDatabase::addDatabase("QSQLITE", "knowledge_connection");
+        db_ = QSqlDatabase::database("kb_conn");
+        if (db_.isOpen()) {
+            initialized_ = true;
+            return true;
+        }
     }
+
     db_.setDatabaseName(path);
     if (!db_.open()) {
-        qWarning() << "[KB] Failed to open DB:" << db_.lastError().text();
         return false;
     }
 
@@ -95,20 +101,36 @@ bool KnowledgeBaseManager::createTables() {
 }
 
 bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
-    if (!initialized_) return false;
+    if (!initialized_) {
+        MessageBoxA(nullptr, "[KB] addEntry: not initialized", "KB Debug", MB_OK);
+        return false;
+    }
 
     // 先插入占位行获取 ID
     QSqlQuery query(db_);
-    query.exec("INSERT INTO documents (title, file_type, source_path, md_path, lang, file_size) "
-               "VALUES ('', '', '', '', '', 0)");
+    if (!query.exec("INSERT INTO documents (title, file_type, source_path, md_path, lang, file_size) "
+                    "VALUES ('', '', '', '', '', 0)")) {
+        QString err = QStringLiteral("[KB] INSERT failed: %1").arg(query.lastError().text());
+        MessageBoxA(nullptr, err.toUtf8().constData(), "KB Debug", MB_OK);
+        return false;
+    }
     int newId = query.lastInsertId().toInt();
+    if (newId <= 0) {
+        MessageBoxA(nullptr, ("[KB] Invalid lastInsertId: " + QString::number(newId)).toUtf8().constData(), "KB Debug", MB_OK);
+        return false;
+    }
 
     // 写入 .md 文件
     QString mdDir = storagePath() + "md/";
     QDir().mkpath(mdDir);
     QString mdFilePath = mdDir + QString::number(newId) + ".md";
+    // 尝试创建 .md 文件并用 QFile::exists 验证
     QFile file(mdFilePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    bool fileOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!fileOk) {
+        QString errMsg = QStringLiteral("[KB] FAIL\nmdDir: %1\nmdFile: %2\nerror: %3")
+            .arg(mdDir, mdFilePath, file.errorString());
+        MessageBoxA(nullptr, errMsg.toUtf8().constData(), "KB Debug", MB_OK);
         // 回滚
         QSqlQuery del(db_);
         del.prepare("DELETE FROM documents WHERE id = :id");
@@ -133,7 +155,7 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
     update.bindValue(":id",  newId);
 
     if (!update.exec()) {
-        qWarning() << "[KB] Update entry failed:" << update.lastError().text();
+        qWarning() << "[KB] UPDATE entry failed:" << update.lastError().text();
         QFile::remove(mdFilePath);
         QSqlQuery del(db_);
         del.prepare("DELETE FROM documents WHERE id = :id");

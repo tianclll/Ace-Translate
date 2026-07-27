@@ -170,7 +170,7 @@ endforeach()
 
 # Qt DLL
 set(QT_BIN_DIR "${QT_DIR}/bin")
-foreach(DLL Qt6Core.dll Qt6Gui.dll Qt6Svg.dll Qt6Widgets.dll)
+foreach(DLL Qt6Core.dll Qt6Gui.dll Qt6Svg.dll Qt6Widgets.dll Qt6Sql.dll)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${QT_BIN_DIR}/${DLL}" "${OUT_DIR}/"
@@ -193,6 +193,14 @@ foreach(FMT qsvg.dll qjpeg.dll qtiff.dll qgif.dll qico.dll qwbmp.dll qwebp.dll q
         "${QT_PLUGIN_DIR}/imageformats/${FMT}" "${OUT_DIR}/imageformats/"
     )
 endforeach()
+# SQLite 驱动插件（知识库依赖）
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}/sqldrivers"
+)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${QT_PLUGIN_DIR}/sqldrivers/qsqlite.dll" "${OUT_DIR}/sqldrivers/"
+)
 
 # office2md.exe
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

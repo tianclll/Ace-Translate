@@ -22,6 +22,7 @@
 #include <QScrollBar>
 #include <QSplitter>
 #include <QCoreApplication>
+#include <QApplication>
 #include <QDir>
 
 // ============================================================
