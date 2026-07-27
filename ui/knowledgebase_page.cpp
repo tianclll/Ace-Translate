@@ -46,92 +46,74 @@ KnowledgeBasePage::~KnowledgeBasePage() = default;
 void KnowledgeBasePage::setupUI() {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(12);
+    layout->setSpacing(10);
 
-    // ---- 标题 ----
-    auto* title = new QLabel("个人知识库");
-    title->setObjectName("sectionTitle");
-    layout->addWidget(title);
-
-    // ---- 上传区（白色圆角虚线框） ----
+    // ---- 上传区（浅薄荷绿虚线框，缩小高度） ----
     dropZone_ = new DropZoneWidget;
-    dropZone_->setFixedHeight(160);
+    dropZone_->setFixedHeight(120);
     dropZone_->setStyleSheet(QStringLiteral(
-        "DropZoneWidget { background: #FFFFFF; border: 2px dashed #d0d5dd; border-radius: 14px; }"
-        "DropZoneWidget:hover { background: #f6fcfb; border-color: #16b8a6; }"
+        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #D0E8E4; border-radius: 12px; }"
+        "DropZoneWidget:hover { background: #E8F5F3; border-color: #0B7C72; }"
     ));
     auto* dropLayout = new QVBoxLayout(dropZone_);
     dropLayout->setAlignment(Qt::AlignCenter);
-    dropLayout->setSpacing(6);
+    dropLayout->setSpacing(2);
 
     auto* dropIcon = new QLabel(QStringLiteral("\U0001F4C1"));
     dropIcon->setAlignment(Qt::AlignCenter);
-    dropIcon->setStyleSheet("font-size: 32px; background: transparent;");
+    dropIcon->setStyleSheet("font-size: 24px; background: transparent;");
     dropLayout->addWidget(dropIcon);
 
-    auto* dropText = new QLabel("拖拽文件到此处，自动解析并归档存入个人知识库");
+    auto* dropText = new QLabel("拖拽文件到此处归档");
     dropText->setAlignment(Qt::AlignCenter);
-    dropText->setStyleSheet("font-size: 14px; font-weight: 600; color: #374151; background: transparent;");
+    dropText->setStyleSheet("font-size: 13px; font-weight: 600; color: #374151; background: transparent;");
     dropLayout->addWidget(dropText);
 
-    auto* dropHint = new QLabel("支持 JPG/PNG / PDF / DOCX / XLSX / PPTX / MD / TXT");
+    auto* dropHint = new QLabel("PDF / DOCX / XLSX / PPTX / MD / TXT / 图片");
     dropHint->setAlignment(Qt::AlignCenter);
-    dropHint->setStyleSheet("font-size: 12px; color: #999; background: transparent;");
+    dropHint->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent;");
     dropLayout->addWidget(dropHint);
-
-    // 格式 badge 行
-    auto* badgeRow = new QHBoxLayout;
-    badgeRow->setAlignment(Qt::AlignCenter);
-    badgeRow->setSpacing(6);
-    for (const QString& fmt : {"PDF", "DOCX", "XLSX", "PPTX", "MD", "TXT", "图片"}) {
-        auto* badge = new QLabel(fmt);
-        badge->setStyleSheet(
-            "background: #F5F7F7; border: 1px solid #E8ECEF; border-radius: 10px;"
-            " padding: 2px 10px; font-size: 11px; color: #6B7280;");
-        badgeRow->addWidget(badge);
-    }
-    dropLayout->addLayout(badgeRow);
 
     connect(dropZone_, &DropZoneWidget::fileDropped,
             this, &KnowledgeBasePage::onFileDropped);
     layout->addWidget(dropZone_);
 
-    // ---- 工具栏（白色圆角容器） ----
+    // ---- 工具栏 ----
     auto* toolbar = new QFrame;
-    toolbar->setStyleSheet("QFrame { background: #FFFFFF; border-radius: 12px; }");
+    toolbar->setObjectName("card");
+    toolbar->setStyleSheet(QStringLiteral(
+        "QFrame#card { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; }"
+    ));
     auto* toolbarLayout = new QHBoxLayout(toolbar);
-    toolbarLayout->setContentsMargins(14, 10, 14, 10);
-    toolbarLayout->setSpacing(10);
+    toolbarLayout->setContentsMargins(12, 8, 12, 8);
+    toolbarLayout->setSpacing(8);
 
     searchInput_ = new QLineEdit;
-    searchInput_->setPlaceholderText("搜索标题、OCR全文内容…");
-    searchInput_->setStyleSheet(
-        "QLineEdit { border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 12px; font-size: 13px; }"
-        "QLineEdit:focus { border-color: #16b8a6; }");
+    searchInput_->setPlaceholderText("搜索标题、全文内容…");
+    searchInput_->setFixedHeight(30);
     connect(searchInput_, &QLineEdit::textChanged,
             this, &KnowledgeBasePage::onSearchTextChanged);
     toolbarLayout->addWidget(searchInput_, 1);
 
     tagFilterCombo_ = new QComboBox;
-    tagFilterCombo_->setStyleSheet(
-        "QComboBox { border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 10px; font-size: 12px; }");
+    tagFilterCombo_->setFixedHeight(30);
+    tagFilterCombo_->setMinimumWidth(110);
     connect(tagFilterCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &KnowledgeBasePage::onTagFilterChanged);
     toolbarLayout->addWidget(tagFilterCombo_);
 
-    auto* addTagBtn = new QPushButton("＋ 新建标签");
+    auto* addTagBtn = new QPushButton("＋新建标签");
+    addTagBtn->setFixedHeight(30);
     addTagBtn->setStyleSheet(
-        "QPushButton { border: 1px solid #16b8a6; border-radius: 8px; padding: 8px 14px;"
-        " background: transparent; color: #16b8a6; font-size: 13px; font-weight: 500; }"
-        "QPushButton:hover { background: #e6f7f5; }");
+        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px;"
+        " padding: 0 12px; background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(addTagBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onAddNewTag);
     toolbarLayout->addWidget(addTagBtn);
 
-    auto* batchBtn = new QPushButton("\U0001F4E5 批量导入");
-    batchBtn->setStyleSheet(
-        "QPushButton { background: #16b8a6; color: white; border: none; border-radius: 8px;"
-        " padding: 8px 16px; font-size: 13px; font-weight: 500; }"
-        "QPushButton:hover { background: #14a092; }");
+    auto* batchBtn = new QPushButton("批量导入");
+    batchBtn->setObjectName("primaryBtn");
+    batchBtn->setFixedHeight(30);
     connect(batchBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchImport);
     toolbarLayout->addWidget(batchBtn);
 
@@ -139,11 +121,14 @@ void KnowledgeBasePage::setupUI() {
 
     // ---- 双栏主体 ----
     auto* contentWrap = new QHBoxLayout;
-    contentWrap->setSpacing(14);
+    contentWrap->setSpacing(10);
 
     // ===== 左侧文档列表 =====
     auto* listCard = new QFrame;
-    listCard->setStyleSheet("QFrame { background: #FFFFFF; border-radius: 12px; }");
+    listCard->setObjectName("card");
+    listCard->setStyleSheet(QStringLiteral(
+        "QFrame#card { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; }"
+    ));
     auto* listCardLayout = new QVBoxLayout(listCard);
     listCardLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -153,7 +138,7 @@ void KnowledgeBasePage::setupUI() {
     listScroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     listScroll_->setMinimumHeight(100);
     listScroll_->setStyleSheet(
-        "QScrollArea { border: none; background: transparent; border-radius: 12px; }"
+        "QScrollArea { border: none; background: transparent; }"
         "QScrollBar:vertical { width: 6px; background: transparent; }"
         "QScrollBar::handle:vertical { background: #D0D4D8; border-radius: 3px; min-height: 30px; }"
         "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }");
@@ -161,12 +146,12 @@ void KnowledgeBasePage::setupUI() {
     listContainer_ = new QWidget;
     listContainer_->setStyleSheet("QWidget { background: transparent; }");
     listLayout_ = new QVBoxLayout(listContainer_);
-    listLayout_->setContentsMargins(10, 10, 10, 10);
+    listLayout_->setContentsMargins(8, 8, 8, 8);
     listLayout_->setSpacing(2);
 
     emptyHint_ = new QLabel("暂无文档\n拖拽文件到上方上传区归档");
     emptyHint_->setAlignment(Qt::AlignCenter);
-    emptyHint_->setStyleSheet("color: #9CA3AF; font-size: 13px; padding: 40px;"
+    emptyHint_->setStyleSheet("color: #9CA3AF; font-size: 13px; padding: 30px;"
                               " background: transparent; border: none;");
     emptyHint_->setWordWrap(true);
     listLayout_->addWidget(emptyHint_);
@@ -174,31 +159,34 @@ void KnowledgeBasePage::setupUI() {
 
     listScroll_->setWidget(listContainer_);
     listCardLayout->addWidget(listScroll_);
-    contentWrap->addWidget(listCard, 42);  // stretch 42 → ~42% 宽度
+    contentWrap->addWidget(listCard, 42);
 
     // ===== 右侧详情面板 =====
     detailPanel_ = new QFrame;
-    detailPanel_->setStyleSheet("QFrame { background: #FFFFFF; border-radius: 12px; }");
+    detailPanel_->setObjectName("card");
+    detailPanel_->setStyleSheet(QStringLiteral(
+        "QFrame#card { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; }"
+    ));
     auto* detailLayout = new QVBoxLayout(detailPanel_);
-    detailLayout->setContentsMargins(14, 14, 14, 14);
-    detailLayout->setSpacing(10);
+    detailLayout->setContentsMargins(12, 12, 12, 12);
+    detailLayout->setSpacing(8);
 
     // — AI 摘要卡片 —
     auto* summaryCard = new QFrame;
     summaryCard->setStyleSheet(
-        "QFrame { border: 1px solid #eee; border-radius: 10px; padding: 12px; }");
+        "QFrame { background: #F8FAFA; border: 1px solid #E8ECEF; border-radius: 8px; padding: 10px; }");
     auto* summaryCardLayout = new QVBoxLayout(summaryCard);
     summaryCardLayout->setContentsMargins(0, 0, 0, 0);
-    summaryCardLayout->setSpacing(6);
+    summaryCardLayout->setSpacing(4);
 
     auto* summaryTitle = new QLabel("🤖 AI 生成摘要");
-    summaryTitle->setStyleSheet("font-size: 13px; font-weight: 600; color: #444;"
+    summaryTitle->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096;"
                                 " background: transparent; border: none;");
     summaryCardLayout->addWidget(summaryTitle);
 
     summaryLabel_ = new QLabel("（选择文档查看摘要）");
     summaryLabel_->setWordWrap(true);
-    summaryLabel_->setStyleSheet("font-size: 12px; color: #555; line-height: 1.6;"
+    summaryLabel_->setStyleSheet("font-size: 12px; color: #5B6269; line-height: 1.5;"
                                  " background: transparent; border: none;");
     summaryCardLayout->addWidget(summaryLabel_);
     detailLayout->addWidget(summaryCard);
@@ -206,13 +194,13 @@ void KnowledgeBasePage::setupUI() {
     // — Markdown 预览卡片 —
     auto* mdCard = new QFrame;
     mdCard->setStyleSheet(
-        "QFrame { border: 1px solid #eee; border-radius: 10px; padding: 12px; }");
+        "QFrame { background: #F8FAFA; border: 1px solid #E8ECEF; border-radius: 8px; padding: 10px; }");
     auto* mdCardLayout = new QVBoxLayout(mdCard);
     mdCardLayout->setContentsMargins(0, 0, 0, 0);
-    mdCardLayout->setSpacing(6);
+    mdCardLayout->setSpacing(4);
 
     auto* mdTitle = new QLabel("📝 Markdown 预览");
-    mdTitle->setStyleSheet("font-size: 13px; font-weight: 600; color: #444;"
+    mdTitle->setStyleSheet("font-size: 12px; font-weight: 600; color: #889096;"
                            " background: transparent; border: none;");
     mdCardLayout->addWidget(mdTitle);
 
@@ -220,50 +208,48 @@ void KnowledgeBasePage::setupUI() {
     mdPreview_->setReadOnly(true);
     mdPreview_->setPlaceholderText("（选择文档查看 Markdown 内容）");
     mdPreview_->setStyleSheet(
-        "QPlainTextEdit { background: #f7f8fa; border: none; border-radius: 6px;"
-        " padding: 10px; font-size: 12px; font-family: 'Courier New', monospace; color: #555; }");
+        "QPlainTextEdit { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 6px;"
+        " padding: 8px; font-size: 12px; font-family: 'Courier New', monospace; color: #5B6269; }");
     mdCardLayout->addWidget(mdPreview_, 1);
     detailLayout->addWidget(mdCard, 1);
 
     // — 底部操作按钮 —
     auto* btnRow = new QHBoxLayout;
-    btnRow->setSpacing(8);
+    btnRow->setSpacing(6);
 
     auto makeBtn = [](const QString& text, bool primary) -> QPushButton* {
         auto* btn = new QPushButton(text);
+        btn->setFixedHeight(28);
         if (primary) {
-            btn->setStyleSheet(
-                "QPushButton { background: #16b8a6; color: white; border: none;"
-                " border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 500; }"
-                "QPushButton:hover { background: #14a092; }");
+            btn->setObjectName("primaryBtn");
         } else {
             btn->setStyleSheet(
-                "QPushButton { background: transparent; border: 1px solid #ddd; color: #555;"
-                " border-radius: 8px; padding: 7px 14px; font-size: 12px; }"
-                "QPushButton:hover { border-color: #16b8a6; color: #16b8a6; }");
+                "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px;"
+                " padding: 0 12px; background: transparent; color: #374151; font-size: 11px; }"
+                "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
         }
         return btn;
     };
 
-    translateBtn_ = makeBtn("🌐 翻译全文", true);
+    translateBtn_ = makeBtn("翻译全文", true);
     connect(translateBtn_, &QPushButton::clicked,
             this, &KnowledgeBasePage::onTranslateFullText);
     btnRow->addWidget(translateBtn_);
 
-    exportBtn_ = makeBtn("📥 导出 Markdown", false);
+    exportBtn_ = makeBtn("导出 MD", false);
     connect(exportBtn_, &QPushButton::clicked,
             this, &KnowledgeBasePage::onExportMD);
     btnRow->addWidget(exportBtn_);
 
-    tagBtn_ = makeBtn("🏷️ 修改标签", false);
+    tagBtn_ = makeBtn("修改标签", false);
     connect(tagBtn_, &QPushButton::clicked,
             this, &KnowledgeBasePage::onChangeTags);
     btnRow->addWidget(tagBtn_);
 
-    deleteBtn_ = makeBtn("🗑️ 删除", false);
+    deleteBtn_ = makeBtn("删除", false);
     deleteBtn_->setStyleSheet(
-        "QPushButton { background: transparent; border: 1px solid #e0e0e0; color: #999;"
-        " border-radius: 8px; padding: 7px 14px; font-size: 12px; }"
+        "QPushButton { border: 1px solid #E0E0E0; border-radius: 6px;"
+        " padding: 0 12px; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; border-color: #EF4444; }");
     connect(deleteBtn_, &QPushButton::clicked,
             this, &KnowledgeBasePage::onDeleteEntry);
@@ -272,7 +258,7 @@ void KnowledgeBasePage::setupUI() {
     btnRow->addStretch();
     detailLayout->addLayout(btnRow);
 
-    contentWrap->addWidget(detailPanel_, 58);  // stretch 58 → ~58% 宽度
+    contentWrap->addWidget(detailPanel_, 58);
     layout->addLayout(contentWrap, 1);
 }
 
@@ -324,7 +310,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     item->setProperty("docId", id);
     item->setStyleSheet(
         "QFrame { background: transparent; border-radius: 8px; padding: 10px 12px; }"
-        "QFrame:hover { background: #f7f8fa; }");
+        "QFrame:hover { background: #F5F7F7; }");
     item->installEventFilter(this);
 
     auto* layout = new QVBoxLayout(item);
@@ -333,14 +319,14 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     // 文档标题
     auto* titleLbl = new QLabel(title);
-    titleLbl->setStyleSheet("font-weight: 500; font-size: 13px; color: #1C1C1E;"
+    titleLbl->setStyleSheet("font-weight: 500; font-size: 13px; color: #1A1A2E;"
                             " background: transparent; border: none;");
     layout->addWidget(titleLbl);
 
     // 元数据行：日期 · 来源 · 标签 pill
     QString tagStr = tags.isEmpty() ? "未分类" : tags.join(", ");
     auto* metaLbl = new QLabel(
-        QStringLiteral("%1 · %2 <span style='background:#e6f7f5;color:#16b8a6;"
+        QStringLiteral("%1 · %2 <span style='background:#E8F5F3;color:#0B7C72;"
                        "border-radius:8px;padding:0 6px;font-size:10px;'>%3</span>")
             .arg(date, fileType, tagStr));
     metaLbl->setTextFormat(Qt::RichText);
@@ -399,11 +385,11 @@ void KnowledgeBasePage::loadDocDetail(int id) {
         item->widget()->setProperty("selected", sel);
         if (sel) {
             item->widget()->setStyleSheet(
-                "QFrame { background: #e6f7f5; border-radius: 8px; padding: 10px 12px; }");
+                "QFrame { background: #E8F5F3; border-radius: 8px; padding: 10px 12px; }");
         } else {
             item->widget()->setStyleSheet(
                 "QFrame { background: transparent; border-radius: 8px; padding: 10px 12px; }"
-                "QFrame:hover { background: #f7f8fa; }");
+                "QFrame:hover { background: #F5F7F7; }");
         }
     }
 }
