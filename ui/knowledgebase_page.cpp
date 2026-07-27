@@ -470,11 +470,12 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
             }
         }
 
-        if (km.addEntry(&entry)) {
+        int newId = -1;
+        if (km.addEntry(entry, &newId)) {
             // 生成摘要
             QString summary = generateSummary(entry.markdownContent);
             if (!summary.isEmpty()) {
-                km.updateSummary(entry.id, summary);
+                km.updateSummary(newId, summary);
             }
             added++;
         }
