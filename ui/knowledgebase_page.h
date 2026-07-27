@@ -8,7 +8,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
-#include <QTextEdit>
+#include <QTextBrowser>
 #include <QList>
 #include <QEvent>
 
@@ -52,6 +52,8 @@ private slots:
 
 private:
     void setupUI();
+    /// 将 Markdown 转换为 HTML（QTextBrowser 渲染用）
+    static QString mdToHtml(const QString& markdown, const QString& basePath = QString());
     /// 加载指定文档到详情面板
     void loadDocDetail(int id);
     /// 用已有引擎生成摘要（取 md 前 500 字翻译）
@@ -74,7 +76,7 @@ private:
     // 右侧详情
     QWidget* detailPanel_ = nullptr;
     QLabel* summaryLabel_ = nullptr;
-    QTextEdit* mdPreview_ = nullptr;
+    QTextBrowser* mdPreview_ = nullptr;
     QPushButton* translateBtn_ = nullptr;
     QPushButton* exportBtn_ = nullptr;
     QPushButton* tagBtn_ = nullptr;

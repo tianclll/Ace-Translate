@@ -24,6 +24,7 @@
 #include <QCoreApplication>
 #include <QApplication>
 #include <QDir>
+#include <QRegularExpression>
 
 // ============================================================
 // 构造函数 — 延迟初始化数据库
@@ -202,11 +203,11 @@ void KnowledgeBasePage::setupUI() {
                            " background: transparent; border: none;");
     mdCardLayout->addWidget(mdTitle);
 
-    mdPreview_ = new QTextEdit;
-    mdPreview_->setReadOnly(true);
-    mdPreview_->setPlaceholderText("（选择文档查看 Markdown 内容）");
+    mdPreview_ = new QTextBrowser;
+    mdPreview_->setOpenExternalLinks(true);
+    mdPreview_->setOpenLinks(false);
     mdPreview_->setStyleSheet(
-        "QTextEdit { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 6px;"
+        "QTextBrowser { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 6px;"
         " padding: 8px; font-size: 12px; }");
     mdCardLayout->addWidget(mdPreview_, 1);
     detailLayout->addWidget(mdCard, 1);
@@ -378,8 +379,8 @@ void KnowledgeBasePage::loadDocDetail(int id) {
         summaryLabel_->setTextFormat(Qt::PlainText);
     }
 
-    // Markdown 预览
-    mdPreview_->setMarkdown(doc.markdownContent);
+    // Markdown 预览 — 用 mdToHtml 转成 HTML 后通过 QTextBrowser 显示
+    mdPreview_->setHtml(mdToHtml(doc.markdownContent, doc.sourcePath));
 
     // 高亮列表中的选中项
     for (int i = 0; i < listLayout_->count(); ++i) {
@@ -665,4 +666,183 @@ void KnowledgeBasePage::onDeleteEntry() {
             refreshList();
         }
     }
+}
+
+// ============================================================
+// mdToHtml — 将 Markdown 文本转换为 HTML
+// 支持图片、表格、标题、粗体、斜体、代码、列表、链接
+// ============================================================
+QString KnowledgeBasePage::mdToHtml(const QString& markdown, const QString& basePath) {
+    if (markdown.trimmed().isEmpty())
+        return "<p style='color:#9CA3AF;margin:0;'>（空内容）</p>";
+
+    QString css = "body{font-size:12px;line-height:1.6;color:#5B6269;margin:8px;}"
+        "h1{font-size:18px;font-weight:600;margin:12px 0 4px;}"
+        "h2{font-size:16px;font-weight:600;margin:12px 0 4px;}"
+        "h3{font-size:15px;font-weight:600;margin:10px 0 4px;}"
+        "h4{font-size:14px;margin:8px 0 4px;}h5{font-size:13px;margin:8px 0 4px;}h6{font-size:12px;margin:8px 0 4px;}"
+        "p{margin:2px 0;}ul,ol{margin:2px 0;padding-left:20px;}li{margin:1px 0;}"
+        "code{background:#F0F2F4;padding:1px 4px;border-radius:3px;font-size:11px;}"
+        "pre{background:#F5F7F7;border:1px solid #E8ECEF;border-radius:6px;padding:10px;overflow-x:auto;}"
+        "pre code{background:transparent;padding:0;border-radius:0;font-size:11px;}"
+        "table{border-collapse:collapse;width:100%;margin:8px 0;}"
+        "th,td{border:1px solid #D0D4D8;padding:6px 10px;text-align:left;}"
+        "th{background:#F5F7F7;font-weight:600;}"
+        "img{max-width:100%;border-radius:6px;margin:8px 0;}"
+        "a{color:#0B7C72;}";
+
+    QString html = "<html><head><style>" + css + "</style></head><body>";
+
+    QStringList lines = markdown.split('\n');
+
+    // 预处理：找出块级公式 $$...$$ 的行范围并替换为占位行
+    struct FormulaBlock { int start, end; QString content; };
+    QList<FormulaBlock> formulas;
+    for (int i = 0; i < lines.size(); ++i) {
+        if (lines[i].trimmed() == "$$") {
+            int j = i + 1;
+            while (j < lines.size() && lines[j].trimmed() != "$$") ++j;
+            if (j < lines.size()) {
+                QStringList parts;
+                for (int k = i + 1; k < j; ++k) parts << lines[k];
+                formulas.append({i, j, parts.join("\n")});
+                // 标记占位
+                lines[i] = QStringLiteral("<!-- FORMULA_START_%1 -->").arg(formulas.size() - 1);
+                for (int k = i + 1; k <= j; ++k) lines[k] = "";
+                i = j;
+            }
+        }
+    }
+
+    bool inCode = false, inTable = false, inList = false;
+    bool lastEmpty = false;
+    QString tableBuf;
+
+    for (int i = 0; i < lines.size(); ++i) {
+        QString raw = lines[i];
+        QString line = raw.trimmed();
+
+        // 代码块
+        if (line.startsWith("```")) {
+            if (inCode) { html += "</pre>"; inCode = false; }
+            else { html += "<pre><code>"; inCode = true; }
+            lastEmpty = false;
+            continue;
+        }
+        if (inCode) { html += raw.toHtmlEscaped() + "\n"; lastEmpty = false; continue; }
+
+        // 空行 — 关闭表格/列表，不做其它处理
+        if (line.isEmpty()) {
+            if (inTable) { html += "</tbody></table>"; inTable = false; tableBuf.clear(); }
+            if (inList) { html += "</ul>"; inList = false; }
+            continue;
+        }
+        lastEmpty = false;
+
+        // 表格
+        if (line.startsWith('|') && line.endsWith('|')) {
+            QString t = line.mid(1, line.length() - 2);
+            QStringList cells;
+            for (const QString& c : t.split('|')) cells << c.trimmed();
+            if (cells.size() > 0 && cells[0].contains("---")) continue;
+            if (!inTable) {
+                tableBuf = "<table><thead><tr>";
+                for (const QString& c : cells) tableBuf += "<th>" + c.toHtmlEscaped() + "</th>";
+                tableBuf += "</tr></thead><tbody>"; inTable = true;
+            } else {
+                tableBuf += "<tr>";
+                for (const QString& c : cells) tableBuf += "<td>" + c.toHtmlEscaped() + "</td>";
+                tableBuf += "</tr>";
+            }
+            continue;
+        }
+        if (inTable) { html += "</tbody></table>"; inTable = false; tableBuf.clear(); }
+        if (inList) { html += "</ul>"; inList = false; }
+
+        // 行内格式处理
+        QString p = line;
+        // 图片 ![](url)
+        QRegularExpression imgRe("!\\[([^]]*)\\]\\(([^)]+)\\)");
+        int pos = 0;
+        QString imgResult;
+        QRegularExpressionMatchIterator imgIt = imgRe.globalMatch(p);
+        while (imgIt.hasNext()) {
+            auto m = imgIt.next();
+            imgResult += p.mid(pos, m.capturedStart() - pos);
+            QString alt = m.captured(1).toHtmlEscaped();
+            QString src = m.captured(2);
+            if (!QFileInfo(src).isAbsolute() && !basePath.isEmpty())
+                src = QFileInfo(basePath).absolutePath() + "/" + src;
+            src = QFileInfo(src).absoluteFilePath();
+            imgResult += "<img src='file:///" + src.toHtmlEscaped() + "' alt='" + alt + "'>";
+            pos = m.capturedEnd();
+        }
+        imgResult += p.mid(pos);
+        p = imgResult;
+
+        // 链接
+        QRegularExpression linkRe("\\[([^]]+)\\]\\(([^)]+)\\)");
+        pos = 0; QString linkResult;
+        QRegularExpressionMatchIterator linkIt = linkRe.globalMatch(p);
+        while (linkIt.hasNext()) {
+            auto m = linkIt.next();
+            linkResult += p.mid(pos, m.capturedStart() - pos);
+            linkResult += "<a href='" + m.captured(2).toHtmlEscaped() + "'>" + m.captured(1).toHtmlEscaped() + "</a>";
+            pos = m.capturedEnd();
+        }
+        linkResult += p.mid(pos);
+        p = linkResult;
+
+        // 粗体/斜体/行内代码
+        p.replace(QRegularExpression("\\*\\*(.+?)\\*\\*"), "<b>\\1</b>");
+        p.replace(QRegularExpression("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)"), "<i>\\1</i>");
+        p.replace(QRegularExpression("`([^`]+)`"), "<code>\\1</code>");
+        p.replace(QRegularExpression("~~(.+?)~~"), "<s>\\1</s>");
+        // 行内公式 $...$
+        p.replace(QRegularExpression("\\$(.+?)\\$"), "<code style='background:#FFF3E0;color:#E65100;'>\\1</code>");
+
+        // 检查是否是块级公式占位
+        if (line.contains("<!-- FORMULA_START_")) {
+            int idx = line.mid(QStringLiteral("<!-- FORMULA_START_").length()).split("-->").first().trimmed().toInt();
+            if (idx >= 0 && idx < formulas.size()) {
+                html += "<pre style='background:#FFF3E0;border:1px solid #FFE0B2;border-radius:6px;padding:10px;color:#E65100;font-size:12px;'>"
+                     + formulas[idx].content.toHtmlEscaped() + "</pre>";
+                continue;
+            }
+        }
+
+        // 标题
+        if (line.startsWith("###### ")) html += "<h6>" + p.mid(7) + "</h6>";
+        else if (line.startsWith("##### ")) html += "<h5>" + p.mid(6) + "</h5>";
+        else if (line.startsWith("#### ")) html += "<h4>" + p.mid(5) + "</h4>";
+        else if (line.startsWith("### ")) html += "<h3>" + p.mid(4) + "</h3>";
+        else if (line.startsWith("## ")) html += "<h2>" + p.mid(3) + "</h2>";
+        else if (line.startsWith("# ")) html += "<h1>" + p.mid(2) + "</h1>";
+        // 列表
+        else if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("+ ")) {
+            if (!inList) { html += "<ul>"; inList = true; }
+            html += "<li>" + p.mid(2) + "</li>";
+        }
+        else if (line.length() > 2 && line[0].isDigit() && (line[1] == '.' || line[1] == ')')) {
+            int dot = line.indexOf('.');
+            if (dot < 0) dot = line.indexOf(')');
+            if (dot > 0) {
+                if (!inList) { html += "<ol>"; inList = true; }
+                html += "<li>" + p.mid(dot + 1).trimmed() + "</li>";
+            }
+        }
+        else if (line == "---" || line == "***" || line == "___") {
+            html += "<hr style='border:none;border-top:1px solid #E8ECEF;margin:12px 0;'>";
+        }
+        else {
+            html += "<p>" + p + "</p>";
+        }
+    }
+
+    if (inTable) html += "</tbody></table>";
+    if (inCode) html += "</code></pre>";
+    if (inList) html += "</ul>";
+
+    html += "</body></html>";
+    return html;
 }
