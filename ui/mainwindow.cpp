@@ -6,6 +6,8 @@
 #include "floatwindow.h"
 #include "toast.h"
 #include "zoomablelabel.h"
+#include "knowledgebase_page.h"
+#include "knowledgebase_manager.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -636,7 +638,7 @@ void MainWindow::setupUI() {
         "QPushButton { border: none; border-radius: 18px; background: transparent; }"
         "QPushButton:hover { background: #F0FDFA; }");
     connect(settingsIconBtn, &QPushButton::clicked, this, [this]() {
-        onNavButtonClicked(5);
+        onNavButtonClicked(6);
     });
     headerLayout->addWidget(settingsIconBtn);
 
@@ -657,7 +659,7 @@ void MainWindow::setupUI() {
     navLayout->setSpacing(2);
     navLayout->setAlignment(Qt::AlignTop);
 
-    // 前 5 个导航按钮 (Text / Float / Screenshot / Photo / File)
+    // 前 6 个导航按钮 (Text / Float / Screenshot / Photo / File / KnowledgeBase)
     struct NavDef { const char* icon; const char* label_cn; const char* label_en; };
     NavDef navDefs[] = {
         { ":/icons/text.png", "文本翻译", "Text Translation" },
@@ -665,8 +667,9 @@ void MainWindow::setupUI() {
         { ":/icons/screenshot.png", "截图翻译", "Screenshot Translation" },
         { ":/icons/image_.png", "图片翻译", "Image Translation" },
         { ":/icons/file.png", "文件翻译", "File Translation" },
+        { ":/icons/knowledge.png", "知识库", "Knowledge Base" },
     };
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 6; ++i) {
         navLayout->addWidget(createNavButton(i, QString::fromUtf8(navDefs[i].icon),
                                               tr(navDefs[i].label_en)));
     }
@@ -683,7 +686,7 @@ void MainWindow::setupUI() {
     navLayout->addSpacing(4);
 
     // 底部的设置按钮
-    navLayout->addWidget(createNavButton(5, QStringLiteral(":/icons/setting.png"),
+    navLayout->addWidget(createNavButton(6, QStringLiteral(":/icons/setting.png"),
                                           tr("Settings")));
 
     splitter->addWidget(navPanel_);
@@ -701,7 +704,8 @@ void MainWindow::setupUI() {
     stackedWidget_->addWidget(createScreenshotPanel());    // 2
     stackedWidget_->addWidget(createPhotoPanel());         // 3
     stackedWidget_->addWidget(createFilePanel());          // 4
-    stackedWidget_->addWidget(createSettingsPanel());      // 5
+    stackedWidget_->addWidget(createKnowledgePanel());     // 5
+    stackedWidget_->addWidget(createSettingsPanel());      // 6
 
     contentLayout->addWidget(stackedWidget_);
     splitter->addWidget(contentFrame);
@@ -2316,6 +2320,21 @@ void MainWindow::addFileToList(const QString& filePath) {
     fileListLayout_->insertWidget(fileListLayout_->count() - 1, fileItem); // 在 stretch 前插入
 }
 
+// —————— 知识库面板 ——————
+// ============================================================
+// 知识库页面
+// ============================================================
+QWidget* MainWindow::createKnowledgePanel() {
+    knowledgePage_ = new KnowledgeBasePage(this);
+
+    connect(knowledgePage_, &KnowledgeBasePage::statusMessage,
+            this, [this](const QString& msg) {
+        if (statusLabel_) statusLabel_->setText(msg);
+    });
+
+    return knowledgePage_;
+}
+
 // —————— 设置面板 ——————
 // ============================================================
 // 创建设置/配置页 — 加入滚动区域
@@ -3380,11 +3399,76 @@ void MainWindow::onWorkerFinished(const QString& result) {
                         }
                     }
                     QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
+                    bool hasArchive = false;
                     for (int bi = 0; bi < btns.size(); ++bi) {
                         if (btns[bi]->text() == tr("Download")) {
                             btns[bi]->setProperty("outputPath", result);
                             btns[bi]->show();
-                            break;
+                        }
+                        if (btns[bi]->property("kbArchive").isValid())
+                            hasArchive = true;
+                    }
+                    // 添加"归档至知识库"按钮
+                    if (!hasArchive && fileCurrentIdx_ < filePendingPaths_.size()) {
+                        auto* archiveBtn = new QPushButton(tr("Archive to KB"));
+                        archiveBtn->setFixedHeight(24);
+                        archiveBtn->setCursor(Qt::PointingHandCursor);
+                        archiveBtn->setStyleSheet(
+                            "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
+                            " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
+                            "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
+                        archiveBtn->setProperty("kbArchive", true);
+                        QString srcForArchive = filePendingPaths_[fileCurrentIdx_];
+                        QString resultForArchive = result;
+                        connect(archiveBtn, &QPushButton::clicked, this, [this, archiveBtn, srcForArchive, resultForArchive]() {
+                            QFileInfo fi(srcForArchive);
+                            auto& km = KnowledgeBaseManager::getInstance();
+                            if (!km.initialize()) {
+                                statusBar_->showMessage(tr("Failed to init Knowledge Base"), 3000);
+                                return;
+                            }
+                            KnowledgeEntry entry;
+                            entry.title = fi.fileName();
+                            entry.fileType = fi.suffix().toLower();
+                            entry.sourcePath = srcForArchive;
+                            entry.fileSize = fi.size();
+                            if (fileLangCombo_) entry.translatedLang = fileLangCombo_->currentText();
+
+                            // 读取生成的 .md 文件
+                            QFile f(resultForArchive);
+                            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                                QTextStream in(&f);
+                                entry.markdownContent = in.readAll();
+                                f.close();
+                            }
+                            if (km.addEntry(entry)) {
+                                archiveBtn->setText(tr("Archived"));
+                                archiveBtn->setEnabled(false);
+                                archiveBtn->setStyleSheet(
+                                    "QPushButton { border: 1px solid #10B981; background: #D1FAE5; color: #065F46;"
+                                    " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
+                                statusBar_->showMessage(tr("Archived to Knowledge Base"), 3000);
+                                if (knowledgePage_) knowledgePage_->refreshList();
+                            } else {
+                                statusBar_->showMessage(tr("Archive failed"), 3000);
+                            }
+                        });
+                        // 插入到 Download 按钮后面
+                        auto* itemLayout = item->widget()->layout();
+                        if (itemLayout) {
+                            auto* boxLayout = qobject_cast<QBoxLayout*>(itemLayout);
+                            int insertIdx = -1;
+                            for (int ci = 0; ci < itemLayout->count(); ++ci) {
+                                auto* btn = qobject_cast<QPushButton*>(itemLayout->itemAt(ci)->widget());
+                                if (btn && btn->text() == tr("Download")) {
+                                    insertIdx = ci + 1;
+                                    break;
+                                }
+                            }
+                            if (boxLayout && insertIdx >= 0)
+                                boxLayout->insertWidget(insertIdx, archiveBtn);
+                            else
+                                itemLayout->addWidget(archiveBtn);
                         }
                     }
                     break;

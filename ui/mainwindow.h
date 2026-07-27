@@ -23,6 +23,9 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QTimer>
+
+class KnowledgeBasePage;
 #include <QMouseEvent>
 #include <QVBoxLayout>
 #include <QScrollArea>
@@ -159,6 +162,7 @@ private:
     QWidget* createScreenshotPanel();
     QWidget* createPhotoPanel();
     QWidget* createFilePanel();
+    QWidget* createKnowledgePanel();
     QWidget* createSettingsPanel();
     void runWorker(TranslateWorker* worker);
     void registerGlobalHotkeys();
@@ -251,6 +255,10 @@ private:
     // -- 设置 --
     QLineEdit* baseDirPath_;
     QLabel* configStatusLabel_;
+
+    // -- 知识库 --
+    KnowledgeBasePage* knowledgePage_ = nullptr;
+    QPushButton* fileArchiveBtn_ = nullptr;
 
     // -- 区域截图 & 浮动窗口 --
     RegionCapture* regionCapture_;
