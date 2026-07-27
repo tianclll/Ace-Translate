@@ -202,12 +202,12 @@ void KnowledgeBasePage::setupUI() {
                            " background: transparent; border: none;");
     mdCardLayout->addWidget(mdTitle);
 
-    mdPreview_ = new QPlainTextEdit;
+    mdPreview_ = new QTextEdit;
     mdPreview_->setReadOnly(true);
     mdPreview_->setPlaceholderText("（选择文档查看 Markdown 内容）");
     mdPreview_->setStyleSheet(
-        "QPlainTextEdit { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 6px;"
-        " padding: 8px; font-size: 12px; font-family: 'Courier New', monospace; color: #5B6269; }");
+        "QTextEdit { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 6px;"
+        " padding: 8px; font-size: 12px; }");
     mdCardLayout->addWidget(mdPreview_, 1);
     detailLayout->addWidget(mdCard, 1);
 
@@ -379,7 +379,7 @@ void KnowledgeBasePage::loadDocDetail(int id) {
     }
 
     // Markdown 预览
-    mdPreview_->setPlainText(doc.markdownContent);
+    mdPreview_->setMarkdown(doc.markdownContent);
 
     // 高亮列表中的选中项
     for (int i = 0; i < listLayout_->count(); ++i) {
@@ -563,7 +563,7 @@ void KnowledgeBasePage::onTranslateFullText() {
             doc.markdownContent.toStdString(), "Chinese", 2048);
         QString result = QString::fromStdString(translated);
 
-        mdPreview_->setPlainText(result);
+        mdPreview_->setMarkdown(result);
 
         // 更新 .md 文件
         QString mdDir = QCoreApplication::applicationDirPath()

@@ -8,7 +8,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
-#include <QPlainTextEdit>
+#include <QTextEdit>
 #include <QList>
 #include <QEvent>
 
@@ -74,7 +74,7 @@ private:
     // 右侧详情
     QWidget* detailPanel_ = nullptr;
     QLabel* summaryLabel_ = nullptr;
-    QPlainTextEdit* mdPreview_ = nullptr;
+    QTextEdit* mdPreview_ = nullptr;
     QPushButton* translateBtn_ = nullptr;
     QPushButton* exportBtn_ = nullptr;
     QPushButton* tagBtn_ = nullptr;
