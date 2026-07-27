@@ -16,6 +16,8 @@ struct KnowledgeEntry {
     qint64 fileSize = 0;     // 原始文件大小
     QDateTime createdAt;
     QString markdownContent; // 仅在 getEntry 时填充的内存缓存
+    QString summary;         // AI 生成摘要
+    QString parseStatus;     // pending/processing/done/error
 };
 
 class KnowledgeBaseManager : public QObject {
@@ -32,6 +34,24 @@ public:
     QList<KnowledgeEntry> getAllEntries(int limit = 100, int offset = 0);
     KnowledgeEntry getEntry(int id);
     int entryCount() const;
+
+    // ---- 标签 CRUD ----
+    bool addTag(const QString& name);
+    bool deleteTag(int tagId);
+    QList<QPair<int,QString>> getAllTags();
+
+    // ---- 文档-标签关联 ----
+    bool setDocumentTags(int docId, const QList<int>& tagIds);
+    QList<int> getDocumentTagIds(int docId);
+    QStringList getDocumentTagNames(int docId);
+
+    // ---- 搜索 ----
+    QList<KnowledgeEntry> searchEntries(const QString& keyword);
+    QList<KnowledgeEntry> getEntriesByTag(int tagId);
+
+    // ---- 摘要 & 状态 ----
+    bool updateSummary(int docId, const QString& summary);
+    bool updateParseStatus(int docId, const QString& status);
 
     // 导出 .md 文件到指定路径
     bool exportEntry(int id, const QString& outputPath);
