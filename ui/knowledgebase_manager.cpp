@@ -31,7 +31,12 @@ bool KnowledgeBaseManager::initialize(const QString& dbPath) {
     QString path = dbPath.isEmpty() ? (storagePath() + "knowledge.db") : dbPath;
     QDir().mkpath(QFileInfo(path).absolutePath());
 
-    db_ = QSqlDatabase::addDatabase("QSQLITE", "knowledge_connection");
+    // 检查连接名是否已存在
+    if (QSqlDatabase::contains("knowledge_connection")) {
+        db_ = QSqlDatabase::database("knowledge_connection");
+    } else {
+        db_ = QSqlDatabase::addDatabase("QSQLITE", "knowledge_connection");
+    }
     db_.setDatabaseName(path);
     if (!db_.open()) {
         qWarning() << "[KB] Failed to open DB:" << db_.lastError().text();

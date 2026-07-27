@@ -20,6 +20,7 @@
 #include <QFileInfo>
 #include <QTimer>
 #include <QScrollBar>
+#include <QSplitter>
 #include <QCoreApplication>
 #include <QDir>
 
@@ -48,31 +49,26 @@ void KnowledgeBasePage::setupUI() {
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(10);
 
-    // ---- 上传区（浅薄荷绿虚线框，缩小高度） ----
+    // ---- 上传区（水平紧凑横条） ----
     dropZone_ = new DropZoneWidget;
-    dropZone_->setFixedHeight(120);
+    dropZone_->setFixedHeight(64);
     dropZone_->setStyleSheet(QStringLiteral(
-        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #D0E8E4; border-radius: 12px; }"
+        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #D0E8E4; border-radius: 10px; }"
         "DropZoneWidget:hover { background: #E8F5F3; border-color: #0B7C72; }"
     ));
-    auto* dropLayout = new QVBoxLayout(dropZone_);
+    auto* dropLayout = new QHBoxLayout(dropZone_);
+    dropLayout->setContentsMargins(20, 0, 20, 0);
     dropLayout->setAlignment(Qt::AlignCenter);
-    dropLayout->setSpacing(2);
+    dropLayout->setSpacing(8);
 
     auto* dropIcon = new QLabel(QStringLiteral("\U0001F4C1"));
-    dropIcon->setAlignment(Qt::AlignCenter);
-    dropIcon->setStyleSheet("font-size: 24px; background: transparent;");
+    dropIcon->setStyleSheet("font-size: 20px; background: transparent;");
     dropLayout->addWidget(dropIcon);
 
-    auto* dropText = new QLabel("拖拽文件到此处归档");
-    dropText->setAlignment(Qt::AlignCenter);
-    dropText->setStyleSheet("font-size: 13px; font-weight: 600; color: #374151; background: transparent;");
+    auto* dropText = new QLabel("拖拽文件到此处归档 · 支持 PDF / DOCX / XLSX / PPTX / MD / TXT / 图片");
+    dropText->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280; background: transparent;");
     dropLayout->addWidget(dropText);
-
-    auto* dropHint = new QLabel("PDF / DOCX / XLSX / PPTX / MD / TXT / 图片");
-    dropHint->setAlignment(Qt::AlignCenter);
-    dropHint->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent;");
-    dropLayout->addWidget(dropHint);
+    dropLayout->addStretch();
 
     connect(dropZone_, &DropZoneWidget::fileDropped,
             this, &KnowledgeBasePage::onFileDropped);
@@ -119,9 +115,10 @@ void KnowledgeBasePage::setupUI() {
 
     layout->addWidget(toolbar);
 
-    // ---- 双栏主体 ----
-    auto* contentWrap = new QHBoxLayout;
-    contentWrap->setSpacing(10);
+    // ---- 下半部分：水平双栏（占满剩余高度） ----
+    auto* contentSplit = new QSplitter(Qt::Horizontal);
+    contentSplit->setHandleWidth(4);
+    contentSplit->setChildrenCollapsible(false);
 
     // ===== 左侧文档列表 =====
     auto* listCard = new QFrame;
@@ -151,7 +148,7 @@ void KnowledgeBasePage::setupUI() {
 
     emptyHint_ = new QLabel("暂无文档\n拖拽文件到上方上传区归档");
     emptyHint_->setAlignment(Qt::AlignCenter);
-    emptyHint_->setStyleSheet("color: #9CA3AF; font-size: 13px; padding: 30px;"
+    emptyHint_->setStyleSheet("color: #9CA3AF; font-size: 13px; padding: 20px;"
                               " background: transparent; border: none;");
     emptyHint_->setWordWrap(true);
     listLayout_->addWidget(emptyHint_);
@@ -159,7 +156,7 @@ void KnowledgeBasePage::setupUI() {
 
     listScroll_->setWidget(listContainer_);
     listCardLayout->addWidget(listScroll_);
-    contentWrap->addWidget(listCard, 42);
+    contentSplit->addWidget(listCard);
 
     // ===== 右侧详情面板 =====
     detailPanel_ = new QFrame;
@@ -171,7 +168,7 @@ void KnowledgeBasePage::setupUI() {
     detailLayout->setContentsMargins(12, 12, 12, 12);
     detailLayout->setSpacing(8);
 
-    // — AI 摘要卡片 —
+    // — AI 摘要卡片（带标题） —
     auto* summaryCard = new QFrame;
     summaryCard->setStyleSheet(
         "QFrame { background: #F8FAFA; border: 1px solid #E8ECEF; border-radius: 8px; padding: 10px; }");
@@ -191,7 +188,7 @@ void KnowledgeBasePage::setupUI() {
     summaryCardLayout->addWidget(summaryLabel_);
     detailLayout->addWidget(summaryCard);
 
-    // — Markdown 预览卡片 —
+    // — Markdown 预览卡片（带标题，占满剩余空间） —
     auto* mdCard = new QFrame;
     mdCard->setStyleSheet(
         "QFrame { background: #F8FAFA; border: 1px solid #E8ECEF; border-radius: 8px; padding: 10px; }");
@@ -222,10 +219,15 @@ void KnowledgeBasePage::setupUI() {
         btn->setFixedHeight(28);
         if (primary) {
             btn->setObjectName("primaryBtn");
+            btn->setStyleSheet(
+                "QPushButton#primaryBtn { background-color: #0B7C72; color: #FFFFFF;"
+                " border: none; border-radius: 5px; padding: 0 14px;"
+                " font-size: 11px; font-weight: 600; }"
+                "QPushButton#primaryBtn:hover { background-color: #09685F; }");
         } else {
             btn->setStyleSheet(
-                "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px;"
-                " padding: 0 12px; background: transparent; color: #374151; font-size: 11px; }"
+                "QPushButton { border: 1px solid #D1D5DB; border-radius: 5px;"
+                " padding: 0 10px; background: transparent; color: #374151; font-size: 11px; }"
                 "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
         }
         return btn;
@@ -248,8 +250,8 @@ void KnowledgeBasePage::setupUI() {
 
     deleteBtn_ = makeBtn("删除", false);
     deleteBtn_->setStyleSheet(
-        "QPushButton { border: 1px solid #E0E0E0; border-radius: 6px;"
-        " padding: 0 12px; background: transparent; color: #9CA3AF; font-size: 11px; }"
+        "QPushButton { border: 1px solid #E0E0E0; border-radius: 5px;"
+        " padding: 0 10px; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; border-color: #EF4444; }");
     connect(deleteBtn_, &QPushButton::clicked,
             this, &KnowledgeBasePage::onDeleteEntry);
@@ -258,8 +260,10 @@ void KnowledgeBasePage::setupUI() {
     btnRow->addStretch();
     detailLayout->addLayout(btnRow);
 
-    contentWrap->addWidget(detailPanel_, 58);
-    layout->addLayout(contentWrap, 1);
+    contentSplit->addWidget(detailPanel_);
+    contentSplit->setSizes({260, 540});
+
+    layout->addWidget(contentSplit, 1);
 }
 
 // ============================================================
@@ -422,7 +426,7 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
         entry.fileSize = fi.size();
 
         QString ext = entry.fileType;
-        // 文本文件直接读取
+        // 文本文件直接读取内容
         if (ext == "md" || ext == "txt") {
             QFile f(path);
             if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -430,38 +434,21 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
                 f.close();
             }
         } else {
-            // PDF / 图片 / Office 文件：调用项目引擎解析
-            QString baseDir = QCoreApplication::applicationDirPath();
-            try {
-                std::string outPath;
-                if (ext == "pdf") {
-                    outPath = process_pdf(
-                        path.toStdString(), baseDir.toStdString(),
-                        "English", 0.5f, 200);
-                } else {
-                    outPath = process_file(
-                        path.toStdString(), "", baseDir.toStdString(),
-                        "English", 0.5f, 200, true, false);
-                }
-                QFile f(QString::fromStdString(outPath));
-                if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                    entry.markdownContent = QString::fromUtf8(f.readAll());
-                    f.close();
-                }
-                QFile::remove(QString::fromStdString(outPath));
-            } catch (const std::exception& e) {
-                entry.markdownContent = QStringLiteral("解析失败: %1").arg(e.what());
-            } catch (...) {
-                entry.markdownContent = "解析失败: 未知错误";
-            }
+            // PDF / 图片 / Office 等非文本文件：暂不调用引擎解析（避免阻塞 UI），
+            // 只存源路径，后续查看时按需解析
+            entry.markdownContent = "（需解析后生成内容，源文件：" + path + "）";
         }
 
         int newId = -1;
-        if (km.addEntry(entry, &newId)) {
-            // 生成摘要
-            QString summary = generateSummary(entry.markdownContent);
-            if (!summary.isEmpty()) {
-                km.updateSummary(newId, summary);
+        bool ok = km.addEntry(entry, &newId);
+        if (ok) {
+            // 生成摘要（仅文本文件有内容时）
+            if (!entry.markdownContent.startsWith("（需解析后生成内容") &&
+                !entry.markdownContent.trimmed().isEmpty()) {
+                QString summary = generateSummary(entry.markdownContent);
+                if (!summary.isEmpty()) {
+                    km.updateSummary(newId, summary);
+                }
             }
             added++;
         }
