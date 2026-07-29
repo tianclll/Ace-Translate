@@ -65,6 +65,7 @@ private:
 
     bool createTables();
     QString storagePath() const;
+    bool ensureDb();  // 确保数据库连接打开，每次操作前调用
 
     QSqlDatabase db_;
     QString dbPath_;

@@ -9,7 +9,6 @@
 #include <QTextStream>
 #include <string>
 #include <windows.h>
-#include <windows.h>
 
 KnowledgeBaseManager& KnowledgeBaseManager::getInstance() {
     static KnowledgeBaseManager inst;
@@ -26,6 +25,23 @@ KnowledgeBaseManager::~KnowledgeBaseManager() {
 
 QString KnowledgeBaseManager::storagePath() const {
     return QCoreApplication::applicationDirPath() + "/knowledge_base/";
+}
+
+// 每次操作前确保数据库连接打开
+bool KnowledgeBaseManager::ensureDb() {
+    if (!initialized_) {
+        initialize();
+    }
+    if (!db_.isOpen()) {
+        db_ = QSqlDatabase::database("kb_conn");
+        if (!db_.isOpen()) {
+            if (!db_.open()) {
+                qWarning() << "[KB] Failed to reopen database:" << db_.lastError().text();
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool KnowledgeBaseManager::initialize(const QString& dbPath) {
@@ -102,10 +118,7 @@ bool KnowledgeBaseManager::createTables() {
 }
 
 bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
-    if (!initialized_) {
-        MessageBoxA(nullptr, "[KB] addEntry: not initialized", "KB Debug", MB_OK);
-        return false;
-    }
+    if (!ensureDb()) return false;
 
     // 先插入占位行获取 ID
     QSqlQuery query(db_);
@@ -170,7 +183,7 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
 }
 
 bool KnowledgeBaseManager::deleteEntry(int id) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
 
     // 删除 .md 文件
     QString mdFile = storagePath() + "md/" + QString::number(id) + ".md";
@@ -292,7 +305,7 @@ bool KnowledgeBaseManager::exportEntry(int id, const QString& outputPath) {
 // 标签 CRUD
 // ============================================================
 bool KnowledgeBaseManager::addTag(const QString& name) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
     QSqlQuery q(db_);
     q.prepare("INSERT OR IGNORE INTO tags (name) VALUES (:n)");
     q.bindValue(":n", name);
@@ -300,7 +313,7 @@ bool KnowledgeBaseManager::addTag(const QString& name) {
 }
 
 bool KnowledgeBaseManager::deleteTag(int tagId) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
     QSqlQuery q(db_);
     q.prepare("DELETE FROM tags WHERE id = :id");
     q.bindValue(":id", tagId);
@@ -321,7 +334,7 @@ QList<QPair<int,QString>> KnowledgeBaseManager::getAllTags() {
 // 文档-标签关联
 // ============================================================
 bool KnowledgeBaseManager::setDocumentTags(int docId, const QList<int>& tagIds) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
     db_.transaction();
     QSqlQuery del(db_);
     del.prepare("DELETE FROM document_tags WHERE doc_id = :d");
@@ -418,7 +431,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByTag(int tagId) {
 // 摘要 & 状态
 // ============================================================
 bool KnowledgeBaseManager::updateSummary(int docId, const QString& summary) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
     QSqlQuery q(db_);
     q.prepare("UPDATE documents SET summary=:s WHERE id=:id");
     q.bindValue(":s", summary);
@@ -427,7 +440,7 @@ bool KnowledgeBaseManager::updateSummary(int docId, const QString& summary) {
 }
 
 bool KnowledgeBaseManager::updateParseStatus(int docId, const QString& status) {
-    if (!initialized_) return false;
+    if (!ensureDb()) return false;
     QSqlQuery q(db_);
     q.prepare("UPDATE documents SET parse_status=:s WHERE id=:id");
     q.bindValue(":s", status);

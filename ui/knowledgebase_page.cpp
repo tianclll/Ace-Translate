@@ -25,6 +25,15 @@
 #include "docmind/core/GlobalEngineContext.hpp"
 #include <windows.h>
 
+// safe_extract_file 在 src/safe_engine.cpp 中实现（extern "C"）
+extern "C" bool safe_extract_file(
+    const char* filePath,
+    const char* baseDir,
+    const char* ext,
+    char* outBuf,
+    int outBufSize,
+    int* outLen);
+
 
 
 // ============================================================
@@ -403,105 +412,96 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 }
 
 // ============================================================
-// processNextFile — 逐个处理文件（QTimer 驱动，防止 UI 卡死）
+// processNextFile — 处理所有待导入文件（一次性处理，用 processEvents 保持 UI 响应）
 // ============================================================
 void KnowledgeBasePage::processNextFile() {
-    if (!isImporting_ || processIndex_ >= pendingTasks_.size()) {
-        // 全部完成或被取消
-        refreshList();
-        setEnabled(true);
-        emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
-        pendingTasks_.clear();
-        importCount_ = 0;
-        processIndex_ = 0;
-        isImporting_ = false;
-        return;
-    }
+    if (!isImporting_) return;
 
-    const ImportTask& task = pendingTasks_[processIndex_];
-    processIndex_++;
+    // 一次性处理所有待导入文件
+    QList<ImportTask> tasks = pendingTasks_;  // 拷贝一份，避免过程中被修改
+    pendingTasks_.clear();
+    int total = tasks.size();
+    int success = 0;
 
-    emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(processIndex_).arg(pendingTasks_.size()));
-    QApplication::processEvents();
+    for (int i = 0; i < total; i++) {
+        if (!isImporting_) break;  // 被取消
 
-    // 引擎解析
-    QString markdown;
-    bool parseOk = false;
-    QString ext = task.fileType;
-    if (ext == "md" || ext == "txt") {
-        QFile f(task.filePath);
-        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            markdown = QString::fromUtf8(f.readAll());
-            f.close();
-            parseOk = true;
-        }
-    } else {
-        // 确保引擎已初始化
-        emit statusMessage(QStringLiteral("正在加载引擎…"));
+        const ImportTask& task = tasks[i];
+        emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(i + 1).arg(total));
         QApplication::processEvents();
-        docmind::GlobalEngineContext::getInstance().initialize();
-        std::string baseDirStr = pendingBaseDir_.toStdString();
-        try {
-            std::string outPath;
-            if (ext == "pdf") {
-                outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200);
-            } else {
-                // extract_file_text → 只提取文字生成 markdown，不翻译
-                outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200, true, false);
-            }
-            QFile f(QString::fromStdString(outPath));
+
+        // 引擎解析
+        QString markdown;
+        bool parseOk = false;
+        QString ext = task.fileType;
+        if (ext == "md" || ext == "txt") {
+            QFile f(task.filePath);
             if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 markdown = QString::fromUtf8(f.readAll());
                 f.close();
                 parseOk = true;
             }
-            QFile::remove(QString::fromStdString(outPath));
-        } catch (const std::exception& e) {
-            markdown = QStringLiteral("解析失败: %1").arg(e.what());
-        } catch (...) {
-            markdown = "解析失败: 未知错误";
-        }
-    }
-
-    // 入库
-    auto& km = KnowledgeBaseManager::getInstance();
-    KnowledgeEntry entry;
-    entry.title = task.title;
-    entry.fileType = task.fileType;
-    entry.sourcePath = task.filePath;
-    entry.fileSize = task.fileSize;
-    entry.markdownContent = markdown;
-
-    int newId = -1;
-    if (km.addEntry(entry, &newId)) {
-        if (parseOk && !markdown.trimmed().isEmpty()) {
-            // 生成 AI 摘要（调用 Hy-MT2 模型的 summarize 接口）
-            emit statusMessage(QStringLiteral("正在生成摘要 …"));
+        } else {
+            emit statusMessage(QStringLiteral("正在加载引擎…"));
             QApplication::processEvents();
-            QString plain = markdown.simplified();
-            if (plain.length() > 2000) plain = plain.left(2000) + "……";
-            QString summary;
-            try {
-                auto& ctx = docmind::GlobalEngineContext::getInstance();
-                ctx.ensureTranslatorEngine();
-                auto* translator = ctx.getTranslatorEngine();
-                if (translator) {
-                    auto r = translator->summarize(plain.toStdString(), 256);
-                    summary = QString::fromStdString(r);
-                }
-            } catch (const std::exception& e) {
-                summary = plain.left(200);
+            auto& ctx = docmind::GlobalEngineContext::getInstance();
+            ctx.initialize();
+            ctx.ensureOCREngine();
+            ctx.ensureLayoutDetector();
+            std::string baseDirStr = pendingBaseDir_.toStdString();
+            char mdBuf[1024 * 64] = {0};
+            int mdLen = 0;
+            if (safe_extract_file(task.filePath.toStdString().c_str(),
+                                   baseDirStr.c_str(),
+                                   ext.toStdString().c_str(),
+                                   mdBuf, sizeof(mdBuf), &mdLen)) {
+                markdown = QString::fromUtf8(mdBuf, mdLen);
+                parseOk = true;
+            } else {
+                markdown = "解析失败: 引擎异常";
             }
-            if (!summary.isEmpty()) km.updateSummary(newId, summary);
         }
-        importCount_++;
+
+        // 入库
+        auto& km = KnowledgeBaseManager::getInstance();
+        KnowledgeEntry entry;
+        entry.title = task.title;
+        entry.fileType = task.fileType;
+        entry.sourcePath = task.filePath;
+        entry.fileSize = task.fileSize;
+        entry.markdownContent = markdown;
+
+        int newId = -1;
+        if (km.addEntry(entry, &newId)) {
+            if (parseOk && !markdown.trimmed().isEmpty()) {
+                emit statusMessage(QStringLiteral("正在生成摘要 …"));
+                QApplication::processEvents();
+                QString plain = markdown.simplified();
+                if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                QString summary;
+                try {
+                    auto& ctx = docmind::GlobalEngineContext::getInstance();
+                    ctx.ensureTranslatorEngine();
+                    auto* translator = ctx.getTranslatorEngine();
+                    if (translator) {
+                        auto r = translator->summarize(plain.toStdString(), 256);
+                        summary = QString::fromStdString(r);
+                    }
+                } catch (const std::exception& e) {
+                    summary = plain.left(200);
+                }
+                if (!summary.isEmpty()) km.updateSummary(newId, summary);
+            }
+            success++;
+        }
     }
 
-    emit statusMessage(QStringLiteral("已处理 %1/%2 个文件（跳过摘要）").arg(importCount_).arg(pendingTasks_.size()));
-    QApplication::processEvents();
-
-    // 处理下一个文件
-    QTimer::singleShot(10, this, &KnowledgeBasePage::processNextFile);
+    refreshList();
+    setEnabled(true);
+    emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(success));
+    importCount_ = 0;
+    processIndex_ = 0;
+    isImporting_ = false;
 }
 
 void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }

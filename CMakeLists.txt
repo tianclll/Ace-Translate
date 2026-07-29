@@ -71,10 +71,14 @@ set(SOURCES
 
         src/DocumentEngine.cpp
         src/DocumentTextEngine.cpp
+        src/safe_engine.cpp
         src/utils/FontManager.cpp
         src/utils/ImageLayout.cpp
         src/utils/ImageRenderer.cpp
 )
+
+# 禁用 safe_engine.cpp 的 AUTOMOC（该文件包含 __try/__except，与 MOC 冲突）
+set_source_files_properties(src/safe_engine.cpp PROPERTIES SKIP_AUTOMOC ON)
 
 message(STATUS "SOURCES: ${SOURCES}")
 
