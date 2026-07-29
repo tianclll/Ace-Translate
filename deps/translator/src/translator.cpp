@@ -10,6 +10,7 @@
 
 #include "llama.h"
 #include <windows.h>
+#include <eh.h>
 
 // ============================================================
 // 语言名称 → 中文名映射（供 prompt 使用）
@@ -480,13 +481,22 @@ std::string Translator::Impl::generate(
         const std::string& prompt,
         int max_tokens) {
 
+    // 注册 SEH 转换器（配合 /EHa，将 SEH 转为 C++ 异常）
+    _set_se_translator([](unsigned int code, EXCEPTION_POINTERS*) {
+        throw std::runtime_error("SEH error: " + std::to_string(code));
+    });
+
     char buf[4096 * 4];  // 16KB 输出缓冲区
     int outLen = 0;
 
-    if (!raw_generate_seh(ctx, vocab, sampler,
-                           prompt.c_str(), (int)prompt.size(),
-                           max_tokens, buf, sizeof(buf), &outLen)) {
-        std::cerr << "generate() SEH crashed or failed" << std::endl;
+    try {
+        if (!raw_generate_seh(ctx, vocab, sampler,
+                               prompt.c_str(), (int)prompt.size(),
+                               max_tokens, buf, sizeof(buf), &outLen)) {
+            return "";
+        }
+    } catch (const std::exception&) {
+        std::cerr << "generate() SEH crashed" << std::endl;
         std::cerr.flush();
         return "";
     }

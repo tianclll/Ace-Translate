@@ -489,6 +489,7 @@ void KnowledgeBasePage::processNextFile() {
                 } catch (const std::exception& e) {
                     summary = plain.left(200);
                 }
+                if (summary.isEmpty()) summary = plain.left(200);
                 if (!summary.isEmpty()) km.updateSummary(newId, summary);
             }
             success++;

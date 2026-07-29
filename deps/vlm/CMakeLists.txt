@@ -3,6 +3,7 @@ project(VLMVisualCpp)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
 
 # llama.cpp 路径（GPU 版：使用 build_gpu 编译的库）
 set(LLAMA_DIR "D:/AceTranslatePro/tools/translator/TranslationApp/external/llama.cpp")
