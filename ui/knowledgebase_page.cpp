@@ -319,29 +319,70 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
             "所有支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)");
     }
     if (files.isEmpty()) return;
+    emit statusMessage(QStringLiteral("正在导入 %1 个文件…").arg(files.size()));
+    QApplication::processEvents();
+
     auto& km = KnowledgeBaseManager::getInstance();
     km.initialize();
+
+    // 获取引擎 baseDir（复用项目引擎的目录）
+    QString baseDir = QCoreApplication::applicationDirPath();
+
+    int total = files.size();
     int added = 0;
-    for (const QString& path : files) {
+    for (int i = 0; i < total; ++i) {
+        const QString& path = files[i];
         QFileInfo fi(path);
+        emit statusMessage(QStringLiteral("处理 %1/%2: %3").arg(i + 1).arg(total).arg(fi.fileName()));
+        QApplication::processEvents();
+
         KnowledgeEntry entry;
         entry.title = fi.fileName();
         entry.fileType = fi.suffix().toLower();
         entry.sourcePath = path;
         entry.fileSize = fi.size();
+
         QString ext = entry.fileType;
         if (ext == "md" || ext == "txt") {
+            // 文本文件直接读取
             QFile f(path);
             if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 entry.markdownContent = QString::fromUtf8(f.readAll());
                 f.close();
             }
         } else {
-            entry.markdownContent = "（需解析后生成内容，源文件：" + path + "）";
+            // 非文本文件：调用引擎解析（PDF/图片/Office）
+            emit statusMessage(QStringLiteral("正在解析 %1 …").arg(fi.fileName()));
+            QApplication::processEvents();
+            try {
+                std::string outPath;
+                if (ext == "pdf") {
+                    outPath = process_pdf(path.toStdString(), baseDir.toStdString(),
+                                          "English", 0.5f, 200);
+                } else {
+                    outPath = process_file(path.toStdString(), "", baseDir.toStdString(),
+                                           "English", 0.5f, 200, true, false);
+                }
+                QFile f(QString::fromStdString(outPath));
+                if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                    entry.markdownContent = QString::fromUtf8(f.readAll());
+                    f.close();
+                }
+                QFile::remove(QString::fromStdString(outPath));
+            } catch (const std::exception& e) {
+                entry.markdownContent = QStringLiteral("解析失败: %1").arg(e.what());
+            } catch (...) {
+                entry.markdownContent = "解析失败: 未知错误";
+            }
         }
+
         int newId = -1;
         if (km.addEntry(entry, &newId)) {
-            if (!entry.markdownContent.startsWith("（需解析后生成内容") && !entry.markdownContent.trimmed().isEmpty()) {
+            // 生成 AI 摘要（用翻译引擎）
+            if (!entry.markdownContent.trimmed().isEmpty() &&
+                !entry.markdownContent.startsWith("解析失败")) {
+                emit statusMessage(QStringLiteral("正在生成摘要 %1/%2 …").arg(i + 1).arg(total));
+                QApplication::processEvents();
                 QString summary = generateSummary(entry.markdownContent);
                 if (!summary.isEmpty()) km.updateSummary(newId, summary);
             }
