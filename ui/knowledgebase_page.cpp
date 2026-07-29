@@ -310,7 +310,6 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
 }
 
 // ============================================================
-// onFileDropped
 // ============================================================
 void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     QStringList files = paths;
@@ -319,80 +318,122 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
             "所有支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)");
     }
     if (files.isEmpty()) return;
-    emit statusMessage(QStringLiteral("正在导入 %1 个文件…").arg(files.size()));
-    QApplication::processEvents();
 
     auto& km = KnowledgeBaseManager::getInstance();
     km.initialize();
 
-    // 获取引擎 baseDir（复用项目引擎的目录）
+    QList<ImportTask> tasks;
+    for (const QString& path : files) {
+        QFileInfo fi(path);
+        ImportTask t;
+        t.filePath = path;
+        t.title = fi.fileName();
+        t.fileType = fi.suffix().toLower();
+        t.fileSize = fi.size();
+        tasks.append(t);
+    }
+
+    setEnabled(false);
+    int total = tasks.size();
+    emit statusMessage(QStringLiteral("正在解析 %1 个文件…").arg(total));
+    QApplication::processEvents();
+
     QString baseDir = QCoreApplication::applicationDirPath();
 
-    int total = files.size();
-    int added = 0;
-    for (int i = 0; i < total; ++i) {
-        const QString& path = files[i];
-        QFileInfo fi(path);
-        emit statusMessage(QStringLiteral("处理 %1/%2: %3").arg(i + 1).arg(total).arg(fi.fileName()));
-        QApplication::processEvents();
+    // 禁用界面，分批处理文件（每次处理一个，防止 UI 假死）
+    setEnabled(false);
 
-        KnowledgeEntry entry;
-        entry.title = fi.fileName();
-        entry.fileType = fi.suffix().toLower();
-        entry.sourcePath = path;
-        entry.fileSize = fi.size();
+    // 保存任务列表和处理进度到成员变量
+    pendingTasks_ = tasks;
+    pendingBaseDir_ = baseDir;
+    processIndex_ = 0;
+    importCount_ = 0;
 
-        QString ext = entry.fileType;
-        if (ext == "md" || ext == "txt") {
-            // 文本文件直接读取
-            QFile f(path);
-            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                entry.markdownContent = QString::fromUtf8(f.readAll());
-                f.close();
-            }
-        } else {
-            // 非文本文件：调用引擎解析（PDF/图片/Office）
-            emit statusMessage(QStringLiteral("正在解析 %1 …").arg(fi.fileName()));
-            QApplication::processEvents();
-            try {
-                std::string outPath;
-                if (ext == "pdf") {
-                    outPath = process_pdf(path.toStdString(), baseDir.toStdString(),
-                                          "English", 0.5f, 200);
-                } else {
-                    outPath = process_file(path.toStdString(), "", baseDir.toStdString(),
-                                           "English", 0.5f, 200, true, false);
-                }
-                QFile f(QString::fromStdString(outPath));
-                if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                    entry.markdownContent = QString::fromUtf8(f.readAll());
-                    f.close();
-                }
-                QFile::remove(QString::fromStdString(outPath));
-            } catch (const std::exception& e) {
-                entry.markdownContent = QStringLiteral("解析失败: %1").arg(e.what());
-            } catch (...) {
-                entry.markdownContent = "解析失败: 未知错误";
-            }
-        }
+    // 延时启动处理，让 UI 先刷新
+    QTimer::singleShot(100, this, &KnowledgeBasePage::processNextFile);
+}
 
-        int newId = -1;
-        if (km.addEntry(entry, &newId)) {
-            // 生成 AI 摘要（用翻译引擎）
-            if (!entry.markdownContent.trimmed().isEmpty() &&
-                !entry.markdownContent.startsWith("解析失败")) {
-                emit statusMessage(QStringLiteral("正在生成摘要 %1/%2 …").arg(i + 1).arg(total));
-                QApplication::processEvents();
-                QString summary = generateSummary(entry.markdownContent);
-                if (!summary.isEmpty()) km.updateSummary(newId, summary);
-            }
-            added++;
-        }
-    }
-    if (added > 0) {
-        emit statusMessage(QStringLiteral("已归档 %1 个文件").arg(added));
+// ============================================================
+// processNextFile — 逐个处理文件（QTimer 驱动，防止 UI 卡死）
+// ============================================================
+void KnowledgeBasePage::processNextFile() {
+    if (processIndex_ >= pendingTasks_.size()) {
+        // 全部完成
         refreshList();
+        setEnabled(true);
+        emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
+        pendingTasks_.clear();
+        importCount_ = 0;
+        processIndex_ = 0;
+        return;
     }
+
+    const ImportTask& task = pendingTasks_[processIndex_];
+    processIndex_++;
+
+    emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(processIndex_).arg(pendingTasks_.size()));
+    QApplication::processEvents();
+
+    // 引擎解析
+    QString markdown;
+    bool parseOk = false;
+    QString ext = task.fileType;
+    if (ext == "md" || ext == "txt") {
+        QFile f(task.filePath);
+        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            markdown = QString::fromUtf8(f.readAll());
+            f.close();
+            parseOk = true;
+        }
+    } else {
+        std::string baseDirStr = pendingBaseDir_.toStdString();
+        try {
+            std::string outPath;
+            if (ext == "pdf") {
+                outPath = process_pdf(task.filePath.toStdString(), baseDirStr, "English", 0.5f, 200);
+            } else {
+                outPath = process_file(task.filePath.toStdString(), "", baseDirStr, "English", 0.5f, 200, true, false);
+            }
+            QFile f(QString::fromStdString(outPath));
+            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                markdown = QString::fromUtf8(f.readAll());
+                f.close();
+                parseOk = true;
+            }
+            QFile::remove(QString::fromStdString(outPath));
+        } catch (const std::exception& e) {
+            markdown = QStringLiteral("解析失败: %1").arg(e.what());
+        } catch (...) {
+            markdown = "解析失败: 未知错误";
+        }
+    }
+
+    // 入库
+    auto& km = KnowledgeBaseManager::getInstance();
+    KnowledgeEntry entry;
+    entry.title = task.title;
+    entry.fileType = task.fileType;
+    entry.sourcePath = task.filePath;
+    entry.fileSize = task.fileSize;
+    entry.markdownContent = markdown;
+
+    int newId = -1;
+    if (km.addEntry(entry, &newId)) {
+        if (parseOk && !markdown.trimmed().isEmpty()) {
+            // 生成摘要
+            emit statusMessage(QStringLiteral("正在生成摘要 %1/%2 …").arg(processIndex_).arg(pendingTasks_.size()));
+            QApplication::processEvents();
+            QString summary = generateSummary(markdown);
+            if (!summary.isEmpty()) km.updateSummary(newId, summary);
+        }
+        importCount_++;
+    }
+
+    emit statusMessage(QStringLiteral("已处理 %1/%2 个文件").arg(importCount_).arg(pendingTasks_.size()));
+    QApplication::processEvents();
+
+    // 处理下一个文件
+    QTimer::singleShot(10, this, &KnowledgeBasePage::processNextFile);
 }
 
 void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
@@ -401,12 +442,16 @@ void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
 // generateSummary
 // ============================================================
 QString KnowledgeBasePage::generateSummary(const QString& markdown) {
+    // 取前 1000 字符用于翻译（摘要基于翻译结果截取）
     QString plain = markdown.simplified();
-    if (plain.length() > 500) plain = plain.left(500) + "...";
+    if (plain.length() > 1000) plain = plain.left(1000) + "……";
     if (plain.trimmed().isEmpty()) return QString();
     try {
-        auto r = translate_text(("请用一句话概括以下内容：\n" + plain).toStdString(), "Chinese", 256);
-        return QString::fromStdString(r);
+        // 用翻译引擎翻译成中文，取前 200 字作为摘要
+        auto r = translate_text(plain.toStdString(), "Chinese", 512);
+        QString result = QString::fromStdString(r);
+        if (result.length() > 200) result = result.left(200) + "……";
+        return result;
     } catch (...) { return plain.left(200); }
 }
 

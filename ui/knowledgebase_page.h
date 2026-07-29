@@ -9,9 +9,28 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QThread>
 #include <QList>
 #include <QSet>
 #include <QEvent>
+
+/// 导入结果结构体（从工作线程发回主线程）
+struct ImportResult {
+    int index;
+    QString filePath;
+    QString title;
+    QString fileType;
+    qint64 fileSize;
+    QString markdownContent;  // 引擎解析结果
+    bool parseOk = false;
+};
+
+struct ImportTask {
+    QString filePath;
+    QString title;
+    QString fileType;
+    qint64 fileSize;
+};
 
 class DropZoneWidget;
 
@@ -27,6 +46,9 @@ public:
 
 signals:
     void statusMessage(const QString& msg);
+    /// 单个文件解析完成（工作线程发出，主线程处理入库）
+    void fileParsed(ImportResult result);
+    void allImportFinished();
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
@@ -43,6 +65,8 @@ private slots:
 private:
     void setupUI();
     QString generateSummary(const QString& markdown);
+    /// 逐个处理下一个文件（由 QTimer 驱动）
+    void processNextFile();
     QWidget* createListItem(int id, const QString& title, const QString& date,
                             const QString& fileType, const QStringList& tags,
                             const QString& summary);
@@ -68,4 +92,10 @@ private:
     // 选中状态
     QSet<int> checkedDocIds_;
     bool inBatchMode_ = false;
+
+    // 导入计数
+    int importCount_ = 0;
+    int processIndex_ = 0;
+    QList<ImportTask> pendingTasks_;
+    QString pendingBaseDir_;
 };
