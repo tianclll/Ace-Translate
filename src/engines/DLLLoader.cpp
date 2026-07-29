@@ -87,9 +87,10 @@ namespace docmind {
         translator_create = (TranslatorCreateFunc)GET_FUNC(translator_handle_, "translator_create");
         translator_destroy = (TranslatorDestroyFunc)GET_FUNC(translator_handle_, "translator_destroy");
         translator_translate = (TranslatorTranslateFunc)GET_FUNC(translator_handle_, "translator_translate");
+        translator_summarize = (TranslatorSummarizeFunc)GET_FUNC(translator_handle_, "translator_summarize");
         translator_free_string = (TranslatorFreeStringFunc)GET_FUNC(translator_handle_, "translator_free_string");
 
-        if (!translator_create || !translator_destroy || !translator_translate || !translator_free_string) {
+        if (!translator_create || !translator_destroy || !translator_translate || !translator_summarize || !translator_free_string) {
             std::cerr << "Failed to get Translator functions from DLL" << std::endl;
             unload();
             return false;

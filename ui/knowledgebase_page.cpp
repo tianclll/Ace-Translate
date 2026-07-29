@@ -19,6 +19,7 @@
 #include <QDir>
 
 #include "docmind/DocumentEngine.h"
+#include "docmind/core/GlobalEngineContext.hpp"
 
 // ============================================================
 // 构造函数
@@ -343,11 +344,12 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     // 禁用界面，分批处理文件（每次处理一个，防止 UI 假死）
     setEnabled(false);
 
-    // 保存任务列表和处理进度到成员变量
+    // 保存任务列表到成员变量
     pendingTasks_ = tasks;
     pendingBaseDir_ = baseDir;
     processIndex_ = 0;
     importCount_ = 0;
+    isImporting_ = true;
 
     // 延时启动处理，让 UI 先刷新
     QTimer::singleShot(100, this, &KnowledgeBasePage::processNextFile);
@@ -357,14 +359,15 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 // processNextFile — 逐个处理文件（QTimer 驱动，防止 UI 卡死）
 // ============================================================
 void KnowledgeBasePage::processNextFile() {
-    if (processIndex_ >= pendingTasks_.size()) {
-        // 全部完成
+    if (!isImporting_ || processIndex_ >= pendingTasks_.size()) {
+        // 全部完成或被取消
         refreshList();
         setEnabled(true);
         emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
         pendingTasks_.clear();
         importCount_ = 0;
         processIndex_ = 0;
+        isImporting_ = false;
         return;
     }
 
@@ -386,6 +389,10 @@ void KnowledgeBasePage::processNextFile() {
             parseOk = true;
         }
     } else {
+        // 确保引擎已初始化（首次加载模型需要3-5秒，后续复用缓存）
+        emit statusMessage(QStringLiteral("正在加载引擎…"));
+        QApplication::processEvents();
+        docmind::GlobalEngineContext::getInstance().initialize();
         std::string baseDirStr = pendingBaseDir_.toStdString();
         try {
             std::string outPath;
@@ -420,16 +427,29 @@ void KnowledgeBasePage::processNextFile() {
     int newId = -1;
     if (km.addEntry(entry, &newId)) {
         if (parseOk && !markdown.trimmed().isEmpty()) {
-            // 生成摘要
-            emit statusMessage(QStringLiteral("正在生成摘要 %1/%2 …").arg(processIndex_).arg(pendingTasks_.size()));
+            // 生成 AI 摘要（调用 Hy-MT2 模型的 summarize 接口）
+            emit statusMessage(QStringLiteral("正在生成摘要 …"));
             QApplication::processEvents();
-            QString summary = generateSummary(markdown);
+            QString plain = markdown.simplified();
+            if (plain.length() > 2000) plain = plain.left(2000) + "……";
+            QString summary;
+            try {
+                auto& ctx = docmind::GlobalEngineContext::getInstance();
+                ctx.ensureTranslatorEngine();
+                auto* translator = ctx.getTranslatorEngine();
+                if (translator) {
+                    auto r = translator->summarize(plain.toStdString(), 256);
+                    summary = QString::fromStdString(r);
+                }
+            } catch (const std::exception& e) {
+                summary = plain.left(200);
+            }
             if (!summary.isEmpty()) km.updateSummary(newId, summary);
         }
         importCount_++;
     }
 
-    emit statusMessage(QStringLiteral("已处理 %1/%2 个文件").arg(importCount_).arg(pendingTasks_.size()));
+    emit statusMessage(QStringLiteral("已处理 %1/%2 个文件（跳过摘要）").arg(importCount_).arg(pendingTasks_.size()));
     QApplication::processEvents();
 
     // 处理下一个文件

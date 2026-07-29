@@ -195,6 +195,11 @@ public:
             int max_tokens
     );
 
+    std::string summarize(
+            const std::string& source_text,
+            int max_tokens
+    );
+
 private:
     llama_model* model = nullptr;
     llama_context* ctx = nullptr;
@@ -513,6 +518,32 @@ std::string Translator::Impl::translate(
 }
 
 // ============================================================
+// summarize — 用摘要 prompt 调用底层 generate
+// ============================================================
+std::string Translator::Impl::summarize(
+        const std::string& source_text,
+        int max_tokens) {
+
+    std::string prompt =
+            "请将下面文本用一句话概括成中文摘要。\n"
+            "只输出摘要，不要解释。\n\n"
+            "原文：\n"
+            + source_text +
+            "\n\n摘要：";
+
+    std::string result = generate(prompt, max_tokens);
+
+    auto begin = result.find_first_not_of(" \t\r\n");
+    if (begin == std::string::npos) {
+        return "";
+    }
+    auto end = result.find_last_not_of(" \t\r\n");
+    result = result.substr(begin, end - begin + 1);
+
+    return result;
+}
+
+// ============================================================
 // Translator 公共接口实现
 // ============================================================
 
@@ -529,6 +560,12 @@ std::string Translator::translate(
         const std::string& target_language,
         int max_tokens) {
     return pImpl->translate(source_text, target_language, max_tokens);
+}
+
+std::string Translator::summarize(
+        const std::string& source_text,
+        int max_tokens) {
+    return pImpl->summarize(source_text, max_tokens);
 }
 
 // ============================================================
@@ -586,6 +623,31 @@ TRANSLATOR_API const char* translator_translate(
         return str;
     } catch (const std::exception& e) {
         std::cerr << "翻译失败: " << e.what() << std::endl;
+        return nullptr;
+    }
+}
+
+TRANSLATOR_API const char* translator_summarize(
+        TranslatorHandle handle,
+        const char* source_text,
+        int max_tokens) {
+
+    if (!handle || !source_text) {
+        return nullptr;
+    }
+
+    try {
+        auto* translator = static_cast<Translator*>(handle);
+        std::string result = translator->summarize(
+                std::string(source_text),
+                max_tokens
+        );
+
+        char* str = new char[result.size() + 1];
+        std::strcpy(str, result.c_str());
+        return str;
+    } catch (const std::exception& e) {
+        std::cerr << "摘要生成失败: " << e.what() << std::endl;
         return nullptr;
     }
 }

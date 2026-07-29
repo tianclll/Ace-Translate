@@ -21,6 +21,9 @@ namespace docmind {
         // 指定目标语言翻译
         std::string translate(const std::string& text, const std::string& target_language, int max_tokens = 512);
 
+        // 生成中文摘要
+        std::string summarize(const std::string& text, int max_tokens = 256);
+
         void setDefaultLanguage(const std::string& lang) { default_lang_ = lang; }
 
     private:

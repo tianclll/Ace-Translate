@@ -32,6 +32,11 @@ public:
             int max_tokens
     );
 
+    std::string summarize(
+            const std::string& source_text,
+            int max_tokens
+    );
+
 private:
     struct Impl;
     std::unique_ptr<Impl> pImpl;
@@ -58,6 +63,12 @@ TRANSLATOR_API const char* translator_translate(
         TranslatorHandle handle,
         const char* source_text,
         const char* target_language,
+        int max_tokens
+);
+
+TRANSLATOR_API const char* translator_summarize(
+        TranslatorHandle handle,
+        const char* source_text,
         int max_tokens
 );
 

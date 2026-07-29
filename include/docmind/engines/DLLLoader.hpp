@@ -102,11 +102,13 @@ namespace docmind {
         using TranslatorCreateFunc = void* (*)(const char*, int);
         using TranslatorDestroyFunc = void (*)(void*);
         using TranslatorTranslateFunc = const char* (*)(void*, const char*, const char*, int);
+        using TranslatorSummarizeFunc = const char* (*)(void*, const char*, int);
         using TranslatorFreeStringFunc = void (*)(const char*);
 
         TranslatorCreateFunc translator_create = nullptr;
         TranslatorDestroyFunc translator_destroy = nullptr;
         TranslatorTranslateFunc translator_translate = nullptr;
+        TranslatorSummarizeFunc translator_summarize = nullptr;
         TranslatorFreeStringFunc translator_free_string = nullptr;
 
         // ---------- UVDoc 函数指针 ----------

@@ -88,4 +88,24 @@ namespace docmind {
         return translated;
     }
 
+    std::string TranslatorEngine::summarize(const std::string& text, int max_tokens) {
+        if (!initialized_ || text.empty()) {
+            return text;
+        }
+        const char* result = dll_.translator_summarize(
+                handle_,
+                text.c_str(),
+                max_tokens
+        );
+        std::string summary;
+        if (result) {
+            summary = result;
+            dll_.translator_free_string(result);
+        } else {
+            std::cerr << "Summarize failed for: " << text.substr(0, 60) << std::endl;
+            summary = text;
+        }
+        return summary;
+    }
+
 } // namespace docmind
