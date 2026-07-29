@@ -13,13 +13,15 @@ namespace docmind {
          * @param enable_enhance  是否启用图像增强（仅对文档图片有效）
          * @param layout_threshold 版面检测阈值（0~1）
          * @param pdf_dpi         PDF渲染DPI
+         * @param enable_translate 是否翻译文本（false=只提取原文）
          */
         FileTranslationModule(
                 const std::string& target_language = "",   // 空表示使用配置默认
                 bool enable_warp = true,
                 bool enable_enhance = false,
                 float layout_threshold = 0.5f,
-                int pdf_dpi = 200
+                int pdf_dpi = 200,
+                bool enable_translate = true
         );
 
         /**
@@ -36,6 +38,7 @@ namespace docmind {
         bool enable_enhance_;
         float layout_threshold_;
         int pdf_dpi_;
+        bool enable_translate_ = true;
     };
 
 } // namespace docmind

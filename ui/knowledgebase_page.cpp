@@ -11,15 +11,21 @@
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QCheckBox>
+#include <QTextEdit>
 #include <QApplication>
 #include <QFileInfo>
 #include <QTimer>
 #include <QScrollBar>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QCoreApplication>
 #include <QDir>
 
 #include "docmind/DocumentEngine.h"
 #include "docmind/core/GlobalEngineContext.hpp"
+#include <windows.h>
+
+
 
 // ============================================================
 // 构造函数
@@ -184,7 +190,7 @@ void KnowledgeBasePage::refreshList() {
         auto tags = km.getDocumentTagNames(doc.id);
         QString summary = doc.summary.isEmpty() ? "(暂无摘要)" : doc.summary;
         auto* item = createListItem(doc.id, doc.title,
-            doc.createdAt.toString("yyyy-MM-dd"), doc.fileType.toUpper(), tags, summary);
+            doc.createdAt.toString("yyyy-MM-dd HH:mm"), doc.fileType.toUpper(), tags, summary);
         listLayout_->insertWidget(listLayout_->count() - 1, item);
     }
 }
@@ -286,11 +292,16 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     arrowLabel->setProperty("_kb_detailWidget", QVariant::fromValue(reinterpret_cast<quintptr>(detailWidget)));
     arrowLabel->setProperty("_kb_arrowLabel", QVariant::fromValue(reinterpret_cast<quintptr>(arrowLabel)));
 
+    // ---- 双击 item 打开详情 ----
+    item->installEventFilter(this);
+    item->setProperty("_kb_docId", id);
+    item->setProperty("_kb_doubleClick", true);
+
     return item;
 }
 
 // ============================================================
-// eventFilter — 箭头点击展开/折叠
+// eventFilter — 箭头点击展开/折叠 + 双击查看详情
 // ============================================================
 bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::MouseButtonPress) {
@@ -307,12 +318,48 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
             }
         }
     }
+    if (event->type() == QEvent::MouseButtonDblClick) {
+        auto* w = qobject_cast<QWidget*>(obj);
+        if (!w) return QWidget::eventFilter(obj, event);
+        if (w->property("_kb_doubleClick").toBool()) {
+            int docId = w->property("_kb_docId").toInt();
+            if (docId > 0) {
+                showDocumentDetail(docId);
+                return true;
+            }
+        }
+    }
     return QWidget::eventFilter(obj, event);
+}
+
+// ============================================================
+// showDocumentDetail — 双击用系统默认程序打开源文件
+// ============================================================
+void KnowledgeBasePage::showDocumentDetail(int docId) {
+    auto& km = KnowledgeBaseManager::getInstance();
+    auto entry = km.getEntry(docId);
+    if (entry.id < 0) return;
+
+    QString filePath = entry.sourcePath;
+    if (filePath.isEmpty()) {
+        emit statusMessage("源文件路径为空");
+        return;
+    }
+    QFileInfo fi(filePath);
+    if (!fi.exists()) {
+        emit statusMessage(QStringLiteral("源文件不存在: %1").arg(filePath));
+        return;
+    }
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
 
 // ============================================================
 // ============================================================
 void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
+    if (isImporting_) {
+        emit statusMessage("正在处理中，请等待完成后再上传");
+        return;
+    }
     QStringList files = paths;
     if (files.isEmpty()) {
         files = QFileDialog::getOpenFileNames(this, "选择文件", QString(),
@@ -389,7 +436,7 @@ void KnowledgeBasePage::processNextFile() {
             parseOk = true;
         }
     } else {
-        // 确保引擎已初始化（首次加载模型需要3-5秒，后续复用缓存）
+        // 确保引擎已初始化
         emit statusMessage(QStringLiteral("正在加载引擎…"));
         QApplication::processEvents();
         docmind::GlobalEngineContext::getInstance().initialize();
@@ -397,9 +444,10 @@ void KnowledgeBasePage::processNextFile() {
         try {
             std::string outPath;
             if (ext == "pdf") {
-                outPath = process_pdf(task.filePath.toStdString(), baseDirStr, "English", 0.5f, 200);
+                outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200);
             } else {
-                outPath = process_file(task.filePath.toStdString(), "", baseDirStr, "English", 0.5f, 200, true, false);
+                // extract_file_text → 只提取文字生成 markdown，不翻译
+                outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200, true, false);
             }
             QFile f(QString::fromStdString(outPath));
             if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -520,10 +568,8 @@ void KnowledgeBasePage::onBatchDelete() {
     if (reply != QMessageBox::Yes) return;
 
     auto& km = KnowledgeBaseManager::getInstance();
-    int deleted = 0;
-    for (int id : checkedDocIds_) {
-        if (km.deleteEntry(id)) deleted++;
-    }
+    QSet<int> ids = checkedDocIds_;  // 拷贝一份，避免遍历过程中修改
+    int deleted = km.deleteEntries(QList<int>(ids.begin(), ids.end()));
     emit statusMessage(QStringLiteral("已删除 %1 个文档").arg(deleted));
     refreshList();
 }

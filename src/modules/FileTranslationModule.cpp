@@ -378,14 +378,14 @@ namespace docmind {
     }
 // ---------- 处理图像（文档流程） ----------
     static std::string process_image_doc(const cv::Mat& img, const ProcessorConfig& config,
-                                         float threshold, const std::string& target_lang) {
+                                         float threshold, const std::string& target_lang,
+                                         bool enable_translate = true) {
         auto& ctx = GlobalEngineContext::getInstance();
         DocumentProcessor processor(ctx, config);
         auto segments = processor.process(img, threshold);
         std::string md = MarkdownGenerator::generate(segments);
-        // 翻译
-        if (!md.empty()) {
-            // 按段落翻译（简单处理，可改进）
+        if (!md.empty() && enable_translate) {
+            // 按段落翻译
             std::vector<std::string> lines;
             std::istringstream stream(md);
             std::string line;
@@ -412,12 +412,14 @@ namespace docmind {
             bool enable_warp,
             bool enable_enhance,
             float layout_threshold,
-            int pdf_dpi)
+            int pdf_dpi,
+            bool enable_translate)
             : target_language_(target_language.empty() ? ConfigManager::getInstance().getDefaultLanguage() : target_language),
               enable_warp_(enable_warp),
               enable_enhance_(enable_enhance),
               layout_threshold_(layout_threshold),
-              pdf_dpi_(pdf_dpi) {}
+              pdf_dpi_(pdf_dpi),
+              enable_translate_(enable_translate) {}
 
 
     std::string FileTranslationModule::process(const std::string& input_path, const std::string& output_path) {
@@ -472,7 +474,7 @@ namespace docmind {
             config.assets_dir = output_dir + "assets";   // 动态设置
             config.enable_warp = enable_warp_;
             config.enable_enhance = enable_enhance_;
-            result_content = process_image_doc(img, config, layout_threshold_, target_language_);
+            result_content = process_image_doc(img, config, layout_threshold_, target_language_, enable_translate_);
         }
         else if (ext == "pdf") {
             auto pages = pdf_to_images(input_path, pdf_dpi_);
@@ -482,7 +484,7 @@ namespace docmind {
             config.enable_warp = false;   // PDF 不启用 warp
             config.enable_enhance = false;
             for (const auto& page : pages) {
-                auto md = process_image_doc(page, config, layout_threshold_, target_language_);
+                auto md = process_image_doc(page, config, layout_threshold_, target_language_, enable_translate_);
                 if (!md.empty()) all_segments.push_back(md);
             }
             result_content = MarkdownGenerator::generate(all_segments);

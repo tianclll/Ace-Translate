@@ -92,15 +92,13 @@ namespace docmind {
         if (!initialized_ || text.empty()) {
             return text;
         }
+        // 直接调用 DLL（与 translate() 相同的调用方式，没有 SEH 线程包装）
         const char* result = dll_.translator_summarize(
-                handle_,
-                text.c_str(),
-                max_tokens
-        );
+                handle_, text.c_str(), max_tokens);
         std::string summary;
         if (result) {
             summary = result;
-            dll_.translator_free_string(result);
+            dll_.translator_free_string(const_cast<const char*>(result));
         } else {
             std::cerr << "Summarize failed for: " << text.substr(0, 60) << std::endl;
             summary = text;

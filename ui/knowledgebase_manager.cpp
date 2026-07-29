@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <string>
 #include <windows.h>
+#include <windows.h>
 
 KnowledgeBaseManager& KnowledgeBaseManager::getInstance() {
     static KnowledgeBaseManager inst;
@@ -180,6 +181,35 @@ bool KnowledgeBaseManager::deleteEntry(int id) {
     query.prepare("DELETE FROM documents WHERE id = :id");
     query.bindValue(":id", id);
     return query.exec();
+}
+
+int KnowledgeBaseManager::deleteEntries(const QList<int>& ids) {
+    if (!initialized_ || ids.isEmpty()) return 0;
+
+    if (!db_.isOpen()) {
+        qWarning() << "[KB] DB not open, reopening...";
+        if (!db_.open()) return 0;
+    }
+
+    // 删除 .md 文件
+    QString mdDir = storagePath() + "md/";
+    for (int id : ids) {
+        QFile::remove(mdDir + QString::number(id) + ".md");
+    }
+
+    // 一次 SQL 删除所有文档
+    QStringList idStrs;
+    for (int id : ids) idStrs << QString::number(id);
+    QSqlQuery query(db_);
+    if (!query.prepare("DELETE FROM documents WHERE id IN (" + idStrs.join(",") + ")")) {
+        qWarning() << "[KB] deleteEntries prepare failed:" << query.lastError().text();
+        return 0;
+    }
+    if (!query.exec()) {
+        qWarning() << "[KB] deleteEntries exec failed:" << query.lastError().text();
+        return 0;
+    }
+    return query.numRowsAffected();
 }
 
 QList<KnowledgeEntry> KnowledgeBaseManager::getAllEntries(int limit, int offset) {

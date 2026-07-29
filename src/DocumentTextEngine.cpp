@@ -28,3 +28,14 @@ std::string process_file(const std::string& file_path,
     docmind::FileTranslationModule module(target_language, enable_warp, enable_enhance, layout_threshold, pdf_dpi);
     return module.process(file_path, output_path);
 }
+
+std::string extract_file_text(const std::string& file_path,
+                              const std::string& output_path,
+                              const std::string& base_dir,
+                              float layout_threshold,
+                              int pdf_dpi,
+                              bool enable_warp,
+                              bool enable_enhance) {
+    docmind::FileTranslationModule module("", enable_warp, enable_enhance, layout_threshold, pdf_dpi, false);
+    return module.process(file_path, output_path);
+}

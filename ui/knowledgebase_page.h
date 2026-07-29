@@ -44,6 +44,9 @@ public:
     void refreshList();
     void refreshTags();
 
+    /// 双击查看文档详情
+    void showDocumentDetail(int docId);
+
 signals:
     void statusMessage(const QString& msg);
     /// 单个文件解析完成（工作线程发出，主线程处理入库）
@@ -96,6 +99,7 @@ private:
     // 导入计数
     int importCount_ = 0;
     int processIndex_ = 0;
+    bool isImporting_ = false;
     QList<ImportTask> pendingTasks_;
     QString pendingBaseDir_;
 };

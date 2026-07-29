@@ -88,6 +88,27 @@ std::string process_file(
 );
 
 /**
+ * @brief 提取文件中的原始文本（OCR + layout，不翻译）
+ * @param file_path        输入文件路径
+ * @param output_path      输出文件路径（若为空则自动生成）
+ * @param base_dir         资源目录
+ * @param layout_threshold 版面检测阈值（仅对图片/PDF有效）
+ * @param pdf_dpi          PDF渲染DPI
+ * @param enable_warp      是否启用去扭曲
+ * @param enable_enhance   是否启用图像增强
+ * @return 实际写入的输出文件路径
+ */
+std::string extract_file_text(
+        const std::string& file_path,
+        const std::string& output_path = "",
+        const std::string& base_dir = "",
+        float layout_threshold = 0.5f,
+        int pdf_dpi = 200,
+        bool enable_warp = true,
+        bool enable_enhance = false
+);
+
+/**
  * @brief 普通图片翻译（仅 VLM，不进行版面分析）——暂未实现，预留
  */
 std::string process_photo(

@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "llama.h"
+#include <windows.h>
 
 // ============================================================
 // 语言名称 → 中文名映射（供 prompt 使用）
@@ -206,7 +207,7 @@ private:
     const llama_vocab* vocab = nullptr;
     llama_sampler* sampler = nullptr;
 
-    int n_ctx = 512;
+    int n_ctx = 4096;
     int n_threads = 16;
 
     std::string generate(
@@ -339,155 +340,158 @@ std::string Translator::Impl::token_to_piece(
     return std::string(buf, n);
 }
 
+// ============================================================
+// raw_generate_seh — 纯 C 辅助函数，__try 内没有任何 C++ 对象
+// 所有缓冲区由调用者通过指针传入
+// ============================================================
+static bool raw_generate_seh(
+        llama_context* ctx,
+        const llama_vocab* vocab,
+        llama_sampler* sampler,
+        const char* prompt_text,
+        int prompt_len,
+        int max_tokens,
+        char* out_buf,
+        int out_buf_size,
+        int* out_len) {
+
+    __try {
+        llama_memory_clear(llama_get_memory(ctx), true);
+
+        // 用固定大小数组，避免 std::vector（C++ 对象）
+        llama_token tokens[4096];
+        int n_tokens = llama_tokenize(
+                vocab,
+                prompt_text,
+                prompt_len,
+                tokens,
+                4096,
+                true,
+                true
+        );
+
+        if (n_tokens <= 0) {
+            return false;
+        }
+
+        // decode prompt
+        llama_batch batch = llama_batch_get_one(tokens, n_tokens);
+
+        if (llama_decode(ctx, batch) != 0) {
+            return false;
+        }
+
+        // generate
+        char accum[4096 * 4];  // 16KB 累积缓冲区
+        int accum_len = 0;
+
+        for (int i = 0; i < max_tokens && accum_len < (int)sizeof(accum) - 256; i++) {
+            llama_token token = llama_sampler_sample(
+                    sampler,
+                    ctx,
+                    -1
+            );
+
+            if (llama_vocab_is_eog(vocab, token)) {
+                break;
+            }
+
+            char piece_buf[256];
+            int n = llama_token_to_piece(
+                    vocab,
+                    token,
+                    piece_buf,
+                    sizeof(piece_buf),
+                    0,
+                    true
+            );
+
+            if (n <= 0) continue;
+
+            // 检查特殊 token
+            if (n >= 3 && piece_buf[0] == '<' && piece_buf[1] == '|') {
+                break;
+            }
+
+            // 追加到 accum
+            if (accum_len + n < (int)sizeof(accum)) {
+                memcpy(accum + accum_len, piece_buf, n);
+                accum_len += n;
+
+                // 检查 stop words（纯 C 字符串查找）
+                accum[accum_len] = '\0';
+                const char* sw_found = nullptr;
+                if ((sw_found = strstr(accum, "<|im_end|>"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+                if ((sw_found = strstr(accum, "<|im_start|>"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+                if ((sw_found = strstr(accum, "<|eot_id|>"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+                if ((sw_found = strstr(accum, "<|endoftext|>"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+                if ((sw_found = strstr(accum, "User:"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+                if ((sw_found = strstr(accum, "Assistant:"))) {
+                    accum_len = (int)(sw_found - accum);
+                    break;
+                }
+            }
+
+            // decode next
+            batch = llama_batch_get_one(&token, 1);
+            if (llama_decode(ctx, batch) != 0) {
+                return false;
+            }
+        }
+
+        // trim
+        int start = 0, end = accum_len;
+        while (start < end && (accum[start] == ' ' || accum[start] == '\t' ||
+               accum[start] == '\r' || accum[start] == '\n')) start++;
+        while (end > start && (accum[end-1] == ' ' || accum[end-1] == '\t' ||
+               accum[end-1] == '\r' || accum[end-1] == '\n')) end--;
+
+        int result_len = end - start;
+        if (result_len >= out_buf_size) {
+            result_len = out_buf_size - 1;
+        }
+        if (result_len > 0) {
+            memcpy(out_buf, accum + start, result_len);
+        }
+        out_buf[result_len] = '\0';
+        *out_len = result_len;
+        return true;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+}
+
 std::string Translator::Impl::generate(
         const std::string& prompt,
         int max_tokens) {
 
-    llama_memory_clear(llama_get_memory(ctx), true);
+    char buf[4096 * 4];  // 16KB 输出缓冲区
+    int outLen = 0;
 
-    //----------------------------------------
-    // tokenize
-    //----------------------------------------
-
-    int n_tokens = -llama_tokenize(
-            vocab,
-            prompt.c_str(),
-            static_cast<int>(prompt.size()),
-            nullptr,
-            0,
-            true,
-            true
-    );
-
-    if (n_tokens <= 0) {
-        throw std::runtime_error("tokenize failed");
-    }
-
-    std::vector<llama_token> tokens(n_tokens);
-
-    llama_tokenize(
-            vocab,
-            prompt.c_str(),
-            static_cast<int>(prompt.size()),
-            tokens.data(),
-            static_cast<int>(tokens.size()),
-            true,
-            true
-    );
-
-    //----------------------------------------
-    // decode prompt
-    //----------------------------------------
-
-    llama_batch batch = llama_batch_get_one(
-            tokens.data(),
-            static_cast<int>(tokens.size())
-    );
-
-    if (llama_decode(ctx, batch) != 0) {
-        throw std::runtime_error("decode prompt failed");
-    }
-
-    //----------------------------------------
-    // stop words
-    //----------------------------------------
-
-    static const std::vector<std::string> stop_words = {
-            "<|im_end|>",
-            "<|im_start|>",
-            "<|eot_id|>",
-            "<|endoftext|>",
-            "User:",
-            "Assistant:",
-            "\nUser",
-            "\nAssistant"
-    };
-
-    //----------------------------------------
-    // generate
-    //----------------------------------------
-
-    std::string result;
-
-    for (int i = 0; i < max_tokens; i++) {
-        llama_token token = llama_sampler_sample(
-                sampler,
-                ctx,
-                -1
-        );
-
-        //----------------------------------------
-        // EOS
-        //----------------------------------------
-
-        if (llama_vocab_is_eog(vocab, token)) {
-            break;
-        }
-
-        //----------------------------------------
-        // token -> text
-        //----------------------------------------
-
-        std::string piece = token_to_piece(token);
-
-        if (piece.empty()) {
-            continue;
-        }
-
-        //----------------------------------------
-        // 特殊token
-        //----------------------------------------
-
-        if (piece.find("<|") != std::string::npos) {
-            break;
-        }
-
-        result += piece;
-
-        //----------------------------------------
-        // Stop Word
-        //----------------------------------------
-
-        bool stop = false;
-
-        for (const auto& s : stop_words) {
-            auto pos = result.find(s);
-
-            if (pos != std::string::npos) {
-                result.erase(pos);
-                stop = true;
-                break;
-            }
-        }
-
-        if (stop) {
-            break;
-        }
-
-        //----------------------------------------
-        // decode next
-        //----------------------------------------
-
-        batch = llama_batch_get_one(&token, 1);
-
-        if (llama_decode(ctx, batch) != 0) {
-            throw std::runtime_error("decode token failed");
-        }
-    }
-
-    //----------------------------------------
-    // trim
-    //----------------------------------------
-
-    auto begin = result.find_first_not_of(" \t\r\n");
-
-    if (begin == std::string::npos) {
+    if (!raw_generate_seh(ctx, vocab, sampler,
+                           prompt.c_str(), (int)prompt.size(),
+                           max_tokens, buf, sizeof(buf), &outLen)) {
+        std::cerr << "generate() SEH crashed or failed" << std::endl;
+        std::cerr.flush();
         return "";
     }
 
-    auto end = result.find_last_not_of(" \t\r\n");
-
-    return result.substr(begin, end - begin + 1);
+    return std::string(buf, outLen);
 }
 
 std::string Translator::Impl::translate(

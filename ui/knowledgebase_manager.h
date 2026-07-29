@@ -31,6 +31,7 @@ public:
     // CRUD
     bool addEntry(const KnowledgeEntry& entry, int* outId = nullptr);
     bool deleteEntry(int id);
+    int deleteEntries(const QList<int>& ids);  // 批量删除，返回成功删除数
     QList<KnowledgeEntry> getAllEntries(int limit = 100, int offset = 0);
     KnowledgeEntry getEntry(int id);
     int entryCount() const;
