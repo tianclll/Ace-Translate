@@ -25,15 +25,6 @@
 #include "docmind/core/GlobalEngineContext.hpp"
 #include <windows.h>
 
-// safe_extract_file 在 src/safe_engine.cpp 中实现（extern "C"）
-extern "C" bool safe_extract_file(
-    const char* filePath,
-    const char* baseDir,
-    const char* ext,
-    char* outBuf,
-    int outBufSize,
-    int* outLen);
-
 
 
 // ============================================================
@@ -449,16 +440,24 @@ void KnowledgeBasePage::processNextFile() {
             ctx.ensureOCREngine();
             ctx.ensureLayoutDetector();
             std::string baseDirStr = pendingBaseDir_.toStdString();
-            char mdBuf[1024 * 64] = {0};
-            int mdLen = 0;
-            if (safe_extract_file(task.filePath.toStdString().c_str(),
-                                   baseDirStr.c_str(),
-                                   ext.toStdString().c_str(),
-                                   mdBuf, sizeof(mdBuf), &mdLen)) {
-                markdown = QString::fromUtf8(mdBuf, mdLen);
-                parseOk = true;
-            } else {
-                markdown = "解析失败: 引擎异常";
+            try {
+                std::string outPath;
+                if (ext == "pdf") {
+                    outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200);
+                } else {
+                    outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200, true, false);
+                }
+                QFile f(QString::fromStdString(outPath));
+                if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                    markdown = QString::fromUtf8(f.readAll());
+                    f.close();
+                    parseOk = true;
+                }
+                QFile::remove(QString::fromStdString(outPath));
+            } catch (const std::exception& e) {
+                markdown = QStringLiteral("解析失败: %1").arg(e.what());
+            } catch (...) {
+                markdown = "解析失败: 未知错误";
             }
         }
 
