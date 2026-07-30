@@ -77,7 +77,7 @@ private:
     void finishEntry(const ImportTask& task, const QString& markdown);
     QWidget* createListItem(int id, const QString& title, const QString& date,
                             const QString& fileType, const QStringList& tags,
-                            const QString& summary);
+                            const QString& summary, const QString& keyword = QString());
     void updateBatchBar();
     std::string extract_image_text(const std::string& image_path);
     std::string extract_pdf_text(const std::string& pdf_path, const std::string& base_dir, int dpi);

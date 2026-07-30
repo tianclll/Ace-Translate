@@ -15,6 +15,7 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QTimer>
+#include <QRegularExpression>
 #include <QScrollBar>
 #include <QDesktopServices>
 #include <QUrl>
@@ -153,6 +154,7 @@ void KnowledgeBasePage::setupUI() {
     dateFrom_->setFixedHeight(30);
     dateFrom_->setFixedWidth(130);
     dateFrom_->setSpecialValueText("起始日期");
+    dateFrom_->setDate(QDate::currentDate().addMonths(-3));
     connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     toolbarLayout->addWidget(dateFrom_, 0);
 
@@ -166,6 +168,7 @@ void KnowledgeBasePage::setupUI() {
     dateTo_->setFixedHeight(30);
     dateTo_->setFixedWidth(130);
     dateTo_->setSpecialValueText("截止日期");
+    dateTo_->setDate(QDate::currentDate());
     connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     toolbarLayout->addWidget(dateTo_, 0);
 
@@ -344,7 +347,7 @@ void KnowledgeBasePage::refreshList() {
         auto tags = km.getDocumentTagNames(doc.id);
         QString summary = doc.summary.isEmpty() ? "(暂无摘要)" : doc.summary;
         auto* item = createListItem(doc.id, doc.title,
-            doc.createdAt.toString("yyyy-MM-dd HH:mm"), doc.fileType.toUpper(), tags, summary);
+            doc.createdAt.toString("yyyy-MM-dd HH:mm"), doc.fileType.toUpper(), tags, summary, keyword);
         listLayout_->insertWidget(listLayout_->count() - 1, item);
     }
 }
@@ -354,7 +357,7 @@ void KnowledgeBasePage::refreshList() {
 // ============================================================
 QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     const QString& date, const QString& fileType,
-    const QStringList& tags, const QString& summary) {
+    const QStringList& tags, const QString& summary, const QString& keyword) {
     auto* item = new QFrame;
     item->setProperty("docId", id);
     item->setStyleSheet(
@@ -384,6 +387,15 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     });
     headerLayout->addWidget(checkBox);
 
+    // 高亮辅助函数
+    auto highlightText = [](const QString& text, const QString& kw) -> QString {
+        if (kw.isEmpty()) return text.toHtmlEscaped();
+        QString escaped = text.toHtmlEscaped();
+        // 转义后做大小写不敏感匹配
+        QRegularExpression re(QRegularExpression::escape(kw), QRegularExpression::CaseInsensitiveOption);
+        return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\0</span>");
+    };
+
     // 文件类型图标
     QString iconRes = ":/icons/file.png";
     QString ext = fileType.toLower();
@@ -406,7 +418,8 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     auto* nameLayout = new QVBoxLayout;
     nameLayout->setContentsMargins(0, 0, 0, 0);
     nameLayout->setSpacing(2);
-    auto* titleLbl = new QLabel(title);
+    auto* titleLbl = new QLabel(highlightText(title, keyword));
+    titleLbl->setTextFormat(Qt::RichText);
     titleLbl->setStyleSheet("font-weight: 500; font-size: 13px; color: #1C1C1E; background: transparent; border: none;");
     nameLayout->addWidget(titleLbl);
 
