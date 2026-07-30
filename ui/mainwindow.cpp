@@ -3448,6 +3448,7 @@ void MainWindow::onWorkerFinished(const QString& result) {
                             entry.fileSize = fi.size();
                             if (fileLangCombo_) entry.translatedLang = fileLangCombo_->currentText();
 
+                            int newDocId = -1;
                             // 读取生成的 .md 文件
                             QFile f(resultForArchive);
                             if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -3455,7 +3456,7 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 entry.markdownContent = in.readAll();
                                 f.close();
                             }
-                            if (km.addEntry(entry)) {
+                            if (km.addEntry(entry, &newDocId) && newDocId > 0) {
                                 archiveBtn->setText(tr("Archived"));
                                 archiveBtn->setEnabled(false);
                                 archiveBtn->setStyleSheet(
@@ -3466,6 +3467,37 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 // 知识库页面显示 Toast 通知
                                 if (knowledgePage_) {
                                     ToastNotification::show(knowledgePage_, tr("Document archived: %1").arg(fi.fileName()), 4000, QColor(11, 124, 114));
+                                }
+                                // 后台生成摘要
+                                if (knowledgePage_ && !entry.markdownContent.isEmpty()) {
+                                    int savedId = newDocId;
+                                    QString savedMd = entry.markdownContent;
+                                    std::thread([this, savedId, savedMd]() {
+                                        QString summary;
+                                        auto& ctx = docmind::GlobalEngineContext::getInstance();
+                                        if (ctx.ensureSummarizerEngine()) {
+                                            if (auto* engine = ctx.getSummarizerEngine()) {
+                                                std::string text_utf8 = savedMd.toUtf8().constData();
+                                                if (text_utf8.length() > 4000) {
+                                                    text_utf8 = text_utf8.substr(0, 4000);
+                                                }
+                                                std::string aiResult = engine->summarize(text_utf8, 4096);
+                                                if (!aiResult.empty()) {
+                                                    summary = QString::fromUtf8(aiResult.c_str());
+                                                }
+                                            }
+                                        }
+                                        if (summary.isEmpty()) {
+                                            QString plain = savedMd.simplified();
+                                            if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                                            summary = plain.left(200);
+                                            if (plain.length() > 200) summary += "……";
+                                        }
+                                        QMetaObject::invokeMethod(this, [this, savedId, summary]() {
+                                            KnowledgeBaseManager::getInstance().updateSummary(savedId, summary);
+                                            if (knowledgePage_) knowledgePage_->refreshList();
+                                        }, Qt::QueuedConnection);
+                                    }).detach();
                                 }
                             } else {
                                 statusBar_->showMessage(tr("Archive failed"), 3000);
