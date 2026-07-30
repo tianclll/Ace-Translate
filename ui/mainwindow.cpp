@@ -658,22 +658,30 @@ void MainWindow::setupUI() {
     navPanel_->setMaximumWidth(120);
     auto* navLayout = new QVBoxLayout(navPanel_);
     navLayout->setContentsMargins(0, 8, 4, 8);  // 左边距0，container竖杠紧贴边框
-    navLayout->setSpacing(2);
+    navLayout->setSpacing(8);
     navLayout->setAlignment(Qt::AlignTop);
 
-    // 前 6 个导航按钮 (Text / Float / Screenshot / Photo / File / KnowledgeBase)
-    struct NavDef { const char* icon; const char* label_cn; const char* label_en; };
+    // 导航按钮 (icon + 翻译标签)
+    struct NavDef { const char* icon; };
     NavDef navDefs[] = {
-        { ":/icons/text.png", "文本翻译", "Text Translation" },
-        { ":/icons/selection.png", "划词翻译", "Selection Translation" },
-        { ":/icons/screenshot.png", "截图翻译", "Screenshot Translation" },
-        { ":/icons/image_.png", "图片翻译", "Image Translation" },
-        { ":/icons/file.png", "文件翻译", "File Translation" },
-        { ":/icons/knowledge.png", "知识库", "Knowledge Base" },
+        { ":/icons/text.png" },
+        { ":/icons/selection.png" },
+        { ":/icons/screenshot.png" },
+        { ":/icons/image_.png" },
+        { ":/icons/file.png" },
+        { ":/icons/knowledge.png" },
+    };
+    QString navLabels[] = {
+        tr("Text Translation"),
+        tr("Selection Translation"),
+        tr("Screenshot Translation"),
+        tr("Image Translation"),
+        tr("File Translation"),
+        tr("Knowledge Base"),
     };
     for (int i = 0; i < 6; ++i) {
         navLayout->addWidget(createNavButton(i, QString::fromUtf8(navDefs[i].icon),
-                                              tr(navDefs[i].label_en)));
+                                              navLabels[i]));
     }
 
     // 弹簧
@@ -780,7 +788,7 @@ QWidget* MainWindow::createNavButton(int index, const QString& iconPath,
     btn->setIconSize(QSize(24, 24));
     btn->setCheckable(true);
     btn->setCursor(Qt::PointingHandCursor);
-    btn->setFixedSize(52, 52);
+    btn->setFixedSize(40, 40);
     btn->installEventFilter(this);
 
     // 确保 navButtons_ 有足够空间
@@ -2524,6 +2532,7 @@ QWidget* MainWindow::createSettingsPanel() {
         form->addWidget(makeLoadCheck(tr("Layout Analysis"), "enable_layout"));
         form->addWidget(makeLoadCheck(tr("Image Correction"), "enable_docproc"));
         form->addWidget(makeLoadCheck(tr("Speech Recognition"), "enable_asr"));
+        form->addWidget(makeLoadCheck(tr("Summarization Engine"), "enable_summarizer"));
 
         layout->addWidget(group);
     }
@@ -2581,6 +2590,7 @@ QWidget* MainWindow::createSettingsPanel() {
         auto* gpuDocprocCheck = makeGpuCheck(tr("Image Correction GPU"), "enable_gpu_docproc");
         auto* gpuTransCheck = makeGpuCheck(tr("Translator GPU"), "enable_gpu_translator");
         auto* gpuAsrCheck = makeGpuCheck(tr("ASR GPU"), "enable_gpu_asr");
+        auto* gpuSummarizerCheck = makeGpuCheck(tr("Summarizer GPU"), "enable_gpu_summarizer");
 
         gpuSubLayout->addWidget(gpuLayoutCheck);
         gpuSubLayout->addWidget(gpuOcrCheck);
@@ -2588,16 +2598,18 @@ QWidget* MainWindow::createSettingsPanel() {
         gpuSubLayout->addWidget(gpuDocprocCheck);
         gpuSubLayout->addWidget(gpuTransCheck);
         gpuSubLayout->addWidget(gpuAsrCheck);
+        gpuSubLayout->addWidget(gpuSummarizerCheck);
 
         gpuForm->addWidget(gpuSubWidget);
 
-        connect(gpuMasterCheck, &QCheckBox::toggled, this, [gpuLayoutCheck, gpuOcrCheck, gpuVlmCheck, gpuDocprocCheck, gpuTransCheck, gpuAsrCheck](bool checked) {
+        connect(gpuMasterCheck, &QCheckBox::toggled, this, [gpuLayoutCheck, gpuOcrCheck, gpuVlmCheck, gpuDocprocCheck, gpuTransCheck, gpuAsrCheck, gpuSummarizerCheck](bool checked) {
             gpuLayoutCheck->setChecked(checked);
             gpuOcrCheck->setChecked(checked);
             gpuVlmCheck->setChecked(checked);
             gpuDocprocCheck->setChecked(checked);
             gpuTransCheck->setChecked(checked);
             gpuAsrCheck->setChecked(checked);
+            gpuSummarizerCheck->setChecked(checked);
         });
 
         layout->addWidget(gpuGroup);

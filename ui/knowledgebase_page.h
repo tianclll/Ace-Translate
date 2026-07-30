@@ -62,23 +62,30 @@ private slots:
     void onAddNewTag();
     void onSearchTextChanged(const QString& text);
     void onTagFilterChanged(int index);
+    void onSelectAll();
     void onBatchDelete();
     void onBatchChangeTags();
+    void onSummaryReady(int docId, const QString& summary);
 
 private:
     void setupUI();
     QString generateSummary(const QString& markdown);
     /// 逐个处理下一个文件（由 QTimer 驱动）
     void processNextFile(int myGen = 0);
+    void finishEntry(const ImportTask& task, const QString& markdown);
     QWidget* createListItem(int id, const QString& title, const QString& date,
                             const QString& fileType, const QStringList& tags,
                             const QString& summary);
     void updateBatchBar();
+    std::string extract_image_text(const std::string& image_path);
+    std::string extract_pdf_text(const std::string& pdf_path, const std::string& base_dir, int dpi);
 
     // ---- UI 控件 ----
     DropZoneWidget* dropZone_ = nullptr;
     QLineEdit* searchInput_ = nullptr;
     QComboBox* tagFilterCombo_ = nullptr;
+    QPushButton* selectAllBtn_ = nullptr;
+    bool allSelected_ = false;
 
     // 文档列表
     QWidget* listContainer_ = nullptr;
@@ -100,7 +107,11 @@ private:
     int importCount_ = 0;
     int processIndex_ = 0;
     bool isImporting_ = false;
-    int importGeneration_ = 0;  // 递增计数，使旧定时器链失效
+    int importGeneration_ = 0;
     QList<ImportTask> pendingTasks_;
     QString pendingBaseDir_;
+
+    // 后台处理线程
+    QThread* workerThread_ = nullptr;
+    bool processing_ = false;
 };

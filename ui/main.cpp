@@ -28,12 +28,20 @@
 #include <fcntl.h>
 #include <cstdlib>  // for _putenv_s
 static int saved_stderr = -1;
+
+// 全局 SEH 兜底：防止 ONNX/CUDA/OpenCV 崩溃导致整个程序退出
+static LONG WINAPI sehVectoredHandler(PEXCEPTION_POINTERS) {
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 static void mute_libpng() { saved_stderr = _dup(2); FILE* n; freopen_s(&n, "nul", "w", stderr); }
 static void unmute_libpng() { if (saved_stderr >= 0) { _dup2(saved_stderr, 2); _close(saved_stderr); saved_stderr = -1; } }
 
 extern QTranslator s_translator;
 
 int main(int argc, char* argv[]) {
+    // 注册全局 SEH 处理器（捕获所有线程的崩溃，防止 ONNX/CUDA 导致程序退出）
+    AddVectoredExceptionHandler(1, sehVectoredHandler);
+
     // CPU 版：禁止 onnxruntime 加载 CUDA provider
 #ifndef GGML_USE_CUDA
     _putenv_s("ORT_DISABLE_ALL_PROVIDERS", "1");

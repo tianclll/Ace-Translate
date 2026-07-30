@@ -23,10 +23,15 @@
 
 #include "docmind/DocumentEngine.h"
 #include "docmind/core/GlobalEngineContext.hpp"
+#include "docmind/engines/OCREngine.hpp"
+
+#include <opencv2/opencv.hpp>
 
 #include <windows.h>
 #include <dbghelp.h>
 #include <fstream>
+#include <fpdfview.h>
+#include <fpdf_edit.h>
 
 // ============================================================
 // 全局 VEH — 崩溃时记录堆栈到 D:\crash_log.txt
@@ -160,6 +165,14 @@ void KnowledgeBasePage::setupUI() {
     batchBtn->setFixedHeight(30);
     connect(batchBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchImport);
     toolbarLayout->addWidget(batchBtn);
+
+    selectAllBtn_ = new QPushButton("全选");
+    selectAllBtn_->setFixedHeight(30);
+    selectAllBtn_->setStyleSheet(
+        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 12px; background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+    connect(selectAllBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onSelectAll);
+    toolbarLayout->addWidget(selectAllBtn_);
     layout->addWidget(toolbar);
 
     // ---- 文档列表（占满剩余高度） ----
@@ -245,6 +258,8 @@ void KnowledgeBasePage::refreshList() {
         delete item;
     }
     checkedDocIds_.clear();
+    allSelected_ = false;
+    if (selectAllBtn_) selectAllBtn_->setText("全选");
     updateBatchBar();
 
     auto& km = KnowledgeBaseManager::getInstance();
@@ -488,7 +503,89 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 }
 
 // ============================================================
+// extract_image_text — 直接用 OCR 引擎识别图片（绕过 FileTranslationModule 避免 ReleaseProcessor 崩溃）
+// ============================================================
+std::string KnowledgeBasePage::extract_image_text(const std::string& image_path) {
+    cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR);
+    if (img.empty()) return "";
+
+    auto& ctx = docmind::GlobalEngineContext::getInstance();
+    if (!ctx.ensureOCREngine()) return "";
+    if (auto* engine = ctx.getOCREngine()) {
+        auto results = engine->recognizeBuffer(img);
+        std::string text;
+        for (const auto& r : results) {
+            if (!r.text.empty()) {
+                text += r.text + "\n";
+            }
+        }
+        return text;
+    }
+    return "";
+}
+
+// ============================================================
+// extract_pdf_text — 用 PDFium 渲染 PDF 为图片，再用 OCR 识别
+// ============================================================
+std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, const std::string& base_dir, int dpi) {
+    std::vector<cv::Mat> pages;
+    // PDF 渲染（和 FileTranslationModule::pdf_to_images 相同逻辑）
+    {
+        std::ifstream file(pdf_path, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) return "";
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<unsigned char> data(size);
+        file.read(reinterpret_cast<char*>(data.data()), size);
+        file.close();
+
+        FPDF_DOCUMENT doc = FPDF_LoadMemDocument(data.data(), static_cast<int>(size), nullptr);
+        if (!doc) return "";
+
+        int page_count = FPDF_GetPageCount(doc);
+        for (int i = 0; i < page_count; ++i) {
+            FPDF_PAGE page = FPDF_LoadPage(doc, i);
+            if (!page) continue;
+            int w = static_cast<int>(FPDF_GetPageWidth(page) * dpi / 72);
+            int h = static_cast<int>(FPDF_GetPageHeight(page) * dpi / 72);
+            FPDF_BITMAP bitmap = FPDFBitmap_Create(w, h, 0);
+            FPDFBitmap_FillRect(bitmap, 0, 0, w, h, 0xFFFFFFFF);
+            FPDF_RenderPageBitmap(bitmap, page, 0, 0, w, h, 0, 0);
+            unsigned char* buf = static_cast<unsigned char*>(FPDFBitmap_GetBuffer(bitmap));
+            cv::Mat mat(h, w, CV_8UC4, buf);
+            cv::Mat rgb;
+            cv::cvtColor(mat, rgb, cv::COLOR_BGRA2BGR);
+            pages.push_back(rgb);
+            FPDFBitmap_Destroy(bitmap);
+            FPDF_ClosePage(page);
+        }
+        FPDF_CloseDocument(doc);
+    }
+
+    if (pages.empty()) return "";
+
+    auto& ctx = docmind::GlobalEngineContext::getInstance();
+    if (!ctx.ensureOCREngine()) return "";
+    if (auto* engine = ctx.getOCREngine()) {
+        std::string full_text;
+        for (const auto& page : pages) {
+            auto results = engine->recognizeBuffer(page);
+            for (const auto& r : results) {
+                if (!r.text.empty()) {
+                    full_text += r.text + "\n";
+                }
+            }
+        }
+        return full_text;
+    }
+    return "";
+}
+
+// ============================================================
 // processNextFile — 逐文件处理，每次处理完用 QTimer::singleShot(0)
+// 调度下一个，让事件循环自然流转（不用 processEvents 泵入事件）
+// myGen: 本次操作的代次，用于使旧定时器链失效
+// ============================================================
 // 调度下一个，让事件循环自然流转（不用 processEvents 泵入事件）
 // myGen: 本次操作的代次，用于使旧定时器链失效
 // ============================================================
@@ -511,61 +608,61 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     const ImportTask& task = pendingTasks_[processIndex_];
     emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(processIndex_ + 1).arg(pendingTasks_.size()));
 
-    // 只读 md/txt 文件内容
-    QString markdown;
+    // 解析文件内容（md/txt 直接读取，其他通过引擎提取为 markdown）
     QString ext = task.fileType;
     if (ext == "md" || ext == "txt") {
+        // md/txt 轻量操作可以在主线程完成
+        QString markdown;
         QFile f(task.filePath);
         if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
             markdown = QString::fromUtf8(f.readAll());
             f.close();
         }
-    }
+        processIndex_++;
+        finishEntry(task, markdown);
+        QTimer::singleShot(0, this, [this, myGen]() {
+            processNextFile(myGen);
+        });
+    } else {
+        // 图片/PDF/Excel 等在后台线程处理，避免阻塞 UI
+        QString filePath = task.filePath;
+        QString fileName = task.title;
+        QString fileType = task.fileType;
+        qint64 fileSize = task.fileSize;
+        processIndex_++;
 
-    // 入库
-    auto& km = KnowledgeBaseManager::getInstance();
-    KnowledgeEntry entry;
-    entry.title = task.title;
-    entry.fileType = task.fileType;
-    entry.sourcePath = task.filePath;
-    entry.fileSize = task.fileSize;
-    entry.markdownContent = markdown;
-    int newId = -1;
-    if (km.addEntry(entry, &newId)) {
-        if (!markdown.trimmed().isEmpty()) {
-            QString summary;
-            // 使用翻译引擎（Hy-MT2）生成 AI 摘要
-            auto& ctx = docmind::GlobalEngineContext::getInstance();
-            if (ctx.ensureSummarizerEngine()) {
-                if (auto* engine = ctx.getSummarizerEngine()) {
-                    std::string text_utf8 = markdown.toUtf8().constData();
-                    if (text_utf8.length() > 4000) {
-                        text_utf8 = text_utf8.substr(0, 4000);
-                    }
-                    std::string aiResult = engine->summarize(text_utf8, 4096);
-                    if (!aiResult.empty()) {
-                        summary = QString::fromUtf8(aiResult.c_str());
-                    }
+        auto onFinish = [this, fileName, fileType, filePath, fileSize, myGen](QString markdown) {
+            ImportTask t;
+            t.filePath = filePath;
+            t.title = fileName;
+            t.fileType = fileType;
+            t.fileSize = fileSize;
+            finishEntry(t, markdown);
+            QTimer::singleShot(0, this, [this, myGen]() {
+                processNextFile(myGen);
+            });
+        };
+
+        std::thread([onFinish, filePath, fileType]() {
+            QString md;
+            try {
+                std::string baseDir = QCoreApplication::applicationDirPath().toStdString();
+                auto& cfg = docmind::ConfigManager::getInstance();
+                float threshold = cfg.getNestedJson("defaults").value("layout_threshold", nlohmann::json(0.5)).get<float>();
+                int dpi = static_cast<int>(cfg.getNestedJson("defaults").value("pdf_dpi", nlohmann::json(200)).get<double>());
+                std::string extracted = extract_file_text(
+                    filePath.toStdString(), "", baseDir,
+                    threshold, dpi, false, false);
+                if (!extracted.empty()) {
+                    md = QString::fromStdString(extracted);
                 }
-            }
-            // 回退：简单截断
-            if (summary.isEmpty()) {
-                QString plain = markdown.simplified();
-                if (plain.length() > 2000) plain = plain.left(2000) + "……";
-                summary = plain.left(200);
-                if (plain.length() > 200) summary += "……";
-            }
-            km.updateSummary(newId, summary);
-        }
-        importCount_++;
+            } catch (...) {}
+            // 回到主线程入库
+            QMetaObject::invokeMethod(QCoreApplication::instance(), [onFinish, md]() {
+                onFinish(md);
+            }, Qt::QueuedConnection);
+        }).detach();
     }
-
-    processIndex_++;
-
-    // 调度下一个文件（事件循环自然流转，不泵入事件）
-    QTimer::singleShot(0, this, [this, myGen]() {
-        processNextFile(myGen);
-    });
 }
 
 void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
@@ -585,6 +682,58 @@ QString KnowledgeBasePage::generateSummary(const QString& markdown) {
         if (result.length() > 200) result = result.left(200) + "……";
         return result;
     } catch (...) { return plain.left(200); }
+}
+
+// ============================================================
+// finishEntry — 入库 + 后台生成摘要
+// ============================================================
+void KnowledgeBasePage::finishEntry(const ImportTask& task, const QString& markdown) {
+    auto& km = KnowledgeBaseManager::getInstance();
+    KnowledgeEntry entry;
+    entry.title = task.title;
+    entry.fileType = task.fileType;
+    entry.sourcePath = task.filePath;
+    entry.fileSize = task.fileSize;
+    entry.markdownContent = markdown;
+    int newId = -1;
+    if (km.addEntry(entry, &newId)) {
+        importCount_++;
+        if (!markdown.trimmed().isEmpty()) {
+            // 后台线程生成摘要
+            QString savedMarkdown = markdown;
+            int savedId = newId;
+            std::thread([this, savedMarkdown, savedId]() {
+                QString summary;
+                auto& ctx = docmind::GlobalEngineContext::getInstance();
+                if (ctx.ensureSummarizerEngine()) {
+                    if (auto* engine = ctx.getSummarizerEngine()) {
+                        std::string text_utf8 = savedMarkdown.toUtf8().constData();
+                        if (text_utf8.length() > 4000) {
+                            text_utf8 = text_utf8.substr(0, 4000);
+                        }
+                        std::string aiResult = engine->summarize(text_utf8, 4096);
+                        if (!aiResult.empty()) {
+                            summary = QString::fromUtf8(aiResult.c_str());
+                        }
+                    }
+                }
+                if (summary.isEmpty()) {
+                    QString plain = savedMarkdown.simplified();
+                    if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                    summary = plain.left(200);
+                    if (plain.length() > 200) summary += "……";
+                }
+                QMetaObject::invokeMethod(this, [this, savedId, summary]() {
+                    onSummaryReady(savedId, summary);
+                }, Qt::QueuedConnection);
+            }).detach();
+        }
+    }
+}
+
+void KnowledgeBasePage::onSummaryReady(int docId, const QString& summary) {
+    KnowledgeBaseManager::getInstance().updateSummary(docId, summary);
+    refreshList();
 }
 
 // ============================================================
@@ -622,6 +771,33 @@ void KnowledgeBasePage::updateBatchBar() {
     int n = checkedDocIds_.size();
     batchCountLabel_->setText(QStringLiteral("已选择 %1 项").arg(n));
     batchBar_->setVisible(n > 0);
+}
+
+void KnowledgeBasePage::onSelectAll() {
+    allSelected_ = !allSelected_;
+    if (allSelected_) {
+        // 收集当前列表中的所有 docId
+        auto& km = KnowledgeBaseManager::getInstance();
+        QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
+        int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
+        QList<KnowledgeEntry> docs;
+        if (!keyword.isEmpty()) docs = km.searchEntries(keyword);
+        else if (tagFilter > 0) docs = km.getEntriesByTag(tagFilter);
+        else docs = km.getAllEntries();
+        for (const auto& doc : docs) {
+            checkedDocIds_.insert(doc.id);
+        }
+        selectAllBtn_->setText("取消全选");
+    } else {
+        checkedDocIds_.clear();
+        selectAllBtn_->setText("全选");
+    }
+    // 同步所有 list item 的 checkbox
+    for (QCheckBox* cb : findChildren<QCheckBox*>()) {
+        if (cb->property("docId").isValid())
+            cb->setChecked(allSelected_);
+    }
+    updateBatchBar();
 }
 
 void KnowledgeBasePage::onBatchDelete() {

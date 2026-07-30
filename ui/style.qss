@@ -124,13 +124,14 @@ QPlainTextEdit:read-only {
 QPushButton#navBtn {
     background-color: transparent;
     border: none;
-    border-radius: 12px;
-    min-width: 52px;
-    min-height: 52px;
+    border-radius: 6px;
+    min-width: 40px;
+    min-height: 40px;
     font-size: 18px;
 }
 QPushButton#navBtn:hover {
     background-color: #E8F0EF;
+    border-radius: 6px;
 }
 QPushButton#navBtn:checked {
     background-color: transparent;
