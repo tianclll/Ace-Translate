@@ -52,6 +52,7 @@ set(SOURCES
         src/engines/OCREngine.cpp
         src/engines/VLMEngine.cpp
         src/engines/TranslatorEngine.cpp
+        src/engines/SummarizerEngine.cpp
         src/engines/ASREngine.cpp
 
         src/utils/ImageUtils.cpp
@@ -93,6 +94,7 @@ target_link_libraries(${PROJECT_NAME} ole32 sapi winmm)
 
 # ====== deps 子项目（GPU 版：定义 GGML_USE_CUDA）======
 add_subdirectory(deps/translator)
+add_subdirectory(deps/summarizer)
 add_subdirectory(deps/vlm)
 add_subdirectory(deps/ocr)
 add_subdirectory(deps/doclayout)
@@ -100,7 +102,7 @@ add_subdirectory(deps/uvdoc)
 add_subdirectory(deps/asr)
 
 # ====== 自动复制 DLL ======
-foreach(TGT ocr doclayout vlm_visual translator DocumentImageProcessor asr)
+foreach(TGT ocr doclayout vlm_visual translator summarizer DocumentImageProcessor asr)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:${TGT}>

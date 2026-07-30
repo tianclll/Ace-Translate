@@ -195,6 +195,36 @@ namespace docmind {
         }
     }
 
+    bool GlobalEngineContext::ensureSummarizerEngine() {
+        if (summarizer_) return true;
+        if (!dll_loader_) { std::cerr << "GlobalEngineContext not initialized.\n"; return false; }
+
+        auto& config = ConfigManager::getInstance();
+        auto dlls = config.getJson("dlls");
+        auto models = config.getJson("models");
+        auto defaults = config.getNestedJson("defaults");
+
+        if (!dll_loader_->summarizerLoaded()) {
+            std::string dll_path = base_dir_ + "\\" + dlls.value("summarizer", "summarizer.dll");
+            if (!dll_loader_->loadSummarizerDLL(dll_path)) return false;
+        }
+
+        bool gpu = defaults.value("enable_gpu_summarizer", nlohmann::json(true)).get<bool>();
+        int gpu_layers = gpu ? config.getInt("gpu_layers", 99) : 0;
+        std::string summ_model = models.value("summarizer", "models/summary/qwen2.5-1.5b-instruct-q3_k_m.gguf");
+        try {
+            summarizer_ = std::make_unique<SummarizerEngine>(
+                *dll_loader_,
+                base_dir_ + "\\" + summ_model,
+                gpu_layers);
+            std::cout << "Summarizer engine loaded on demand.\n";
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Summarizer on-demand init failed: " << e.what() << "\n";
+            return false;
+        }
+    }
+
     bool GlobalEngineContext::ensureASREngine() {
         if (asr_) return true;
         if (!dll_loader_) { std::cerr << "GlobalEngineContext not initialized.\n"; return false; }

@@ -534,12 +534,11 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     if (km.addEntry(entry, &newId)) {
         if (!markdown.trimmed().isEmpty()) {
             QString summary;
-            // 尝试使用翻译引擎（Hy-MT2）生成 AI 摘要
+            // 使用翻译引擎（Hy-MT2）生成 AI 摘要
             auto& ctx = docmind::GlobalEngineContext::getInstance();
-            if (ctx.ensureTranslatorEngine()) {
-                if (auto* engine = ctx.getTranslatorEngine()) {
+            if (ctx.ensureSummarizerEngine()) {
+                if (auto* engine = ctx.getSummarizerEngine()) {
                     std::string text_utf8 = markdown.toUtf8().constData();
-                    // 限制输入长度，避免超出模型上下文窗口
                     if (text_utf8.length() > 4000) {
                         text_utf8 = text_utf8.substr(0, 4000);
                     }

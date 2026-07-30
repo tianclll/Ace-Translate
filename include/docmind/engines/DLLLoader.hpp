@@ -111,6 +111,20 @@ namespace docmind {
         TranslatorSummarizeFunc translator_summarize = nullptr;
         TranslatorFreeStringFunc translator_free_string = nullptr;
 
+        // ---------- Summarizer 函数指针 ----------
+        using SummarizerCreateFunc = void* (*)(const char*, int);
+        using SummarizerDestroyFunc = void (*)(void*);
+        using SummarizerSummarizeFunc = const char* (*)(void*, const char*, int);
+        using SummarizerFreeStringFunc = void (*)(const char*);
+
+        SummarizerCreateFunc summarizer_create = nullptr;
+        SummarizerDestroyFunc summarizer_destroy = nullptr;
+        SummarizerSummarizeFunc summarizer_summarize = nullptr;
+        SummarizerFreeStringFunc summarizer_free_string = nullptr;
+
+        /// 加载 Summarizer DLL
+        bool loadSummarizerDLL(const std::string& dll_path);
+
         // ---------- UVDoc 函数指针 ----------
         using DocProcCreateFunc = void* (*)();
         using DocProcInitFunc = bool (*)(void*, const char*, bool, int);
@@ -139,6 +153,7 @@ namespace docmind {
         bool ocrLoaded() const { return ocr_handle_ != nullptr; }
         bool vlmLoaded() const { return vlm_handle_ != nullptr; }
         bool translatorLoaded() const { return translator_handle_ != nullptr; }
+        bool summarizerLoaded() const { return summarizer_handle_ != nullptr; }
         bool loadDocumentImageProcessorDLL(const std::string& dll_path);
         bool docprocLoaded() const { return docproc_handle_ != nullptr; }
         bool asrLoaded() const { return asr_handle_ != nullptr; }
@@ -148,6 +163,7 @@ namespace docmind {
         DLL_HANDLE ocr_handle_ = nullptr;
         DLL_HANDLE vlm_handle_ = nullptr;
         DLL_HANDLE translator_handle_ = nullptr;
+        DLL_HANDLE summarizer_handle_ = nullptr;
         DLL_HANDLE docproc_handle_ = nullptr;
         DLL_HANDLE asr_handle_ = nullptr;
     };

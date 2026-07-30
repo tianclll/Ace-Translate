@@ -12,6 +12,7 @@ namespace docmind {
                 {"ocr", "ocr.dll"},
                 {"vlm", "vlm_visual.dll"},
                 {"translator", "translator.dll"},
+                {"summarizer", "summarizer.dll"},
                 {"docproc", "DocumentImageProcessor.dll"}
             }},
             {"models", {
@@ -20,6 +21,7 @@ namespace docmind {
                 {"vlm", "models/VLM/PaddleOCR-VL-1.6-GGUF.gguf"},
                 {"vlm_mmproj", "models/VLM/PaddleOCR-VL-1.6-GGUF-mmproj.gguf"},
                 {"translator", "models/translation/Hy-MT2-1.8B-Q4_K_M.gguf"},
+                {"summarizer", "models/summary/qwen2.5-1.5b-instruct-q3_k_m.gguf"},
                 {"docproc", "models/uvdoc/UVDoc_grid.onnx"}
             }},
             {"defaults", {
@@ -37,6 +39,8 @@ namespace docmind {
                 {"enable_gpu_layout", true},
                 {"enable_gpu_docproc", true},
                 {"enable_gpu_asr", true},
+                {"enable_gpu_summarizer", true},
+                {"summ_model", "qwen2.5-1.5b-instruct-q3_k_m.gguf"},
                 {"gpu_device_id", 0},
                 {"ocr_model_size", "tiny"},
                 {"enable_ocr", false},

@@ -8,6 +8,7 @@
 #include "docmind/engines/OCREngine.hpp"
 #include "docmind/engines/VLMEngine.hpp"
 #include "docmind/engines/TranslatorEngine.hpp"
+#include "docmind/engines/SummarizerEngine.hpp"
 #include "docmind/engines/ASREngine.hpp"
 
 namespace docmind {
@@ -25,6 +26,7 @@ namespace docmind {
         OCREngine* getOCREngine() { return ocr_.get(); }
         VLMEngine* getVLMEngine() { return vlm_.get(); }
         TranslatorEngine* getTranslatorEngine() { return translator_.get(); }
+        SummarizerEngine* getSummarizerEngine() { return summarizer_.get(); }
 
         // 获取 DocumentImageProcessor 句柄（若已加载）
         void* getDocProcHandle() { return docproc_handle_; }
@@ -39,6 +41,7 @@ namespace docmind {
         bool ensureLayoutDetector();
         bool ensureVLMEngine();
         bool ensureTranslatorEngine();
+        bool ensureSummarizerEngine();
         bool ensureASREngine();
         bool ensureDocProc();
 
@@ -55,6 +58,7 @@ namespace docmind {
         std::unique_ptr<OCREngine> ocr_;
         std::unique_ptr<VLMEngine> vlm_;
         std::unique_ptr<TranslatorEngine> translator_;
+        std::unique_ptr<SummarizerEngine> summarizer_;
         void* docproc_handle_ = nullptr;
         bool docproc_loaded_ = false;
         bool initialized_ = false;

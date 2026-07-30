@@ -99,6 +99,27 @@ namespace docmind {
         std::cout << "Translator DLL loaded successfully" << std::endl;
         return true;
     }
+    bool DLLLoader::loadSummarizerDLL(const std::string& dll_path) {
+        summarizer_handle_ = LOAD_DLL(dll_path.c_str());
+        if (!summarizer_handle_) {
+            std::cerr << "Failed to load Summarizer DLL: " << dll_path << std::endl;
+            return false;
+        }
+
+        summarizer_create = (SummarizerCreateFunc)GET_FUNC(summarizer_handle_, "summarizer_create");
+        summarizer_destroy = (SummarizerDestroyFunc)GET_FUNC(summarizer_handle_, "summarizer_destroy");
+        summarizer_summarize = (SummarizerSummarizeFunc)GET_FUNC(summarizer_handle_, "summarizer_summarize");
+        summarizer_free_string = (SummarizerFreeStringFunc)GET_FUNC(summarizer_handle_, "summarizer_free_string");
+
+        if (!summarizer_create || !summarizer_destroy || !summarizer_summarize || !summarizer_free_string) {
+            std::cerr << "Failed to get Summarizer functions from DLL" << std::endl;
+            unload();
+            return false;
+        }
+
+        std::cout << "Summarizer DLL loaded successfully" << std::endl;
+        return true;
+    }
     bool DLLLoader::loadDocumentImageProcessorDLL(const std::string& dll_path) {
         docproc_handle_ = LOAD_DLL(dll_path.c_str());
         if (!docproc_handle_) {
@@ -157,6 +178,10 @@ namespace docmind {
         if (translator_handle_) {
             FREE_DLL(translator_handle_);
             translator_handle_ = nullptr;
+        }
+        if (summarizer_handle_) {
+            FREE_DLL(summarizer_handle_);
+            summarizer_handle_ = nullptr;
         }
         if (docproc_handle_) {
             FREE_DLL(docproc_handle_);

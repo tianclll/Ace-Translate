@@ -1,5 +1,5 @@
-#define TRANSLATOR_EXPORTS
-#include "translator.h"
+#define SUMMARIZER_EXPORTS
+#include "summarizer.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -13,176 +13,10 @@
 #include <eh.h>
 
 // ============================================================
-// 语言名称 → 中文名映射（供 prompt 使用）
-// ============================================================
-static const std::unordered_map<std::string, std::string> langToChinese = {
-    {"zh", "中文"},
-    {"Chinese", "中文"},
-    {"中文", "中文"},
-    {"中国語", "中文"},
-    {"en", "英语"},
-    {"English", "英语"},
-    {"英语", "英语"},
-    {"英語", "英语"},
-    {"fr", "法语"},
-    {"French", "法语"},
-    {"法语", "法语"},
-    {"フランス語", "法语"},
-    {"pt", "葡萄牙语"},
-    {"Portuguese", "葡萄牙语"},
-    {"葡萄牙语", "葡萄牙语"},
-    {"ポルトガル語", "葡萄牙语"},
-    {"es", "西班牙语"},
-    {"Spanish", "西班牙语"},
-    {"西班牙语", "西班牙语"},
-    {"スペイン語", "西班牙语"},
-    {"ja", "日语"},
-    {"Japanese", "日语"},
-    {"日本語", "日语"},
-    {"日语", "日语"},
-    {"tr", "土耳其语"},
-    {"Turkish", "土耳其语"},
-    {"土耳其语", "土耳其语"},
-    {"トルコ語", "土耳其语"},
-    {"ru", "俄语"},
-    {"Russian", "俄语"},
-    {"俄语", "俄语"},
-    {"ロシア語", "俄语"},
-    {"ar", "阿拉伯语"},
-    {"Arabic", "阿拉伯语"},
-    {"阿拉伯语", "阿拉伯语"},
-    {"アラビア語", "阿拉伯语"},
-    {"ko", "韩语"},
-    {"Korean", "韩语"},
-    {"한국어", "韩语"},
-    {"韩语", "韩语"},
-    {"韓国語", "韩语"},
-    {"th", "泰语"},
-    {"Thai", "泰语"},
-    {"泰语", "泰语"},
-    {"タイ語", "泰语"},
-    {"it", "意大利语"},
-    {"Italian", "意大利语"},
-    {"意大利语", "意大利语"},
-    {"イタリア語", "意大利语"},
-    {"de", "德语"},
-    {"German", "德语"},
-    {"德语", "德语"},
-    {"ドイツ語", "德语"},
-    {"vi", "越南语"},
-    {"Vietnamese", "越南语"},
-    {"越南语", "越南语"},
-    {"ベトナム語", "越南语"},
-    {"ms", "马来语"},
-    {"Malay", "马来语"},
-    {"马来语", "马来语"},
-    {"マレー語", "马来语"},
-    {"id", "印尼语"},
-    {"Indonesian", "印尼语"},
-    {"印尼语", "印尼语"},
-    {"インドネシア語", "印尼语"},
-    {"tl", "菲律宾语"},
-    {"Filipino", "菲律宾语"},
-    {"菲律宾语", "菲律宾语"},
-    {"フィリピノ語", "菲律宾语"},
-    {"hi", "印地语"},
-    {"Hindi", "印地语"},
-    {"印地语", "印地语"},
-    {"ヒンディー語", "印地语"},
-    {"zh-Hant", "繁体中文"},
-    {"Chinese (Traditional)", "繁体中文"},
-    {"繁体中文", "繁体中文"},
-    {"繁体字中国語", "繁体中文"},
-    {"pl", "波兰语"},
-    {"Polish", "波兰语"},
-    {"波兰语", "波兰语"},
-    {"ポーランド語", "波兰语"},
-    {"cs", "捷克语"},
-    {"Czech", "捷克语"},
-    {"捷克语", "捷克语"},
-    {"チェコ語", "捷克语"},
-    {"nl", "荷兰语"},
-    {"Dutch", "荷兰语"},
-    {"荷兰语", "荷兰语"},
-    {"オランダ語", "荷兰语"},
-    {"km", "高棉语"},
-    {"Khmer", "高棉语"},
-    {"高棉语", "高棉语"},
-    {"クメール語", "高棉语"},
-    {"my", "缅甸语"},
-    {"Myanmar (Burmese)", "缅甸语"},
-    {"缅甸语", "缅甸语"},
-    {"ビルマ語", "缅甸语"},
-    {"fa", "波斯语"},
-    {"Persian", "波斯语"},
-    {"波斯语", "波斯语"},
-    {"ペルシア語", "波斯语"},
-    {"gu", "古吉拉特语"},
-    {"Gujarati", "古吉拉特语"},
-    {"古吉拉特语", "古吉拉特语"},
-    {"グジャラート語", "古吉拉特语"},
-    {"ur", "乌尔都语"},
-    {"Urdu", "乌尔都语"},
-    {"乌尔都语", "乌尔都语"},
-    {"ウルドゥー語", "乌尔都语"},
-    {"te", "泰卢固语"},
-    {"Telugu", "泰卢固语"},
-    {"泰卢固语", "泰卢固语"},
-    {"テルグ語", "泰卢固语"},
-    {"mr", "马拉地语"},
-    {"Marathi", "马拉地语"},
-    {"马拉地语", "马拉地语"},
-    {"マラーティー語", "马拉地语"},
-    {"he", "希伯来语"},
-    {"Hebrew", "希伯来语"},
-    {"希伯来语", "希伯来语"},
-    {"ヘブライ語", "希伯来语"},
-    {"bn", "孟加拉语"},
-    {"Bengali", "孟加拉语"},
-    {"孟加拉语", "孟加拉语"},
-    {"ベンガル語", "孟加拉语"},
-    {"ta", "泰米尔语"},
-    {"Tamil", "泰米尔语"},
-    {"泰米尔语", "泰米尔语"},
-    {"タミル語", "泰米尔语"},
-    {"uk", "乌克兰语"},
-    {"Ukrainian", "乌克兰语"},
-    {"乌克兰语", "乌克兰语"},
-    {"ウクライナ語", "乌克兰语"},
-    {"bo", "藏语"},
-    {"Tibetan", "藏语"},
-    {"藏语", "藏语"},
-    {"チベット語", "藏语"},
-    {"kk", "哈萨克语"},
-    {"Kazakh", "哈萨克语"},
-    {"哈萨克语", "哈萨克语"},
-    {"カザフ語", "哈萨克语"},
-    {"mn", "蒙古语"},
-    {"Mongolian", "蒙古语"},
-    {"蒙古语", "蒙古语"},
-    {"モンゴル語", "蒙古语"},
-    {"ug", "维吾尔语"},
-    {"Uyghur", "维吾尔语"},
-    {"维吾尔语", "维吾尔语"},
-    {"ウイグル語", "维吾尔语"},
-    {"yue", "粤语"},
-    {"Cantonese", "粤语"},
-    {"粤语", "粤语"},
-    {"広東語", "粤语"},
-};
-
-static std::string toChineseLangName(const std::string& lang) {
-    auto it = langToChinese.find(lang);
-    if (it != langToChinese.end()) return it->second;
-    // 没找到就直接用原文
-    return lang;
-}
-
-// ============================================================
-// Translator::Impl - 内部实现类
+// Summarizer::Impl - 内部实现类
 // ============================================================
 
-class Translator::Impl {
+class Summarizer::Impl {
 public:
     Impl(
             const std::string& model_path,
@@ -190,12 +24,6 @@ public:
     );
 
     ~Impl();
-
-    std::string translate(
-            const std::string& source_text,
-            const std::string& target_language,
-            int max_tokens
-    );
 
     std::string summarize(
             const std::string& source_text,
@@ -225,7 +53,7 @@ private:
 // Impl 实现
 // ============================================================
 
-Translator::Impl::Impl(
+Summarizer::Impl::Impl(
         const std::string& model_path,
         int n_gpu_layers) {
 
@@ -309,7 +137,7 @@ Translator::Impl::Impl(
     }
 }
 
-Translator::Impl::~Impl() {
+Summarizer::Impl::~Impl() {
     // 用 SEH 保护析构，防止 llama_free 在 GPU 状态下抛出异常
     __try {
         if (sampler) {
@@ -327,7 +155,7 @@ Translator::Impl::~Impl() {
     }
 }
 
-std::string Translator::Impl::token_to_piece(
+std::string Summarizer::Impl::token_to_piece(
         llama_token token) {
 
     char buf[256]{};
@@ -483,7 +311,7 @@ static bool raw_generate_seh(
     }
 }
 
-std::string Translator::Impl::generate(
+std::string Summarizer::Impl::generate(
         const std::string& prompt,
         int max_tokens) {
 
@@ -510,49 +338,26 @@ std::string Translator::Impl::generate(
     return std::string(buf, outLen);
 }
 
-std::string Translator::Impl::translate(
-        const std::string& source_text,
-        const std::string& target_language,
-        int max_tokens) {
-
-    std::string lang_cn = toChineseLangName(target_language);
-    std::string prompt =
-            "请将下面文本翻译成" + lang_cn +
-            "。\n"
-            "只输出译文，不要解释。\n\n"
-            "原文：\n"
-            + source_text +
-            "\n\n译文：";
-
-    std::string result = generate(prompt, max_tokens);
-
-    // 去掉首尾空白和换行
-    auto begin = result.find_first_not_of(" \t\r\n");
-    if (begin == std::string::npos) {
-        return "";
-    }
-    auto end = result.find_last_not_of(" \t\r\n");
-    result = result.substr(begin, end - begin + 1);
-
-    return result;
-}
-
 // ============================================================
 // summarize — 用摘要 prompt 调用底层 generate
 // ============================================================
-std::string Translator::Impl::summarize(
+std::string Summarizer::Impl::summarize(
         const std::string& source_text,
         int max_tokens) {
 
     std::string prompt =
-            "请将下面文本用一句话概括成中文摘要。\n"
-            "只输出摘要，不要解释。\n\n"
-            "原文：\n"
+            "<|im_start|>system\n"
+            "你是一个文本摘要助手。将用户提供的文本概括成一段80-150字的中文摘要。"
+            "只输出摘要本身，不要输出任何其他内容。\n"
+            "<|im_end|>\n"
+            "<|im_start|>user\n"
             + source_text +
-            "\n\n摘要：";
+            "\n<|im_end|>\n"
+            "<|im_start|>assistant\n摘要：";
 
     std::string result = generate(prompt, max_tokens);
 
+    // trim
     auto begin = result.find_first_not_of(" \t\r\n");
     if (begin == std::string::npos) {
         return "";
@@ -560,39 +365,22 @@ std::string Translator::Impl::summarize(
     auto end = result.find_last_not_of(" \t\r\n");
     result = result.substr(begin, end - begin + 1);
 
-    // 限制摘要最大长度（Hy-MT2 不是摘要模型，可能输出大段原文）
-    const int MAX_SUMMARY_LEN = 200;
-    if ((int)result.length() > MAX_SUMMARY_LEN) {
-        result = result.substr(0, MAX_SUMMARY_LEN);
-        auto r_end = result.find_last_not_of(" \t\r\n");
-        if (r_end != std::string::npos) {
-            result = result.substr(0, r_end + 1);
-        }
-    }
-
     return result;
 }
 
 // ============================================================
-// Translator 公共接口实现
+// Summarizer 公共接口实现
 // ============================================================
 
-Translator::Translator(
+Summarizer::Summarizer(
         const std::string& model_path,
         int n_gpu_layers)
         : pImpl(std::make_unique<Impl>(model_path, n_gpu_layers)) {
 }
 
-Translator::~Translator() = default;
+Summarizer::~Summarizer() = default;
 
-std::string Translator::translate(
-        const std::string& source_text,
-        const std::string& target_language,
-        int max_tokens) {
-    return pImpl->translate(source_text, target_language, max_tokens);
-}
-
-std::string Translator::summarize(
+std::string Summarizer::summarize(
         const std::string& source_text,
         int max_tokens) {
     return pImpl->summarize(source_text, max_tokens);
@@ -604,61 +392,33 @@ std::string Translator::summarize(
 
 extern "C" {
 
-TRANSLATOR_API TranslatorHandle translator_create(
+SUMMARIZER_API SummarizerHandle summarizer_create(
         const char* model_path,
         int n_gpu_layers) {
 
     try {
-        auto* translator = new Translator(
+        auto* summarizer = new Summarizer(
                 std::string(model_path),
                 n_gpu_layers
         );
-        return static_cast<TranslatorHandle>(translator);
+        return static_cast<SummarizerHandle>(summarizer);
     } catch (const std::exception& e) {
-        std::cerr << "创建翻译器失败: " << e.what() << std::endl;
+        std::cerr << "创建摘要器失败: " << e.what() << std::endl;
         return nullptr;
     }
 }
 
-TRANSLATOR_API void translator_destroy(
-        TranslatorHandle handle) {
+SUMMARIZER_API void summarizer_destroy(
+        SummarizerHandle handle) {
 
     if (handle) {
-        auto* translator = static_cast<Translator*>(handle);
-        delete translator;
+        auto* summarizer = static_cast<Summarizer*>(handle);
+        delete summarizer;
     }
 }
 
-TRANSLATOR_API const char* translator_translate(
-        TranslatorHandle handle,
-        const char* source_text,
-        const char* target_language,
-        int max_tokens) {
-
-    if (!handle || !source_text || !target_language) {
-        return nullptr;
-    }
-
-    try {
-        auto* translator = static_cast<Translator*>(handle);
-        std::string result = translator->translate(
-                std::string(source_text),
-                std::string(target_language),
-                max_tokens
-        );
-
-        // 分配内存保存结果字符串
-        char* str = new char[result.size() + 1];
-        std::strcpy(str, result.c_str());
-        return str;
-    } catch (const std::exception& e) {
-        std::cerr << "翻译失败: " << e.what() << std::endl;
-        return nullptr;
-    }
-}
-
-TRANSLATOR_API const char* translator_summarize(
-        TranslatorHandle handle,
+SUMMARIZER_API const char* summarizer_summarize(
+        SummarizerHandle handle,
         const char* source_text,
         int max_tokens) {
 
@@ -667,8 +427,8 @@ TRANSLATOR_API const char* translator_summarize(
     }
 
     try {
-        auto* translator = static_cast<Translator*>(handle);
-        std::string result = translator->summarize(
+        auto* summarizer = static_cast<Summarizer*>(handle);
+        std::string result = summarizer->summarize(
                 std::string(source_text),
                 max_tokens
         );
@@ -682,7 +442,7 @@ TRANSLATOR_API const char* translator_summarize(
     }
 }
 
-TRANSLATOR_API void translator_free_string(
+SUMMARIZER_API void summarizer_free_string(
         const char* str) {
 
     if (str) {
