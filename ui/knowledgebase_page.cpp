@@ -650,9 +650,12 @@ void KnowledgeBasePage::processNextFile(int myGen) {
                 auto& cfg = docmind::ConfigManager::getInstance();
                 float threshold = cfg.getNestedJson("defaults").value("layout_threshold", nlohmann::json(0.5)).get<float>();
                 int dpi = static_cast<int>(cfg.getNestedJson("defaults").value("pdf_dpi", nlohmann::json(200)).get<double>());
+                auto defaults = cfg.getNestedJson("defaults");
+                bool enable_warp = defaults.value("enable_warp", nlohmann::json(true)).get<bool>();
+                bool enable_enhance = defaults.value("enable_enhance", nlohmann::json(true)).get<bool>();
                 std::string extracted = extract_file_text(
                     filePath.toStdString(), "", baseDir,
-                    threshold, dpi, false, false);
+                    threshold, dpi, enable_warp, enable_enhance);
                 if (!extracted.empty()) {
                     md = QString::fromStdString(extracted);
                 }
@@ -670,19 +673,19 @@ void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
 // ============================================================
 // generateSummary
 // ============================================================
-QString KnowledgeBasePage::generateSummary(const QString& markdown) {
-    // 取前 1000 字符用于翻译（摘要基于翻译结果截取）
-    QString plain = markdown.simplified();
-    if (plain.length() > 1000) plain = plain.left(1000) + "……";
-    if (plain.trimmed().isEmpty()) return QString();
-    try {
-        // 用翻译引擎翻译成中文，取前 200 字作为摘要
-        auto r = translate_text(plain.toStdString(), "Chinese", 512);
-        QString result = QString::fromStdString(r);
-        if (result.length() > 200) result = result.left(200) + "……";
-        return result;
-    } catch (...) { return plain.left(200); }
-}
+// QString KnowledgeBasePage::generateSummary(const QString& markdown) {
+//     // 取前 1000 字符用于翻译（摘要基于翻译结果截取）
+//     QString plain = markdown.simplified();
+//     if (plain.length() > 1000) plain = plain.left(1000) + "……";
+//     if (plain.trimmed().isEmpty()) return QString();
+//     try {
+//         // 用翻译引擎翻译成中文，取前 200 字作为摘要
+//         auto r = translate_text(plain.toStdString(), "Chinese", 512);
+//         QString result = QString::fromStdString(r);
+//         if (result.length() > 200) result = result.left(200) + "……";
+//         return result;
+//     } catch (...) { return plain.left(200); }
+// }
 
 // ============================================================
 // finishEntry — 入库 + 后台生成摘要

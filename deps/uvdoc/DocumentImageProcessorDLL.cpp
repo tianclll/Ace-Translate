@@ -62,7 +62,8 @@ bool ProcessImage(
     if(!handle || !data)
         return false;
 
-
+    // 禁用 OpenCV 优化路径（IPP），避免 DLL 边界上 OpenCV 双实例化导致的 cvReleasePyramid 崩溃
+    cv::setUseOptimized(false);
 
     auto ptr =
             static_cast<DocumentImageProcessor*>(handle);
@@ -78,7 +79,7 @@ bool ProcessImage(
                 height,
                 width,
                 CV_8UC3,
-                data);
+                data).clone();
     }
     else
     {
@@ -86,7 +87,7 @@ bool ProcessImage(
                 height,
                 width,
                 CV_8UC1,
-                data);
+                data).clone();
     }
 
 
