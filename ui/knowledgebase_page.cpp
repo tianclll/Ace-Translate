@@ -256,37 +256,34 @@ void KnowledgeBasePage::setupUI() {
 
     tbLayout->addWidget(dateGroup, 0);
 
-    // 标签筛选 — 和日期放在一起，对齐
-    tbLayout->addSpacing(6);
-    auto* tagGroup = new QFrame;
-    tagGroup->setStyleSheet(
-        "QFrame { background: #F8FAFA; border: 1px solid #DDE1E5; border-radius: 8px; }");
-    auto* tagGLayout = new QHBoxLayout(tagGroup);
-    tagGLayout->setContentsMargins(6, 2, 6, 2);
-    tagGLayout->setSpacing(4);
+    // 分隔线
+    auto* sep = new QFrame;
+    sep->setFrameShape(QFrame::VLine);
+    sep->setFixedWidth(1);
+    sep->setFixedHeight(18);
+    sep->setStyleSheet("background: #E8ECEF; border: none;");
+    tbLayout->addWidget(sep);
 
+    // 标签筛选
     tagFilterCombo_ = new QComboBox;
-    tagFilterCombo_->setFixedHeight(28);
-    tagFilterCombo_->setMinimumWidth(90);
+    tagFilterCombo_->setFixedHeight(30);
+    tagFilterCombo_->setMinimumWidth(100);
     tagFilterCombo_->setStyleSheet(
-        "QComboBox { border: none; padding: 0 4px; font-size: 12px; background: transparent; }"
-        "QComboBox:focus { background: #FFFFFF; }"
-        "QComboBox::drop-down { border: none; width: 16px; }");
+        "QComboBox { border: 1px solid #DDE1E5; border-radius: 8px;"
+        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
+        "QComboBox:focus { border-color: #0B7C72; background: #FFFFFF; }");
     connect(tagFilterCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &KnowledgeBasePage::onTagFilterChanged);
-    tagGLayout->addWidget(tagFilterCombo_);
+    tbLayout->addWidget(tagFilterCombo_);
 
     auto* addTagBtn = new QPushButton(QStringLiteral("+ %1").arg(tr("Tag")));
-    addTagBtn->setFixedHeight(28);
-    addTagBtn->setCursor(Qt::PointingHandCursor);
+    addTagBtn->setFixedHeight(30);
     addTagBtn->setStyleSheet(
-        "QPushButton { border: none; border-radius: 4px; padding: 0 6px;"
-        " background: transparent; color: #889096; font-size: 12px; }"
-        "QPushButton:hover { color: #0B7C72; }");
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(addTagBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onAddNewTag);
-    tagGLayout->addWidget(addTagBtn);
-
-    tbLayout->addWidget(tagGroup, 0);
+    tbLayout->addWidget(addTagBtn);
 
     tbLayout->addStretch();
 
@@ -608,29 +605,19 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     rowLayout->addLayout(infoLayout, 1);
 
-    // ---- 日期 + 标签 + 操作（右对齐列组，顶部对齐）----
-    auto* rightCol = new QVBoxLayout;
-    rightCol->setContentsMargins(0, 0, 0, 0);
-    rightCol->setSpacing(4);
-
-    // 日期行
-    auto* dateRow = new QHBoxLayout;
-    dateRow->setContentsMargins(0, 0, 0, 0);
-    dateRow->setSpacing(0);
+    // ---- 日期 ----
     auto* dateLbl = new QLabel(date);
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
     dateLbl->setFixedWidth(80);
     dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    dateRow->addWidget(dateLbl);
-    rightCol->addLayout(dateRow);
+    rowLayout->addWidget(dateLbl);
 
-    // 标签行
+    // ---- 标签 ----
     auto* tagContainer = new QWidget;
     tagContainer->setStyleSheet("background: transparent; border: none;");
     auto* tagFlow = new QHBoxLayout(tagContainer);
     tagFlow->setContentsMargins(0, 0, 0, 0);
     tagFlow->setSpacing(4);
-    tagFlow->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     int shown = 0;
     for (const QString& t : tags) {
         if (shown++ >= 2) break;
@@ -646,24 +633,21 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         tagFlow->addWidget(more);
     }
     tagContainer->setFixedWidth(140);
-    rightCol->addWidget(tagContainer);
+    rowLayout->addWidget(tagContainer);
 
-    // 操作按钮行
+    // ---- 操作按钮 ----
     auto* actions = new QWidget;
     actions->setStyleSheet("background: transparent; border: none;");
     auto* actionLayout = new QHBoxLayout(actions);
     actionLayout->setContentsMargins(0, 0, 0, 0);
     actionLayout->setSpacing(2);
-    actionLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
     auto* viewBtn = makeGhostBtn(tr("View"), tr("Open source file"));
-    auto* delBtn = makeGhostBtn("✕", tr("Delete"));
+    auto* delBtn = makeGhostBtn("\u2715", tr("Delete"));
 
     actionLayout->addWidget(viewBtn);
     actionLayout->addWidget(delBtn);
-    rightCol->addWidget(actions);
-
-    rowLayout->addLayout(rightCol);
+    rowLayout->addWidget(actions);
 
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
