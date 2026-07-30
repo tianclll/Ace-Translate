@@ -447,11 +447,19 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     detailLayout->setContentsMargins(52, 6, 0, 0);
     detailLayout->setSpacing(6);
 
-    auto* sumLbl = new QLabel(summary);
+    auto* sumLbl = new QLabel(highlightText(summary, keyword));
+    sumLbl->setTextFormat(Qt::RichText);
     sumLbl->setWordWrap(true);
     sumLbl->setStyleSheet("font-size: 12px; color: #5B6269; line-height: 1.5; background: transparent; border: none;");
     detailLayout->addWidget(sumLbl);
     mainLayout->addWidget(detailWidget);
+
+    // 如果摘要匹配搜索关键词，自动展开
+    bool summaryMatch = !keyword.isEmpty() && summary.contains(keyword, Qt::CaseInsensitive);
+    if (summaryMatch) {
+        detailWidget->setVisible(true);
+        arrowLabel->setText("▼");
+    }
 
     // ---- 箭头点击展开 ----
     arrowLabel->installEventFilter(this);
