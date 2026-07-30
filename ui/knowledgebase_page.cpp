@@ -147,11 +147,6 @@ void KnowledgeBasePage::setupUI() {
 
     headerRow->addStretch();
 
-    auto* viewModeBtn = new QPushButton(tr("View"));
-    viewModeBtn->setObjectName("primaryBtn");
-    viewModeBtn->setFixedHeight(28);
-    headerRow->addWidget(viewModeBtn);
-
     layout->addLayout(headerRow);
 
     // ================================================================
