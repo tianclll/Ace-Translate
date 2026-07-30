@@ -3463,24 +3463,9 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                     " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
                                 statusBar_->showMessage(tr("Archived to Knowledge Base"), 3000);
                                 if (knowledgePage_) knowledgePage_->refreshList();
-
-                                // 弹窗提示归档成功
-                                QMessageBox msg(this);
-                                msg.setWindowTitle(tr("Archive Complete"));
-                                msg.setIcon(QMessageBox::Information);
-                                msg.setText(tr("Document archived to Knowledge Base"));
-                                msg.setInformativeText(tr("%1\n\nClick \"Open KB\" to view it.").arg(fi.fileName()));
-                                auto* openBtn = msg.addButton(tr("Open KB"), QMessageBox::AcceptRole);
-                                auto* closeBtn = msg.addButton(tr("Close"), QMessageBox::RejectRole);
-                                msg.exec();
-                                if (msg.clickedButton() == openBtn && knowledgePage_) {
-                                    if (stackedWidget_) stackedWidget_->setCurrentIndex(5);
-                                    for (auto* btn : navButtons_) {
-                                        if (btn->property("navIndex").toInt() == 5) {
-                                            btn->setChecked(true);
-                                            break;
-                                        }
-                                    }
+                                // 知识库页面显示 Toast 通知
+                                if (knowledgePage_) {
+                                    ToastNotification::show(knowledgePage_, tr("Document archived: %1").arg(fi.fileName()));
                                 }
                             } else {
                                 statusBar_->showMessage(tr("Archive failed"), 3000);
