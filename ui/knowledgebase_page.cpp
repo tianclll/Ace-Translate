@@ -580,29 +580,55 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\1</span>");
     };
 
+    auto* titleRow = new QHBoxLayout;
+    titleRow->setContentsMargins(0, 0, 0, 0);
+    titleRow->setSpacing(4);
+
     auto* titleLbl = new QLabel(highlightText(title, keyword));
     titleLbl->setTextFormat(Qt::RichText);
     titleLbl->setStyleSheet("font-size: 13px; font-weight: 500; color: #1C1C1E; background: transparent; border: none;");
-    infoLayout->addWidget(titleLbl);
+    titleRow->addWidget(titleLbl, 1);
 
-    // 摘要始终可见
-    if (!summary.isEmpty()) {
-        auto* sumRow = new QWidget;
-        sumRow->setStyleSheet("background: transparent; border: none;");
-        auto* sumRowLayout = new QHBoxLayout(sumRow);
-        sumRowLayout->setContentsMargins(0, 0, 0, 0);
-        sumRowLayout->setSpacing(8);
-        auto* sumBar = new QFrame;
-        sumBar->setFixedWidth(3);
-        sumBar->setFixedHeight(20);
-        sumBar->setStyleSheet("background: #D0E8E4; border-radius: 2px;");
-        sumRowLayout->addWidget(sumBar, 0);
-        auto* sumLbl = new QLabel(highlightText(summary, keyword));
-        sumLbl->setTextFormat(Qt::RichText);
-        sumLbl->setWordWrap(true);
-        sumLbl->setStyleSheet("font-size: 12px; color: #6B7280; line-height: 1.4; background: transparent; border: none;");
-        sumRowLayout->addWidget(sumLbl, 1);
-        infoLayout->addWidget(sumRow);
+    // 展开/折叠摘要的小按钮
+    auto* sumToggle = new QPushButton("▶");
+    sumToggle->setFixedSize(18, 18);
+    sumToggle->setCursor(Qt::PointingHandCursor);
+    sumToggle->setStyleSheet(
+        "QPushButton { border: none; border-radius: 3px; font-size: 8px;"
+        " color: #9CA3AF; background: transparent; padding: 0px; }"
+        "QPushButton:hover { background: #E8F0EF; color: #0B7C72; }");
+    titleRow->addWidget(sumToggle);
+    infoLayout->addLayout(titleRow);
+
+    // 摘要（默认折叠）
+    auto* sumRow = new QWidget;
+    sumRow->setVisible(false);
+    sumRow->setStyleSheet("background: transparent; border: none;");
+    auto* sumRowLayout = new QHBoxLayout(sumRow);
+    sumRowLayout->setContentsMargins(0, 0, 0, 0);
+    sumRowLayout->setSpacing(8);
+    auto* sumBar = new QFrame;
+    sumBar->setFixedWidth(3);
+    sumBar->setFixedHeight(20);
+    sumBar->setStyleSheet("background: #D0E8E4; border-radius: 2px;");
+    sumRowLayout->addWidget(sumBar, 0);
+    auto* sumLbl = new QLabel(highlightText(summary, keyword));
+    sumLbl->setTextFormat(Qt::RichText);
+    sumLbl->setWordWrap(true);
+    sumLbl->setStyleSheet("font-size: 12px; color: #6B7280; line-height: 1.4; background: transparent; border: none;");
+    sumRowLayout->addWidget(sumLbl, 1);
+    infoLayout->addWidget(sumRow);
+
+    connect(sumToggle, &QPushButton::clicked, sumRow, [sumToggle, sumRow]() {
+        bool vis = sumRow->isVisible();
+        sumRow->setVisible(!vis);
+        sumToggle->setText(vis ? "▶" : "▼");
+    });
+
+    // 如果摘要匹配搜索关键词，默认展开
+    if (!summary.isEmpty() && !keyword.isEmpty() && summary.contains(keyword, Qt::CaseInsensitive)) {
+        sumRow->setVisible(true);
+        sumToggle->setText("▼");
     }
 
     rowLayout->addLayout(infoLayout, 1);
