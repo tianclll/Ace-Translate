@@ -391,9 +391,8 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     auto highlightText = [](const QString& text, const QString& kw) -> QString {
         if (kw.isEmpty()) return text.toHtmlEscaped();
         QString escaped = text.toHtmlEscaped();
-        // 转义后做大小写不敏感匹配
-        QRegularExpression re(QRegularExpression::escape(kw), QRegularExpression::CaseInsensitiveOption);
-        return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\0</span>");
+        QRegularExpression re("(" + QRegularExpression::escape(kw) + ")", QRegularExpression::CaseInsensitiveOption);
+        return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\1</span>");
     };
 
     // 文件类型图标
