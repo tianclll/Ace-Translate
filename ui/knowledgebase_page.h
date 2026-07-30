@@ -92,10 +92,12 @@ private:
     bool allSelected_ = false;
 
     // 文档列表
+    QWidget* listCard_ = nullptr;
     QWidget* listContainer_ = nullptr;
     QVBoxLayout* listLayout_ = nullptr;
     QScrollArea* listScroll_ = nullptr;
     QLabel* emptyHint_ = nullptr;
+    QLabel* countLabel_ = nullptr;
 
     // 底部批量操作栏
     QWidget* batchBar_ = nullptr;
@@ -105,7 +107,6 @@ private:
 
     // 选中状态
     QSet<int> checkedDocIds_;
-    bool inBatchMode_ = false;
 
     // 导入计数
     int importCount_ = 0;
@@ -114,8 +115,4 @@ private:
     int importGeneration_ = 0;
     QList<ImportTask> pendingTasks_;
     QString pendingBaseDir_;
-
-    // 后台处理线程
-    QThread* workerThread_ = nullptr;
-    bool processing_ = false;
 };

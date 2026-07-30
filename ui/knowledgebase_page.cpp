@@ -6,13 +6,13 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QTextStream>
 #include <QMessageBox>
 #include <QDateTime>
 #include <QDialog>
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QCheckBox>
-#include <QTextEdit>
 #include <QApplication>
 #include <QFileInfo>
 #include <QTimer>
@@ -45,7 +45,6 @@ static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
     log << "ExceptionCode: 0x" << std::hex << ep->ExceptionRecord->ExceptionCode << std::dec << std::endl;
     log << "ExceptionAddress: " << ep->ExceptionRecord->ExceptionAddress << std::endl;
 
-    // 获取堆栈回溯
     HANDLE hProcess = GetCurrentProcess();
     SymInitialize(hProcess, NULL, TRUE);
     SYMBOL_INFO* symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256, 1);
@@ -79,17 +78,39 @@ static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
     free(symbol);
     SymCleanup(hProcess);
     log.close();
-    return EXCEPTION_CONTINUE_SEARCH;  // 让系统继续默认处理（闪退）
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
-// 在库加载时安装 VEH
 namespace {
     struct InstallVEH {
         InstallVEH() { AddVectoredExceptionHandler(1, crashHandler); }
     } _vehInstaller;
 }
 
+// ============================================================
+// 辅助：创建文件类型小标签
+// ============================================================
+namespace {
+QLabel* makeTypeBadge(const QString& ext) {
+    auto* badge = new QLabel(ext.toUpper());
+    badge->setStyleSheet(
+        "QLabel { background: #E8F5F3; color: #0B7C72; border-radius: 4px;"
+        " padding: 2px 8px; font-size: 11px; font-weight: 600; }");
+    badge->setFixedHeight(20);
+    return badge;
+}
 
+QPushButton* makeGhostBtn(const QString& text, const QString& tooltip) {
+    auto* btn = new QPushButton(text);
+    btn->setToolTip(tooltip);
+    btn->setCursor(Qt::PointingHandCursor);
+    btn->setStyleSheet(
+        "QPushButton { border: none; border-radius: 4px; padding: 4px 8px;"
+        " background: transparent; color: #6B7280; font-size: 11px; }"
+        "QPushButton:hover { background: #F0F7F6; color: #0B7C72; }");
+    return btn;
+}
+}
 
 // ============================================================
 // 构造函数
@@ -107,165 +128,306 @@ KnowledgeBasePage::KnowledgeBasePage(QWidget* parent)
 KnowledgeBasePage::~KnowledgeBasePage() = default;
 
 // ============================================================
-// setupUI — 上传区 → 工具栏 → 文档列表 → 底部批量操作栏
+// setupUI
 // ============================================================
 void KnowledgeBasePage::setupUI() {
     auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(16, 12, 16, 12);
     layout->setSpacing(10);
 
-    // ---- 上传横条 ----
+    // ================================================================
+    // 1. 页头 — 标题 + 文档数
+    // ================================================================
+    auto* headerRow = new QHBoxLayout;
+    headerRow->setContentsMargins(0, 0, 0, 0);
+    headerRow->setSpacing(8);
+
+    auto* sectionTitle = new QLabel(tr("Knowledge Base"));
+    sectionTitle->setObjectName("sectionTitle");
+    sectionTitle->setStyleSheet("font-size: 17px; font-weight: 700; color: #1A1A2E; background: transparent; border: none;");
+    headerRow->addWidget(sectionTitle);
+
+    countLabel_ = new QLabel;
+    countLabel_->setStyleSheet("font-size: 12px; color: #889096; background: transparent; border: none;");
+    headerRow->addWidget(countLabel_);
+
+    headerRow->addStretch();
+
+    auto* viewModeBtn = new QPushButton(tr("View"));
+    viewModeBtn->setObjectName("primaryBtn");
+    viewModeBtn->setFixedHeight(28);
+    headerRow->addWidget(viewModeBtn);
+
+    layout->addLayout(headerRow);
+
+    // ================================================================
+    // 2. 上传区
+    // ================================================================
     dropZone_ = new DropZoneWidget;
-    dropZone_->setFixedHeight(64);
+    dropZone_->setFixedHeight(72);
     dropZone_->setStyleSheet(QStringLiteral(
-        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #D0E8E4; border-radius: 10px; }"
+        "DropZoneWidget { background: #F0F7F6; border: 2px dashed #C8E0DC; border-radius: 12px; }"
         "DropZoneWidget:hover { background: #E8F5F3; border-color: #0B7C72; }"));
     auto* dropLayout = new QHBoxLayout(dropZone_);
     dropLayout->setContentsMargins(20, 0, 20, 0);
     dropLayout->setAlignment(Qt::AlignCenter);
-    dropLayout->setSpacing(8);
+    dropLayout->setSpacing(12);
+
     auto* dropIcon = new QLabel(QStringLiteral("\U0001F4C1"));
-    dropIcon->setStyleSheet("font-size: 20px; background: transparent;");
+    dropIcon->setStyleSheet("font-size: 22px; background: transparent;");
     dropLayout->addWidget(dropIcon);
-    auto* dropText = new QLabel("拖拽文件到此处归档 · 支持 PDF / DOCX / XLSX / PPTX / MD / TXT / 图片");
-    dropText->setStyleSheet("font-size: 12px; font-weight: 500; color: #6B7280; background: transparent;");
-    dropLayout->addWidget(dropText);
+
+    auto* dropInfo = new QVBoxLayout;
+    dropInfo->setContentsMargins(0, 4, 0, 4);
+    dropInfo->setSpacing(2);
+    auto* dropTitle = new QLabel(tr("Drop files here to archive"));
+    dropTitle->setStyleSheet("font-size: 13px; font-weight: 600; color: #374151; background: transparent;");
+    dropInfo->addWidget(dropTitle);
+    auto* dropHint = new QLabel(tr("Supports PDF / DOCX / XLSX / PPTX / MD / TXT / Images"));
+    dropHint->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent;");
+    dropInfo->addWidget(dropHint);
+    dropLayout->addLayout(dropInfo);
+
+    auto* badgeRow = new QHBoxLayout;
+    badgeRow->setSpacing(4);
+    for (const QString& fmt : {"PDF", "DOCX", "XLSX", "PPTX", "MD", "TXT", "IMG"}) {
+        auto* badge = new QLabel(fmt);
+        badge->setStyleSheet(
+            "QLabel { background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 10px;"
+            " padding: 2px 8px; font-size: 10px; font-weight: 500; color: #6B7280; }");
+        badgeRow->addWidget(badge);
+    }
+    dropLayout->addLayout(badgeRow);
     dropLayout->addStretch();
+
     connect(dropZone_, &DropZoneWidget::fileDropped, this, &KnowledgeBasePage::onFileDropped);
     layout->addWidget(dropZone_);
 
-    // ---- 工具栏 ----
+    // ================================================================
+    // 3. 工具栏
+    // ================================================================
     auto* toolbar = new QFrame;
     toolbar->setObjectName("card");
-    toolbar->setStyleSheet(QStringLiteral("QFrame#card { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; }"));
-    auto* toolbarLayout = new QHBoxLayout(toolbar);
-    toolbarLayout->setContentsMargins(12, 8, 12, 8);
-    toolbarLayout->setSpacing(8);
+    toolbar->setStyleSheet(QStringLiteral("QFrame#card { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; padding: 8px 12px; }"));
+    auto* tbLayout = new QHBoxLayout(toolbar);
+    tbLayout->setContentsMargins(4, 4, 4, 4);
+    tbLayout->setSpacing(6);
 
+    // 搜索框
     searchInput_ = new QLineEdit;
-    searchInput_->setPlaceholderText("搜索标题、全文内容…");
+    searchInput_->setPlaceholderText(tr("Search titles, content…"));
     searchInput_->setFixedHeight(30);
-    searchInput_->setFixedWidth(160);
+    searchInput_->setFixedWidth(170);
+    searchInput_->setStyleSheet(
+        "QLineEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
+        " padding: 0 10px 0 30px; font-size: 12px; background: #F8FAFA; }"
+        "QLineEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
+    // 搜索图标
+    auto* searchIcon = new QLabel("\U0001F50D");
+    searchIcon->setStyleSheet("font-size: 13px; background: transparent;");
+    auto* searchWrap = new QWidget;
+    auto* searchWrapLayout = new QHBoxLayout(searchWrap);
+    searchWrapLayout->setContentsMargins(0, 0, 0, 0);
+    searchWrapLayout->setSpacing(0);
+    searchWrapLayout->addWidget(searchIcon);
+    searchWrapLayout->addWidget(searchInput_);
+    searchWrapLayout->setAlignment(searchIcon, Qt::AlignVCenter);
+    searchWrapLayout->setAlignment(searchInput_, Qt::AlignVCenter);
+    // Position icon over the input
+    searchIcon->setParent(searchInput_);
+    searchIcon->move(8, 8);
     connect(searchInput_, &QLineEdit::textChanged, this, &KnowledgeBasePage::onSearchTextChanged);
-    toolbarLayout->addWidget(searchInput_, 0);
+    tbLayout->addWidget(searchInput_, 0);
 
+    // 日期筛选
     dateFrom_ = new QDateEdit;
-    dateFrom_->setDisplayFormat("yyyy-MM-dd");
+    dateFrom_->setDisplayFormat("yyyy/MM/dd");
     dateFrom_->setCalendarPopup(true);
     dateFrom_->setFixedHeight(30);
-    dateFrom_->setFixedWidth(130);
-    dateFrom_->setSpecialValueText("起始日期");
+    dateFrom_->setFixedWidth(120);
+    dateFrom_->setSpecialValueText("From");
     dateFrom_->setDate(QDate::currentDate().addMonths(-3));
+    dateFrom_->setStyleSheet(
+        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
+        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
+        "QDateEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
     connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    toolbarLayout->addWidget(dateFrom_, 0);
+    tbLayout->addWidget(dateFrom_, 0);
 
-    auto* dateSep = new QLabel("~");
-    dateSep->setStyleSheet("color: #9CA3AF; background: transparent;");
-    toolbarLayout->addWidget(dateSep, 0);
+    auto* dateSep = new QLabel("—");
+    dateSep->setStyleSheet("color: #C0C4C8; font-size: 13px; background: transparent;");
+    tbLayout->addWidget(dateSep, 0);
 
     dateTo_ = new QDateEdit;
-    dateTo_->setDisplayFormat("yyyy-MM-dd");
+    dateTo_->setDisplayFormat("yyyy/MM/dd");
     dateTo_->setCalendarPopup(true);
     dateTo_->setFixedHeight(30);
-    dateTo_->setFixedWidth(130);
-    dateTo_->setSpecialValueText("截止日期");
+    dateTo_->setFixedWidth(120);
+    dateTo_->setSpecialValueText("To");
     dateTo_->setDate(QDate::currentDate());
+    dateTo_->setStyleSheet(
+        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
+        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
+        "QDateEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
     connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    toolbarLayout->addWidget(dateTo_, 0);
+    tbLayout->addWidget(dateTo_, 0);
 
-    auto* clearDateBtn = new QPushButton("清除日期");
+    auto* clearDateBtn = new QPushButton(tr("Clear"));
     clearDateBtn->setFixedHeight(30);
     clearDateBtn->setStyleSheet(
-        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 10px; background: transparent; color: #6B7280; font-size: 11px; }"
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        " background: transparent; color: #889096; font-size: 11px; }"
         "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
         dateFrom_->clear();
         dateTo_->clear();
         refreshList();
     });
-    toolbarLayout->addWidget(clearDateBtn, 0);
+    tbLayout->addWidget(clearDateBtn, 0);
 
+    // 分隔线
+    auto* sep = new QFrame;
+    sep->setFrameShape(QFrame::VLine);
+    sep->setFixedWidth(1);
+    sep->setFixedHeight(18);
+    sep->setStyleSheet("background: #E8ECEF; border: none;");
+    tbLayout->addWidget(sep);
+
+    // 标签筛选
     tagFilterCombo_ = new QComboBox;
     tagFilterCombo_->setFixedHeight(30);
-    tagFilterCombo_->setMinimumWidth(110);
-    connect(tagFilterCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &KnowledgeBasePage::onTagFilterChanged);
-    toolbarLayout->addWidget(tagFilterCombo_);
+    tagFilterCombo_->setMinimumWidth(100);
+    tagFilterCombo_->setStyleSheet(
+        "QComboBox { border: 1px solid #DDE1E5; border-radius: 8px;"
+        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
+        "QComboBox:focus { border-color: #0B7C72; background: #FFFFFF; }");
+    connect(tagFilterCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &KnowledgeBasePage::onTagFilterChanged);
+    tbLayout->addWidget(tagFilterCombo_);
 
-    auto* addTagBtn = new QPushButton("＋新建标签");
+    auto* addTagBtn = new QPushButton(QStringLiteral("＋ %1").arg(tr("Tag")));
     addTagBtn->setFixedHeight(30);
     addTagBtn->setStyleSheet(
-        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 12px; background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
         "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(addTagBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onAddNewTag);
-    toolbarLayout->addWidget(addTagBtn);
+    tbLayout->addWidget(addTagBtn);
 
-    auto* batchBtn = new QPushButton("批量导入");
+    tbLayout->addStretch();
+
+    selectAllBtn_ = new QPushButton(tr("Select All"));
+    selectAllBtn_->setFixedHeight(30);
+    selectAllBtn_->setStyleSheet(
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+    connect(selectAllBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onSelectAll);
+    tbLayout->addWidget(selectAllBtn_);
+
+    auto* batchBtn = new QPushButton(tr("Batch Import"));
     batchBtn->setObjectName("primaryBtn");
     batchBtn->setFixedHeight(30);
     connect(batchBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchImport);
-    toolbarLayout->addWidget(batchBtn);
+    tbLayout->addWidget(batchBtn);
 
-    selectAllBtn_ = new QPushButton("全选");
-    selectAllBtn_->setFixedHeight(30);
-    selectAllBtn_->setStyleSheet(
-        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 12px; background: transparent; color: #374151; font-size: 12px; }"
-        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
-    connect(selectAllBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onSelectAll);
-    toolbarLayout->addWidget(selectAllBtn_);
     layout->addWidget(toolbar);
 
-    // ---- 文档列表（占满剩余高度） ----
+    // ================================================================
+    // 4. 文档列表（卡片容器）
+    // ================================================================
+    listCard_ = new QFrame;
+    listCard_->setStyleSheet(QStringLiteral(
+        "QFrame { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 10px; }"));
+    auto* listCardLayout = new QVBoxLayout(listCard_);
+    listCardLayout->setContentsMargins(0, 0, 0, 0);
+    listCardLayout->setSpacing(0);
+
+    // 列表头部
+    auto* listHeader = new QFrame;
+    listHeader->setFixedHeight(32);
+    auto* listHeaderLayout = new QHBoxLayout(listHeader);
+    listHeaderLayout->setContentsMargins(14, 0, 14, 0);
+    listHeaderLayout->setSpacing(0);
+    auto* colDoc = new QLabel(tr("Document"));
+    colDoc->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    listHeaderLayout->addWidget(colDoc, 1);
+    auto* colDate = new QLabel(tr("Date"));
+    colDate->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    listHeaderLayout->addWidget(colDate);
+    auto* colTags = new QLabel(tr("Tags"));
+    colTags->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    listHeaderLayout->addWidget(colTags);
+    auto* colActions = new QLabel(tr("Actions"));
+    colActions->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    listHeaderLayout->addWidget(colActions);
+    listCardLayout->addWidget(listHeader);
+
+    // 滚动区
     listScroll_ = new QScrollArea;
     listScroll_->setWidgetResizable(true);
     listScroll_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     listScroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    listScroll_->setMinimumHeight(100);
+    listScroll_->setMinimumHeight(120);
     listScroll_->setStyleSheet(
         "QScrollArea { border: none; background: transparent; }"
         "QScrollBar:vertical { width: 6px; background: transparent; }"
         "QScrollBar::handle:vertical { background: #D0D4D8; border-radius: 3px; min-height: 30px; }"
+        "QScrollBar::handle:vertical:hover { background: #0B7C72; }"
         "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }");
 
     listContainer_ = new QWidget;
     listContainer_->setStyleSheet("QWidget { background: transparent; }");
     listLayout_ = new QVBoxLayout(listContainer_);
-    listLayout_->setContentsMargins(0, 0, 0, 0);
-    listLayout_->setSpacing(4);
+    listLayout_->setContentsMargins(8, 4, 8, 4);
+    listLayout_->setSpacing(2);
 
-    emptyHint_ = new QLabel("暂无文档\n拖拽文件到上方上传区归档");
+    emptyHint_ = new QLabel;
     emptyHint_->setAlignment(Qt::AlignCenter);
-    emptyHint_->setStyleSheet("color: #9CA3AF; font-size: 13px; padding: 40px; background: transparent; border: none;");
     emptyHint_->setWordWrap(true);
+    emptyHint_->setStyleSheet(
+        "QLabel { color: #9CA3AF; font-size: 13px; padding: 50px 20px;"
+        " background: transparent; border: none; }");
+    emptyHint_->setText(
+        tr("No documents yet\nDrop files above to get started"));
     listLayout_->addWidget(emptyHint_);
     listLayout_->addStretch();
 
     listScroll_->setWidget(listContainer_);
-    layout->addWidget(listScroll_, 1);
+    listCardLayout->addWidget(listScroll_, 1);
 
-    // ---- 底部批量操作栏（初始隐藏） ----
+    layout->addWidget(listCard_, 1);
+
+    // ================================================================
+    // 5. 底部批量操作栏
+    // ================================================================
     batchBar_ = new QFrame;
     batchBar_->setObjectName("card");
     batchBar_->setStyleSheet(QStringLiteral(
-        "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 10px; }"));
+        "QFrame#card { background: #F0F7F6; border: 1px solid #D0E8E4; border-radius: 10px; padding: 0; }"));
     auto* batchLayout = new QHBoxLayout(batchBar_);
     batchLayout->setContentsMargins(14, 8, 14, 8);
     batchLayout->setSpacing(10);
 
-    batchCountLabel_ = new QLabel("已选择 0 项");
+    batchCountLabel_ = new QLabel;
     batchCountLabel_->setStyleSheet("font-size: 12px; color: #374151; background: transparent; border: none;");
     batchLayout->addWidget(batchCountLabel_);
     batchLayout->addStretch();
 
-    batchTagBtn_ = new QPushButton("批量修改标签");
+    batchTagBtn_ = new QPushButton(tr("Batch Tag"));
+    batchTagBtn_->setFixedHeight(28);
     batchTagBtn_->setStyleSheet(
-        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 14px; background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 6px; padding: 0 14px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
         "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(batchTagBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchChangeTags);
     batchLayout->addWidget(batchTagBtn_);
 
-    batchDelBtn_ = new QPushButton("批量删除");
+    batchDelBtn_ = new QPushButton(tr("Delete"));
+    batchDelBtn_->setFixedHeight(28);
     batchDelBtn_->setStyleSheet(
-        "QPushButton { border: 1px solid #EF4444; border-radius: 6px; padding: 0 14px; background: transparent; color: #EF4444; font-size: 12px; }"
+        "QPushButton { border: 1px solid #FECACA; border-radius: 6px; padding: 0 14px;"
+        " background: transparent; color: #DC2626; font-size: 12px; }"
         "QPushButton:hover { background: #FEF2F2; }");
     connect(batchDelBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchDelete);
     batchLayout->addWidget(batchDelBtn_);
@@ -278,16 +440,11 @@ void KnowledgeBasePage::setupUI() {
 // refreshList
 // ============================================================
 void KnowledgeBasePage::refreshList() {
-    // 倒序清理旧 widget：只保留 emptyHint_ 和 Stretch，其余全部删除
     for (int i = listLayout_->count() - 1; i >= 0; --i) {
         QLayoutItem* item = listLayout_->itemAt(i);
         if (!item) continue;
-
-        // 跳过 emptyHint_ 和 Stretch（按指针精确识别）
         if (item->widget() == emptyHint_) continue;
         if (item->spacerItem()) continue;
-
-        // 删除文件项 widget
         if (item->widget()) {
             item->widget()->removeEventFilter(this);
             item->widget()->hide();
@@ -298,7 +455,7 @@ void KnowledgeBasePage::refreshList() {
     }
     checkedDocIds_.clear();
     allSelected_ = false;
-    if (selectAllBtn_) selectAllBtn_->setText("全选");
+    if (selectAllBtn_) selectAllBtn_->setText(tr("Select All"));
     updateBatchBar();
 
     auto& km = KnowledgeBaseManager::getInstance();
@@ -343,60 +500,56 @@ void KnowledgeBasePage::refreshList() {
         docs = km.getAllEntries();
     }
 
+    if (countLabel_)
+        countLabel_->setText(QStringLiteral("%1 %2").arg(docs.size()).arg(tr("documents")));
+
     emptyHint_->setVisible(docs.isEmpty());
     for (const auto& doc : docs) {
         auto tags = km.getDocumentTagNames(doc.id);
-        QString summary = doc.summary.isEmpty() ? "(暂无摘要)" : doc.summary;
+        QString summary = doc.summary.isEmpty() ? QString() : doc.summary;
         auto* item = createListItem(doc.id, doc.title,
-            doc.createdAt.toString("yyyy-MM-dd HH:mm"), doc.fileType.toUpper(), tags, summary, keyword);
+            doc.createdAt.toString("yyyy/MM/dd"), doc.fileType.toUpper(), tags, summary, keyword);
         listLayout_->insertWidget(listLayout_->count() - 1, item);
     }
 }
 
 // ============================================================
-// createListItem — 对齐文件翻译页面样式，带多选 CheckBox
+// createListItem — 行式布局
 // ============================================================
 QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     const QString& date, const QString& fileType,
     const QStringList& tags, const QString& summary, const QString& keyword) {
-    auto* item = new QFrame;
-    item->setProperty("docId", id);
-    item->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #E8ECEF; border-radius: 8px; }"
-        "QFrame:hover { background: rgba(11, 124, 114, 0.06); }");
 
-    auto* mainLayout = new QVBoxLayout(item);
-    mainLayout->setContentsMargins(10, 8, 10, 8);
-    mainLayout->setSpacing(0);
+    // 外层容器
+    auto* row = new QFrame;
+    row->setProperty("docId", id);
+    row->setCursor(Qt::PointingHandCursor);
+    row->setStyleSheet(
+        "QFrame { background: transparent; border: none; border-radius: 6px; }"
+        "QFrame:hover { background: #F8FAFA; }");
 
-    // ---- 标题行 ----
-    auto* headerLayout = new QHBoxLayout;
-    headerLayout->setContentsMargins(0, 0, 0, 0);
-    headerLayout->setSpacing(10);
+    auto* rowLayout = new QHBoxLayout(row);
+    rowLayout->setContentsMargins(10, 6, 10, 6);
+    rowLayout->setSpacing(10);
 
-    // 多选 CheckBox
+    // ---- CheckBox ----
     auto* checkBox = new QCheckBox;
     checkBox->setProperty("docId", id);
+    checkBox->setFixedSize(18, 18);
     checkBox->setStyleSheet(
-        "QCheckBox::indicator { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #D0D4D8; background: #FFFFFF; }"
+        "QCheckBox::indicator { width: 16px; height: 16px; border-radius: 4px;"
+        " border: 1.5px solid #D0D4D8; background: #FFFFFF; }"
         "QCheckBox::indicator:hover { border-color: #0B7C72; }"
-        "QCheckBox::indicator:checked { background-color: #0B7C72; border-color: #0B7C72; }");
-    connect(checkBox, &QCheckBox::toggled, this, [this, id, checkBox](bool checked) {
+        "QCheckBox::indicator:checked { background-color: #0B7C72; border-color: #0B7C72; }"
+        "QCheckBox { spacing: 0px; }");
+    connect(checkBox, &QCheckBox::toggled, this, [this, id](bool checked) {
         if (checked) checkedDocIds_.insert(id);
         else checkedDocIds_.remove(id);
         updateBatchBar();
     });
-    headerLayout->addWidget(checkBox);
+    rowLayout->addWidget(checkBox);
 
-    // 高亮辅助函数
-    auto highlightText = [](const QString& text, const QString& kw) -> QString {
-        if (kw.isEmpty()) return text.toHtmlEscaped();
-        QString escaped = text.toHtmlEscaped();
-        QRegularExpression re("(" + QRegularExpression::escape(kw) + ")", QRegularExpression::CaseInsensitiveOption);
-        return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\1</span>");
-    };
-
-    // 文件类型图标
+    // ---- 文件图标 ----
     QString iconRes = ":/icons/file.png";
     QString ext = fileType.toLower();
     if (ext == "pdf") iconRes = ":/icons/PDF.png";
@@ -407,101 +560,159 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     else if (ext == "md") iconRes = ":/icons/Markdown.png";
     else if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "tiff")
         iconRes = ":/icons/image.png";
+
     auto* iconLbl = new QLabel;
     QPixmap pix(iconRes);
     if (!pix.isNull())
-        iconLbl->setPixmap(pix.scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        iconLbl->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     iconLbl->setStyleSheet("background: transparent; border: none;");
-    headerLayout->addWidget(iconLbl);
+    rowLayout->addWidget(iconLbl);
 
-    // 标题 + 元数据
-    auto* nameLayout = new QVBoxLayout;
-    nameLayout->setContentsMargins(0, 0, 0, 0);
-    nameLayout->setSpacing(2);
+    // ---- 标题 + 摘要（弹性列）----
+    auto* infoLayout = new QVBoxLayout;
+    infoLayout->setContentsMargins(0, 0, 0, 0);
+    infoLayout->setSpacing(2);
+
+    auto highlightText = [](const QString& text, const QString& kw) -> QString {
+        if (kw.isEmpty()) return text.toHtmlEscaped();
+        QString escaped = text.toHtmlEscaped();
+        QRegularExpression re("(" + QRegularExpression::escape(kw) + ")", QRegularExpression::CaseInsensitiveOption);
+        return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\1</span>");
+    };
+
     auto* titleLbl = new QLabel(highlightText(title, keyword));
     titleLbl->setTextFormat(Qt::RichText);
-    titleLbl->setStyleSheet("font-weight: 500; font-size: 13px; color: #1C1C1E; background: transparent; border: none;");
-    nameLayout->addWidget(titleLbl);
+    titleLbl->setStyleSheet("font-size: 13px; font-weight: 500; color: #1C1C1E; background: transparent; border: none;");
+    infoLayout->addWidget(titleLbl);
 
-    QString tagStr = tags.isEmpty() ? "未分类" : tags.join(", ");
-    auto* metaLbl = new QLabel(
-        QStringLiteral("<span style='color:#8E8E93;font-size:11px;'>%1 · %2</span>"
-            " <span style='background:#E8F5F3;color:#0B7C72;border-radius:8px;padding:0 6px;font-size:10px;'>%3</span>")
-            .arg(date, fileType, tagStr));
-    metaLbl->setTextFormat(Qt::RichText);
-    metaLbl->setStyleSheet("background: transparent; border: none;");
-    nameLayout->addWidget(metaLbl);
-    headerLayout->addLayout(nameLayout, 1);
-
-    // 展开箭头
-    auto* arrowLabel = new QLabel("▶");
-    arrowLabel->setStyleSheet("font-size: 10px; color: #9CA3AF; background: transparent; border: none;");
-    headerLayout->addWidget(arrowLabel);
-
-    mainLayout->addLayout(headerLayout);
-
-    // ---- 详情区域（折叠） ----
-    auto* detailWidget = new QWidget;
-    detailWidget->setVisible(false);
-    detailWidget->setStyleSheet("background: transparent; border: none;");
-    auto* detailLayout = new QVBoxLayout(detailWidget);
-    detailLayout->setContentsMargins(52, 6, 0, 0);
-    detailLayout->setSpacing(6);
-
+    // 隐藏的摘要（点击展开时显示）
     auto* sumLbl = new QLabel(highlightText(summary, keyword));
     sumLbl->setTextFormat(Qt::RichText);
     sumLbl->setWordWrap(true);
     sumLbl->setStyleSheet("font-size: 12px; color: #5B6269; line-height: 1.5; background: transparent; border: none;");
-    detailLayout->addWidget(sumLbl);
-    mainLayout->addWidget(detailWidget);
+    sumLbl->setVisible(false);
 
-    // 如果摘要匹配搜索关键词，自动展开
+    // 摘要容器（带左边框标记）
+    auto* sumWrap = new QWidget;
+    sumWrap->setVisible(false);
+    sumWrap->setStyleSheet("background: transparent; border: none;");
+    auto* sumWrapLayout = new QHBoxLayout(sumWrap);
+    sumWrapLayout->setContentsMargins(0, 0, 0, 0);
+    sumWrapLayout->setSpacing(8);
+    auto* sumBar = new QFrame;
+    sumBar->setFixedWidth(3);
+    sumBar->setStyleSheet("background: #0B7C72; border-radius: 2px;");
+    sumWrapLayout->addWidget(sumBar, 0);
+    sumWrapLayout->addWidget(sumLbl, 1);
+
+    infoLayout->addWidget(sumWrap);
+    rowLayout->addLayout(infoLayout, 1);
+
+    // ---- 日期 ----
+    auto* dateLbl = new QLabel(date);
+    dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
+    dateLbl->setFixedWidth(75);
+    dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    rowLayout->addWidget(dateLbl);
+
+    // ---- 标签 ----
+    auto* tagContainer = new QWidget;
+    tagContainer->setStyleSheet("background: transparent; border: none;");
+    auto* tagFlow = new QHBoxLayout(tagContainer);
+    tagFlow->setContentsMargins(0, 0, 0, 0);
+    tagFlow->setSpacing(4);
+    int shown = 0;
+    for (const QString& t : tags) {
+        if (shown++ >= 2) break;
+        auto* tagBadge = new QLabel(t);
+        tagBadge->setStyleSheet(
+            "QLabel { background: #F0F7F6; color: #0B7C72; border-radius: 4px;"
+            " padding: 1px 8px; font-size: 10px; }");
+        tagFlow->addWidget(tagBadge);
+    }
+    if (tags.size() > 2) {
+        auto* more = new QLabel(QStringLiteral("+%1").arg(tags.size() - 2));
+        more->setStyleSheet("font-size: 10px; color: #9CA3AF; background: transparent; border: none;");
+        tagFlow->addWidget(more);
+    }
+    tagContainer->setFixedWidth(140);
+    rowLayout->addWidget(tagContainer);
+
+    // ---- 操作按钮 ----
+    auto* actions = new QWidget;
+    actions->setStyleSheet("background: transparent; border: none;");
+    auto* actionLayout = new QHBoxLayout(actions);
+    actionLayout->setContentsMargins(0, 0, 0, 0);
+    actionLayout->setSpacing(2);
+
+    auto* expandBtn = new QPushButton("\u25B6");  // ▶
+    expandBtn->setFixedSize(22, 22);
+    expandBtn->setCursor(Qt::PointingHandCursor);
+    expandBtn->setStyleSheet(
+        "QPushButton { border: none; border-radius: 4px; font-size: 9px;"
+        " color: #9CA3AF; background: transparent; }"
+        "QPushButton:hover { background: #E8F0EF; color: #0B7C72; }");
+
+    auto* viewBtn = makeGhostBtn(tr("View"), tr("Open source file"));
+    auto* exportBtn = makeGhostBtn(tr("Export"), tr("Export as .md"));
+    auto* delBtn = makeGhostBtn("\u2715", tr("Delete"));
+
+    actionLayout->addWidget(expandBtn);
+    actionLayout->addWidget(viewBtn);
+    actionLayout->addWidget(exportBtn);
+    actionLayout->addWidget(delBtn);
+    rowLayout->addWidget(actions);
+
+    // ---- 展开/折叠详情 ----
     bool summaryMatch = !keyword.isEmpty() && summary.contains(keyword, Qt::CaseInsensitive);
     if (summaryMatch) {
-        detailWidget->setVisible(true);
-        arrowLabel->setText("▼");
+        sumWrap->setVisible(true);
+        expandBtn->setText("\u25BC");  // ▼
     }
 
-    // ---- 箭头点击展开 ----
-    arrowLabel->installEventFilter(this);
-    arrowLabel->setProperty("_kb_detailWidget", QVariant::fromValue(reinterpret_cast<quintptr>(detailWidget)));
-    arrowLabel->setProperty("_kb_arrowLabel", QVariant::fromValue(reinterpret_cast<quintptr>(arrowLabel)));
+    connect(expandBtn, &QPushButton::clicked, row, [row, sumWrap, expandBtn]() {
+        bool vis = sumWrap->isVisible();
+        sumWrap->setVisible(!vis);
+        expandBtn->setText(vis ? "\u25B6" : "\u25BC");
+    });
 
-    // ---- 双击 item 打开详情 ----
-    item->installEventFilter(this);
-    item->setProperty("_kb_docId", id);
-    item->setProperty("_kb_doubleClick", true);
+    connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
+    connect(exportBtn, &QPushButton::clicked, this, [this, id]() {
+        auto& km = KnowledgeBaseManager::getInstance();
+        auto entry = km.getEntry(id);
+        if (entry.id < 0) return;
+        QString path = QFileDialog::getSaveFileName(this, tr("Export as"), entry.title + ".md", "Markdown (*.md)");
+        if (!path.isEmpty()) km.exportEntry(id, path);
+    });
+    connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
+        auto reply = QMessageBox::question(this, tr("Delete"),
+            tr("Delete this document?"),
+            QMessageBox::Yes | QMessageBox::No);
+        if (reply != QMessageBox::Yes) return;
+        KnowledgeBaseManager::getInstance().deleteEntry(id);
+        row->hide();
+        row->deleteLater();
+        refreshList();
+    });
 
-    return item;
+    // 双击打开源文件
+    row->installEventFilter(this);
+    row->setProperty("_kb_docId", id);
+    row->setProperty("_kb_doubleClick", true);
+
+    return row;
 }
 
 // ============================================================
-// eventFilter — 箭头点击展开/折叠 + 双击查看详情
+// eventFilter
 // ============================================================
 bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
-    if (event->type() == QEvent::MouseButtonPress) {
-        auto* w = qobject_cast<QWidget*>(obj);
-        if (!w) return QWidget::eventFilter(obj, event);
-        if (w->property("_kb_detailWidget").isValid()) {
-            auto* detailW = reinterpret_cast<QWidget*>(w->property("_kb_detailWidget").value<quintptr>());
-            auto* arrowLbl = reinterpret_cast<QLabel*>(w->property("_kb_arrowLabel").value<quintptr>());
-            if (detailW && arrowLbl) {
-                bool vis = detailW->isVisible();
-                detailW->setVisible(!vis);
-                arrowLbl->setText(vis ? "▶" : "▼");
-                return true;
-            }
-        }
-    }
     if (event->type() == QEvent::MouseButtonDblClick) {
         auto* w = qobject_cast<QWidget*>(obj);
         if (!w) return QWidget::eventFilter(obj, event);
         if (w->property("_kb_doubleClick").toBool()) {
             int docId = w->property("_kb_docId").toInt();
-            if (docId > 0) {
-                showDocumentDetail(docId);
-                return true;
-            }
+            if (docId > 0) { showDocumentDetail(docId); return true; }
         }
     }
     return QWidget::eventFilter(obj, event);
@@ -514,25 +725,19 @@ void KnowledgeBasePage::showDocumentDetail(int docId) {
     auto& km = KnowledgeBaseManager::getInstance();
     auto entry = km.getEntry(docId);
     if (entry.id < 0) return;
-
     QString filePath = entry.sourcePath;
-    if (filePath.isEmpty()) {
-        emit statusMessage("源文件路径为空");
-        return;
-    }
+    if (filePath.isEmpty()) { emit statusMessage(tr("Source path is empty")); return; }
     QFileInfo fi(filePath);
-    if (!fi.exists()) {
-        emit statusMessage(QStringLiteral("源文件不存在: %1").arg(filePath));
-        return;
-    }
+    if (!fi.exists()) { emit statusMessage(tr("File not found: %1").arg(filePath)); return; }
     QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
 
 // ============================================================
+// onFileDropped
 // ============================================================
 void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     if (isImporting_) {
-        emit statusMessage("正在处理中，请等待完成后再上传");
+        emit statusMessage(tr("Import in progress, please wait"));
         return;
     }
     static bool processing = false;
@@ -541,12 +746,10 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 
     QStringList files = paths;
     if (files.isEmpty()) {
-        files = QFileDialog::getOpenFileNames(this, "选择文件", QString(),
-            "所有支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)");
+        files = QFileDialog::getOpenFileNames(this, tr("Select Files"), QString(),
+            tr("Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)"));
     }
     if (files.isEmpty()) { processing = false; return; }
-
-    // 去重（QFileDialog 在某些情况下可能返回重复路径）
     files.removeDuplicates();
 
     auto& km = KnowledgeBaseManager::getInstance();
@@ -563,19 +766,11 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
         tasks.append(t);
     }
 
-    setEnabled(false);
     int total = tasks.size();
-    emit statusMessage(QStringLiteral("正在解析 %1 个文件…").arg(total));
-
-    QString baseDir = QCoreApplication::applicationDirPath();
-
-    // 禁用界面，分批处理文件（每次处理一个，防止 UI 假死）
     setEnabled(false);
-
-    // 递增操作代次，使之前的 QTimer 链全部失效
+    emit statusMessage(QStringLiteral("%1 %2").arg(total).arg(tr("files parsing…")));
+    QString baseDir = QCoreApplication::applicationDirPath();
     importGeneration_++;
-
-    // 保存任务列表到成员变量
     pendingTasks_ = tasks;
     pendingBaseDir_ = baseDir;
     processIndex_ = 0;
@@ -583,9 +778,7 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     isImporting_ = true;
     int myGen = importGeneration_;
 
-    // 延时启动处理，让 UI 先刷新（文件对话框关闭事件先处理完）
     QTimer::singleShot(100, this, [this, myGen]() {
-        // 如果在这 100ms 内又开始了新的上传，直接返回
         if (myGen != importGeneration_) return;
         processNextFile(myGen);
         processing = false;
@@ -593,21 +786,18 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 }
 
 // ============================================================
-// extract_image_text — 直接用 OCR 引擎识别图片（绕过 FileTranslationModule 避免 ReleaseProcessor 崩溃）
+// extract_image_text
 // ============================================================
 std::string KnowledgeBasePage::extract_image_text(const std::string& image_path) {
     cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR);
     if (img.empty()) return "";
-
     auto& ctx = docmind::GlobalEngineContext::getInstance();
     if (!ctx.ensureOCREngine()) return "";
     if (auto* engine = ctx.getOCREngine()) {
         auto results = engine->recognizeBuffer(img);
         std::string text;
         for (const auto& r : results) {
-            if (!r.text.empty()) {
-                text += r.text + "\n";
-            }
+            if (!r.text.empty()) text += r.text + "\n";
         }
         return text;
     }
@@ -615,11 +805,10 @@ std::string KnowledgeBasePage::extract_image_text(const std::string& image_path)
 }
 
 // ============================================================
-// extract_pdf_text — 用 PDFium 渲染 PDF 为图片，再用 OCR 识别
+// extract_pdf_text
 // ============================================================
 std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, const std::string& base_dir, int dpi) {
     std::vector<cv::Mat> pages;
-    // PDF 渲染（和 FileTranslationModule::pdf_to_images 相同逻辑）
     {
         std::ifstream file(pdf_path, std::ios::binary | std::ios::ate);
         if (!file.is_open()) return "";
@@ -631,7 +820,6 @@ std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, con
 
         FPDF_DOCUMENT doc = FPDF_LoadMemDocument(data.data(), static_cast<int>(size), nullptr);
         if (!doc) return "";
-
         int page_count = FPDF_GetPageCount(doc);
         for (int i = 0; i < page_count; ++i) {
             FPDF_PAGE page = FPDF_LoadPage(doc, i);
@@ -653,7 +841,6 @@ std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, con
     }
 
     if (pages.empty()) return "";
-
     auto& ctx = docmind::GlobalEngineContext::getInstance();
     if (!ctx.ensureOCREngine()) return "";
     if (auto* engine = ctx.getOCREngine()) {
@@ -661,9 +848,7 @@ std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, con
         for (const auto& page : pages) {
             auto results = engine->recognizeBuffer(page);
             for (const auto& r : results) {
-                if (!r.text.empty()) {
-                    full_text += r.text + "\n";
-                }
+                if (!r.text.empty()) full_text += r.text + "\n";
             }
         }
         return full_text;
@@ -672,23 +857,16 @@ std::string KnowledgeBasePage::extract_pdf_text(const std::string& pdf_path, con
 }
 
 // ============================================================
-// processNextFile — 逐文件处理，每次处理完用 QTimer::singleShot(0)
-// 调度下一个，让事件循环自然流转（不用 processEvents 泵入事件）
-// myGen: 本次操作的代次，用于使旧定时器链失效
-// ============================================================
-// 调度下一个，让事件循环自然流转（不用 processEvents 泵入事件）
-// myGen: 本次操作的代次，用于使旧定时器链失效
+// processNextFile
 // ============================================================
 void KnowledgeBasePage::processNextFile(int myGen) {
-    // 如果已经有新的上传开始，立即停止（防止僵尸定时器干扰）
     if (myGen != importGeneration_ || !isImporting_) return;
 
-    // 全部处理完毕
     if (processIndex_ >= pendingTasks_.size()) {
         pendingTasks_.clear();
         refreshList();
         setEnabled(true);
-        emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
+        emit statusMessage(QStringLiteral("%1 %2").arg(importCount_).arg(tr("documents imported")));
         ToastNotification::show(this, QStringLiteral("已导入 %1 个文档").arg(importCount_), 4000, QColor(11, 124, 114));
         importCount_ = 0;
         processIndex_ = 0;
@@ -697,12 +875,10 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     }
 
     const ImportTask& task = pendingTasks_[processIndex_];
-    emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(processIndex_ + 1).arg(pendingTasks_.size()));
+    emit statusMessage(QStringLiteral("%1/%2 %3…").arg(processIndex_ + 1).arg(pendingTasks_.size()).arg(tr("parsing")));
 
-    // 解析文件内容（md/txt 直接读取，其他通过引擎提取为 markdown）
     QString ext = task.fileType;
     if (ext == "md" || ext == "txt") {
-        // md/txt 轻量操作可以在主线程完成
         QString markdown;
         QFile f(task.filePath);
         if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -711,11 +887,8 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         }
         processIndex_++;
         finishEntry(task, markdown);
-        QTimer::singleShot(0, this, [this, myGen]() {
-            processNextFile(myGen);
-        });
+        QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
     } else {
-        // 图片/PDF/Excel 等在后台线程处理，避免阻塞 UI
         QString filePath = task.filePath;
         QString fileName = task.title;
         QString fileType = task.fileType;
@@ -729,9 +902,7 @@ void KnowledgeBasePage::processNextFile(int myGen) {
             t.fileType = fileType;
             t.fileSize = fileSize;
             finishEntry(t, markdown);
-            QTimer::singleShot(0, this, [this, myGen]() {
-                processNextFile(myGen);
-            });
+            QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
         };
 
         std::thread([onFinish, filePath, fileType]() {
@@ -747,11 +918,8 @@ void KnowledgeBasePage::processNextFile(int myGen) {
                 std::string extracted = extract_file_text(
                     filePath.toStdString(), "", baseDir,
                     threshold, dpi, enable_warp, enable_enhance);
-                if (!extracted.empty()) {
-                    md = QString::fromStdString(extracted);
-                }
+                if (!extracted.empty()) md = QString::fromStdString(extracted);
             } catch (...) {}
-            // 回到主线程入库
             QMetaObject::invokeMethod(QCoreApplication::instance(), [onFinish, md]() {
                 onFinish(md);
             }, Qt::QueuedConnection);
@@ -760,23 +928,6 @@ void KnowledgeBasePage::processNextFile(int myGen) {
 }
 
 void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
-
-// ============================================================
-// generateSummary
-// ============================================================
-// QString KnowledgeBasePage::generateSummary(const QString& markdown) {
-//     // 取前 1000 字符用于翻译（摘要基于翻译结果截取）
-//     QString plain = markdown.simplified();
-//     if (plain.length() > 1000) plain = plain.left(1000) + "……";
-//     if (plain.trimmed().isEmpty()) return QString();
-//     try {
-//         // 用翻译引擎翻译成中文，取前 200 字作为摘要
-//         auto r = translate_text(plain.toStdString(), "Chinese", 512);
-//         QString result = QString::fromStdString(r);
-//         if (result.length() > 200) result = result.left(200) + "……";
-//         return result;
-//     } catch (...) { return plain.left(200); }
-// }
 
 // ============================================================
 // finishEntry — 入库 + 后台生成摘要
@@ -793,7 +944,6 @@ void KnowledgeBasePage::finishEntry(const ImportTask& task, const QString& markd
     if (km.addEntry(entry, &newId)) {
         importCount_++;
         if (!markdown.trimmed().isEmpty()) {
-            // 后台线程生成摘要
             QString savedMarkdown = markdown;
             int savedId = newId;
             std::thread([this, savedMarkdown, savedId]() {
@@ -802,13 +952,9 @@ void KnowledgeBasePage::finishEntry(const ImportTask& task, const QString& markd
                 if (ctx.ensureSummarizerEngine()) {
                     if (auto* engine = ctx.getSummarizerEngine()) {
                         std::string text_utf8 = savedMarkdown.toUtf8().constData();
-                        if (text_utf8.length() > 4000) {
-                            text_utf8 = text_utf8.substr(0, 4000);
-                        }
+                        if (text_utf8.length() > 4000) text_utf8 = text_utf8.substr(0, 4000);
                         std::string aiResult = engine->summarize(text_utf8, 4096);
-                        if (!aiResult.empty()) {
-                            summary = QString::fromUtf8(aiResult.c_str());
-                        }
+                        if (!aiResult.empty()) summary = QString::fromUtf8(aiResult.c_str());
                     }
                 }
                 if (summary.isEmpty()) {
@@ -831,7 +977,7 @@ void KnowledgeBasePage::onSummaryReady(int docId, const QString& summary) {
 }
 
 // ============================================================
-// 工具栏
+// 工具栏回调
 // ============================================================
 void KnowledgeBasePage::onSearchTextChanged(const QString&) {
     static QTimer* debounce = nullptr;
@@ -842,18 +988,18 @@ void KnowledgeBasePage::onTagFilterChanged(int) { refreshList(); }
 void KnowledgeBasePage::onDateFilterChanged() { refreshList(); }
 void KnowledgeBasePage::onAddNewTag() {
     bool ok;
-    QString name = QInputDialog::getText(this, "新建标签", "请输入标签名称:", QLineEdit::Normal, {}, &ok);
+    QString name = QInputDialog::getText(this, tr("New Tag"), tr("Tag name:"), QLineEdit::Normal, {}, &ok);
     if (ok && !name.trimmed().isEmpty()) {
         auto& km = KnowledgeBaseManager::getInstance();
-        if (km.addTag(name.trimmed())) { refreshTags(); emit statusMessage("已创建标签 " + name.trimmed()); }
-        else emit statusMessage("创建标签失败（可能已存在）");
+        if (km.addTag(name.trimmed())) { refreshTags(); emit statusMessage(tr("Tag created: %1").arg(name.trimmed())); }
+        else emit statusMessage(tr("Tag already exists"));
     }
 }
 void KnowledgeBasePage::refreshTags() {
     if (!tagFilterCombo_) return;
     tagFilterCombo_->blockSignals(true);
     tagFilterCombo_->clear();
-    tagFilterCombo_->addItem("全部文档", -1);
+    tagFilterCombo_->addItem(tr("All Documents"), -1);
     for (const auto& t : KnowledgeBaseManager::getInstance().getAllTags())
         tagFilterCombo_->addItem(t.second, t.first);
     tagFilterCombo_->blockSignals(false);
@@ -864,14 +1010,13 @@ void KnowledgeBasePage::refreshTags() {
 // ============================================================
 void KnowledgeBasePage::updateBatchBar() {
     int n = checkedDocIds_.size();
-    batchCountLabel_->setText(QStringLiteral("已选择 %1 项").arg(n));
+    batchCountLabel_->setText(QStringLiteral("%1 %2").arg(n).arg(tr("selected")));
     batchBar_->setVisible(n > 0);
 }
 
 void KnowledgeBasePage::onSelectAll() {
     allSelected_ = !allSelected_;
     if (allSelected_) {
-        // 收集当前列表中的所有 docId
         auto& km = KnowledgeBaseManager::getInstance();
         QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
         int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
@@ -879,33 +1024,28 @@ void KnowledgeBasePage::onSelectAll() {
         if (!keyword.isEmpty()) docs = km.searchEntries(keyword);
         else if (tagFilter > 0) docs = km.getEntriesByTag(tagFilter);
         else docs = km.getAllEntries();
-        for (const auto& doc : docs) {
-            checkedDocIds_.insert(doc.id);
-        }
-        selectAllBtn_->setText("取消全选");
+        for (const auto& doc : docs) checkedDocIds_.insert(doc.id);
+        selectAllBtn_->setText(tr("Deselect All"));
     } else {
         checkedDocIds_.clear();
-        selectAllBtn_->setText("全选");
+        selectAllBtn_->setText(tr("Select All"));
     }
-    // 同步所有 list item 的 checkbox
     for (QCheckBox* cb : findChildren<QCheckBox*>()) {
-        if (cb->property("docId").isValid())
-            cb->setChecked(allSelected_);
+        if (cb->property("docId").isValid()) cb->setChecked(allSelected_);
     }
     updateBatchBar();
 }
 
 void KnowledgeBasePage::onBatchDelete() {
     if (checkedDocIds_.isEmpty()) return;
-    auto reply = QMessageBox::question(this, "批量删除",
-        QStringLiteral("确定删除选中的 %1 个文档？").arg(checkedDocIds_.size()),
+    auto reply = QMessageBox::question(this, tr("Batch Delete"),
+        QStringLiteral("%1 %2?").arg(checkedDocIds_.size()).arg(tr("documents to delete")),
         QMessageBox::Yes | QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
-
     auto& km = KnowledgeBaseManager::getInstance();
-    QSet<int> ids = checkedDocIds_;  // 拷贝一份，避免遍历过程中修改
+    QSet<int> ids = checkedDocIds_;
     int deleted = km.deleteEntries(QList<int>(ids.begin(), ids.end()));
-    emit statusMessage(QStringLiteral("已删除 %1 个文档").arg(deleted));
+    emit statusMessage(QStringLiteral("%1 %2").arg(deleted).arg(tr("documents deleted")));
     refreshList();
 }
 
@@ -914,12 +1054,12 @@ void KnowledgeBasePage::onBatchChangeTags() {
     auto& km = KnowledgeBaseManager::getInstance();
     auto allTags = km.getAllTags();
     if (allTags.isEmpty()) {
-        QMessageBox::information(this, "修改标签", "暂无标签，请先创建标签");
+        QMessageBox::information(this, tr("Batch Tag"), tr("No tags yet, create one first"));
         return;
     }
 
     QDialog dlg(this);
-    dlg.setWindowTitle(QStringLiteral("批量修改标签（%1 个文档）").arg(checkedDocIds_.size()));
+    dlg.setWindowTitle(QStringLiteral("%1 (%2)").arg(tr("Batch Tag")).arg(checkedDocIds_.size()));
     dlg.setMinimumWidth(300);
     auto* lay = new QVBoxLayout(&dlg);
     QList<QCheckBox*> checks;
@@ -939,7 +1079,7 @@ void KnowledgeBasePage::onBatchChangeTags() {
             if (checks[i]->isChecked()) selected.append(allTags[i].first);
         for (int id : checkedDocIds_)
             km.setDocumentTags(id, selected);
-        emit statusMessage(QStringLiteral("已更新 %1 个文档的标签").arg(checkedDocIds_.size()));
+        emit statusMessage(QStringLiteral("%1 %2").arg(checkedDocIds_.size()).arg(tr("documents tagged")));
         refreshList();
     }
 }
