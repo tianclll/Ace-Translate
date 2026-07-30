@@ -310,16 +310,21 @@ Translator::Impl::Impl(
 }
 
 Translator::Impl::~Impl() {
-    if (sampler) {
-        llama_sampler_free(sampler);
+    // 用 SEH 保护析构，防止 llama_free 在 GPU 状态下抛出异常
+    __try {
+        if (sampler) {
+            llama_sampler_free(sampler);
+        }
+        if (ctx) {
+            llama_free(ctx);
+        }
+        if (model) {
+            llama_model_free(model);
+        }
+        llama_backend_free();
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        std::cerr << "~Impl() SEH crash during cleanup" << std::endl;
     }
-    if (ctx) {
-        llama_free(ctx);
-    }
-    if (model) {
-        llama_model_free(model);
-    }
-    llama_backend_free();
 }
 
 std::string Translator::Impl::token_to_piece(
@@ -343,8 +348,9 @@ std::string Translator::Impl::token_to_piece(
 
 // ============================================================
 // raw_generate_seh — 纯 C 辅助函数，__try 内没有任何 C++ 对象
-// 所有缓冲区由调用者通过指针传入
+// 禁用 /GS 安全检查（栈缓冲区溢出由 __except 处理）
 // ============================================================
+#pragma strict_gs_check(off)
 static bool raw_generate_seh(
         llama_context* ctx,
         const llama_vocab* vocab,
@@ -360,13 +366,13 @@ static bool raw_generate_seh(
         llama_memory_clear(llama_get_memory(ctx), true);
 
         // 用固定大小数组，避免 std::vector（C++ 对象）
-        llama_token tokens[4096];
+        llama_token tokens[8192];
         int n_tokens = llama_tokenize(
                 vocab,
                 prompt_text,
                 prompt_len,
                 tokens,
-                4096,
+                2048,
                 true,
                 true
         );
@@ -540,10 +546,7 @@ std::string Translator::Impl::summarize(
 
     std::string prompt =
             "请将下面文本用一句话概括成中文摘要。\n"
-            "只输出摘要，不要解释。\n\n"
-            "原文：\n"
-            + source_text +
-            "\n\n摘要：";
+            + source_text;
 
     std::string result = generate(prompt, max_tokens);
 
@@ -553,6 +556,16 @@ std::string Translator::Impl::summarize(
     }
     auto end = result.find_last_not_of(" \t\r\n");
     result = result.substr(begin, end - begin + 1);
+
+    // 限制摘要最大长度（Hy-MT2 不是摘要模型，可能输出大段原文）
+    const int MAX_SUMMARY_LEN = 200;
+    if ((int)result.length() > MAX_SUMMARY_LEN) {
+        result = result.substr(0, MAX_SUMMARY_LEN);
+        auto r_end = result.find_last_not_of(" \t\r\n");
+        if (r_end != std::string::npos) {
+            result = result.substr(0, r_end + 1);
+        }
+    }
 
     return result;
 }

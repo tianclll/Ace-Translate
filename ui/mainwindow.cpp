@@ -313,6 +313,8 @@ void DropZoneWidget::dropEvent(QDropEvent* event) {
 
 void DropZoneWidget::mousePressEvent(QMouseEvent* event) {
     Q_UNUSED(event);
+    // 如果父窗口被禁用（正在导入中），忽略点击
+    if (!isEnabled()) return;
     // On click, emit fileDropped with empty list to trigger file dialog
     emit fileDropped(QStringList());
 }

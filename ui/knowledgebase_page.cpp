@@ -23,7 +23,64 @@
 
 #include "docmind/DocumentEngine.h"
 #include "docmind/core/GlobalEngineContext.hpp"
+
 #include <windows.h>
+#include <dbghelp.h>
+#include <fstream>
+
+// ============================================================
+// 全局 VEH — 崩溃时记录堆栈到 D:\crash_log.txt
+// ============================================================
+#pragma comment(lib, "dbghelp.lib")
+static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
+    std::ofstream log("D:\\crash_log.txt", std::ios::app);
+    log << "\n=== CRASH at " << GetCurrentProcessId() << " ===" << std::endl;
+    log << "ExceptionCode: 0x" << std::hex << ep->ExceptionRecord->ExceptionCode << std::dec << std::endl;
+    log << "ExceptionAddress: " << ep->ExceptionRecord->ExceptionAddress << std::endl;
+
+    // 获取堆栈回溯
+    HANDLE hProcess = GetCurrentProcess();
+    SymInitialize(hProcess, NULL, TRUE);
+    SYMBOL_INFO* symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256, 1);
+    symbol->MaxNameLen = 255;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+    CONTEXT* context = ep->ContextRecord;
+    STACKFRAME64 frame = {};
+    DWORD machine = IMAGE_FILE_MACHINE_AMD64;
+    frame.AddrPC.Offset = context->Rip;
+    frame.AddrPC.Mode = AddrModeFlat;
+    frame.AddrFrame.Offset = context->Rbp;
+    frame.AddrFrame.Mode = AddrModeFlat;
+    frame.AddrStack.Offset = context->Rsp;
+    frame.AddrStack.Mode = AddrModeFlat;
+
+    for (int i = 0; i < 20; i++) {
+        if (!StackWalk64(machine, hProcess, GetCurrentThread(),
+                         &frame, context, NULL,
+                         SymFunctionTableAccess64, SymGetModuleBase64, NULL))
+            break;
+        if (frame.AddrPC.Offset == 0) break;
+        DWORD64 addr = frame.AddrPC.Offset;
+        if (SymFromAddr(hProcess, addr, 0, symbol)) {
+            log << "  #" << i << " " << symbol->Name << " +0x" << std::hex
+                << (addr - symbol->Address) << std::dec << std::endl;
+        } else {
+            log << "  #" << i << " 0x" << std::hex << addr << std::dec << std::endl;
+        }
+    }
+    free(symbol);
+    SymCleanup(hProcess);
+    log.close();
+    return EXCEPTION_CONTINUE_SEARCH;  // 让系统继续默认处理（闪退）
+}
+
+// 在库加载时安装 VEH
+namespace {
+    struct InstallVEH {
+        InstallVEH() { AddVectoredExceptionHandler(1, crashHandler); }
+    } _vehInstaller;
+}
 
 
 
@@ -169,9 +226,22 @@ void KnowledgeBasePage::setupUI() {
 // refreshList
 // ============================================================
 void KnowledgeBasePage::refreshList() {
-    while (listLayout_->count() > 2) {
-        auto* item = listLayout_->takeAt(0);
-        if (item->widget()) item->widget()->deleteLater();
+    // 倒序清理旧 widget：只保留 emptyHint_ 和 Stretch，其余全部删除
+    for (int i = listLayout_->count() - 1; i >= 0; --i) {
+        QLayoutItem* item = listLayout_->itemAt(i);
+        if (!item) continue;
+
+        // 跳过 emptyHint_ 和 Stretch（按指针精确识别）
+        if (item->widget() == emptyHint_) continue;
+        if (item->spacerItem()) continue;
+
+        // 删除文件项 widget
+        if (item->widget()) {
+            item->widget()->removeEventFilter(this);
+            item->widget()->hide();
+            item->widget()->deleteLater();
+        }
+        listLayout_->takeAt(i);
         delete item;
     }
     checkedDocIds_.clear();
@@ -360,12 +430,19 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
         emit statusMessage("正在处理中，请等待完成后再上传");
         return;
     }
+    static bool processing = false;
+    if (processing) return;
+    processing = true;
+
     QStringList files = paths;
     if (files.isEmpty()) {
         files = QFileDialog::getOpenFileNames(this, "选择文件", QString(),
             "所有支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)");
     }
-    if (files.isEmpty()) return;
+    if (files.isEmpty()) { processing = false; return; }
+
+    // 去重（QFileDialog 在某些情况下可能返回重复路径）
+    files.removeDuplicates();
 
     auto& km = KnowledgeBaseManager::getInstance();
     km.initialize();
@@ -384,12 +461,14 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     setEnabled(false);
     int total = tasks.size();
     emit statusMessage(QStringLiteral("正在解析 %1 个文件…").arg(total));
-    QApplication::processEvents();
 
     QString baseDir = QCoreApplication::applicationDirPath();
 
     // 禁用界面，分批处理文件（每次处理一个，防止 UI 假死）
     setEnabled(false);
+
+    // 递增操作代次，使之前的 QTimer 链全部失效
+    importGeneration_++;
 
     // 保存任务列表到成员变量
     pendingTasks_ = tasks;
@@ -397,111 +476,97 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     processIndex_ = 0;
     importCount_ = 0;
     isImporting_ = true;
+    int myGen = importGeneration_;
 
-    // 延时启动处理，让 UI 先刷新
-    QTimer::singleShot(100, this, &KnowledgeBasePage::processNextFile);
+    // 延时启动处理，让 UI 先刷新（文件对话框关闭事件先处理完）
+    QTimer::singleShot(100, this, [this, myGen]() {
+        // 如果在这 100ms 内又开始了新的上传，直接返回
+        if (myGen != importGeneration_) return;
+        processNextFile(myGen);
+        processing = false;
+    });
 }
 
 // ============================================================
-// processNextFile — 处理所有待导入文件（一次性处理，用 processEvents 保持 UI 响应）
+// processNextFile — 逐文件处理，每次处理完用 QTimer::singleShot(0)
+// 调度下一个，让事件循环自然流转（不用 processEvents 泵入事件）
+// myGen: 本次操作的代次，用于使旧定时器链失效
 // ============================================================
-void KnowledgeBasePage::processNextFile() {
-    if (!isImporting_) return;
+void KnowledgeBasePage::processNextFile(int myGen) {
+    // 如果已经有新的上传开始，立即停止（防止僵尸定时器干扰）
+    if (myGen != importGeneration_ || !isImporting_) return;
 
-    // 一次性处理所有待导入文件
-    QList<ImportTask> tasks = pendingTasks_;  // 拷贝一份，避免过程中被修改
-    pendingTasks_.clear();
-    int total = tasks.size();
-    int success = 0;
+    // 全部处理完毕
+    if (processIndex_ >= pendingTasks_.size()) {
+        pendingTasks_.clear();
+        refreshList();
+        setEnabled(true);
+        emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
+        importCount_ = 0;
+        processIndex_ = 0;
+        isImporting_ = false;
+        return;
+    }
 
-    for (int i = 0; i < total; i++) {
-        if (!isImporting_) break;  // 被取消
+    const ImportTask& task = pendingTasks_[processIndex_];
+    emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(processIndex_ + 1).arg(pendingTasks_.size()));
 
-        const ImportTask& task = tasks[i];
-        emit statusMessage(QStringLiteral("正在解析 %1/%2 …").arg(i + 1).arg(total));
-        QApplication::processEvents();
-
-        // 引擎解析
-        QString markdown;
-        bool parseOk = false;
-        QString ext = task.fileType;
-        if (ext == "md" || ext == "txt") {
-            QFile f(task.filePath);
-            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                markdown = QString::fromUtf8(f.readAll());
-                f.close();
-                parseOk = true;
-            }
-        } else {
-            emit statusMessage(QStringLiteral("正在加载引擎…"));
-            QApplication::processEvents();
-            auto& ctx = docmind::GlobalEngineContext::getInstance();
-            ctx.initialize();
-            ctx.ensureOCREngine();
-            ctx.ensureLayoutDetector();
-            std::string baseDirStr = pendingBaseDir_.toStdString();
-            try {
-                std::string outPath;
-                if (ext == "pdf") {
-                    outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200);
-                } else {
-                    outPath = extract_file_text(task.filePath.toStdString(), "", baseDirStr, 0.5f, 200, true, false);
-                }
-                QFile f(QString::fromStdString(outPath));
-                if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                    markdown = QString::fromUtf8(f.readAll());
-                    f.close();
-                    parseOk = true;
-                }
-                QFile::remove(QString::fromStdString(outPath));
-            } catch (const std::exception& e) {
-                markdown = QStringLiteral("解析失败: %1").arg(e.what());
-            } catch (...) {
-                markdown = "解析失败: 未知错误";
-            }
-        }
-
-        // 入库
-        auto& km = KnowledgeBaseManager::getInstance();
-        KnowledgeEntry entry;
-        entry.title = task.title;
-        entry.fileType = task.fileType;
-        entry.sourcePath = task.filePath;
-        entry.fileSize = task.fileSize;
-        entry.markdownContent = markdown;
-
-        int newId = -1;
-        if (km.addEntry(entry, &newId)) {
-            if (parseOk && !markdown.trimmed().isEmpty()) {
-                emit statusMessage(QStringLiteral("正在生成摘要 …"));
-                QApplication::processEvents();
-                QString plain = markdown.simplified();
-                if (plain.length() > 2000) plain = plain.left(2000) + "……";
-                QString summary;
-                try {
-                    auto& ctx = docmind::GlobalEngineContext::getInstance();
-                    ctx.ensureTranslatorEngine();
-                    auto* translator = ctx.getTranslatorEngine();
-                    if (translator) {
-                        auto r = translator->summarize(plain.toStdString(), 256);
-                        summary = QString::fromStdString(r);
-                    }
-                } catch (const std::exception& e) {
-                    summary = plain.left(200);
-                }
-                if (summary.isEmpty()) summary = plain.left(200);
-                if (!summary.isEmpty()) km.updateSummary(newId, summary);
-            }
-            success++;
+    // 只读 md/txt 文件内容
+    QString markdown;
+    QString ext = task.fileType;
+    if (ext == "md" || ext == "txt") {
+        QFile f(task.filePath);
+        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            markdown = QString::fromUtf8(f.readAll());
+            f.close();
         }
     }
 
-    refreshList();
-    setEnabled(true);
-    emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(success));
-    importCount_ = 0;
-    processIndex_ = 0;
-    isImporting_ = false;
+    // 入库
+    auto& km = KnowledgeBaseManager::getInstance();
+    KnowledgeEntry entry;
+    entry.title = task.title;
+    entry.fileType = task.fileType;
+    entry.sourcePath = task.filePath;
+    entry.fileSize = task.fileSize;
+    entry.markdownContent = markdown;
+    int newId = -1;
+    if (km.addEntry(entry, &newId)) {
+        if (!markdown.trimmed().isEmpty()) {
+            QString summary;
+            // 尝试使用翻译引擎（Hy-MT2）生成 AI 摘要
+            auto& ctx = docmind::GlobalEngineContext::getInstance();
+            if (ctx.ensureTranslatorEngine()) {
+                if (auto* engine = ctx.getTranslatorEngine()) {
+                    std::string text_utf8 = markdown.toUtf8().constData();
+                    // 限制输入长度，避免超出模型上下文窗口
+                    if (text_utf8.length() > 4000) {
+                        text_utf8 = text_utf8.substr(0, 4000);
+                    }
+                    std::string aiResult = engine->summarize(text_utf8, 4096);
+                    if (!aiResult.empty()) {
+                        summary = QString::fromUtf8(aiResult.c_str());
+                    }
+                }
+            }
+            // 回退：简单截断
+            if (summary.isEmpty()) {
+                QString plain = markdown.simplified();
+                if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                summary = plain.left(200);
+                if (plain.length() > 200) summary += "……";
+            }
+            km.updateSummary(newId, summary);
+        }
+        importCount_++;
+    }
+
+    processIndex_++;
+
+    // 调度下一个文件（事件循环自然流转，不泵入事件）
+    QTimer::singleShot(0, this, [this, myGen]() {
+        processNextFile(myGen);
+    });
 }
 
 void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }

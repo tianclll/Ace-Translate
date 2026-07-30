@@ -69,7 +69,7 @@ private:
     void setupUI();
     QString generateSummary(const QString& markdown);
     /// 逐个处理下一个文件（由 QTimer 驱动）
-    void processNextFile();
+    void processNextFile(int myGen = 0);
     QWidget* createListItem(int id, const QString& title, const QString& date,
                             const QString& fileType, const QStringList& tags,
                             const QString& summary);
@@ -100,6 +100,7 @@ private:
     int importCount_ = 0;
     int processIndex_ = 0;
     bool isImporting_ = false;
+    int importGeneration_ = 0;  // 递增计数，使旧定时器链失效
     QList<ImportTask> pendingTasks_;
     QString pendingBaseDir_;
 };
