@@ -2615,6 +2615,70 @@ QWidget* MainWindow::createSettingsPanel() {
         layout->addWidget(gpuGroup);
     }
 
+    // ===== 6. 知识库存储路径 =====
+    {
+        auto* group = new QGroupBox(tr("Knowledge Base Path"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* kbHint = new QLabel(tr("Storage directory for imported documents. Restart required."));
+        kbHint->setStyleSheet("font-size: 11px; color: #889096; font-weight: normal;");
+        kbHint->setWordWrap(true);
+        form->addWidget(kbHint);
+
+        auto* kbPathRow = new QHBoxLayout;
+        kbPathRow->setSpacing(8);
+
+        auto* kbPathEdit = new QLineEdit;
+        std::string kbPath = cfg.getNestedJson("defaults").value("kb_storage_path", "");
+        if (kbPath.empty()) {
+            kbPathEdit->setText(QCoreApplication::applicationDirPath() + "/knowledge_base");
+        } else {
+            kbPathEdit->setText(QString::fromStdString(kbPath));
+        }
+
+        auto* kbBrowseBtn = new QPushButton(tr("Browse…"));
+        kbBrowseBtn->setFixedHeight(30);
+        kbBrowseBtn->setStyleSheet(
+            "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 14px;"
+            " background: transparent; color: #374151; font-size: 12px; }"
+            "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+        connect(kbBrowseBtn, &QPushButton::clicked, this, [&cfg, kbPathEdit]() {
+            QString current = kbPathEdit->text();
+            QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Knowledge Base Folder"), current);
+            if (!dir.isEmpty()) {
+                kbPathEdit->setText(dir);
+                cfg.setNestedString("defaults.kb_storage_path", dir.toStdString());
+                cfg.save();
+            }
+        });
+
+        auto* kbResetBtn = new QPushButton(tr("Reset"));
+        kbResetBtn->setFixedHeight(30);
+        kbResetBtn->setStyleSheet(
+            "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 14px;"
+            " background: transparent; color: #6B7280; font-size: 12px; }"
+            "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+        connect(kbResetBtn, &QPushButton::clicked, this, [&cfg, kbPathEdit]() {
+            QString def = QCoreApplication::applicationDirPath() + "/knowledge_base";
+            kbPathEdit->setText(def);
+            cfg.setNestedString("defaults.kb_storage_path", "");
+            cfg.save();
+        });
+
+        connect(kbPathEdit, &QLineEdit::editingFinished, this, [&cfg, kbPathEdit]() {
+            cfg.setNestedString("defaults.kb_storage_path", kbPathEdit->text().toStdString());
+            cfg.save();
+        });
+
+        kbPathRow->addWidget(kbPathEdit, 1);
+        kbPathRow->addWidget(kbBrowseBtn);
+        kbPathRow->addWidget(kbResetBtn);
+        form->addLayout(kbPathRow);
+        layout->addWidget(group);
+    }
+
     layout->addStretch();
     scrollArea->setWidget(panel);
     return scrollArea;

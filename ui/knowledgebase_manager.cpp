@@ -1,4 +1,5 @@
 #include "knowledgebase_manager.h"
+#include "docmind/core/ConfigManager.hpp"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QCoreApplication>
@@ -24,6 +25,16 @@ KnowledgeBaseManager::~KnowledgeBaseManager() {
 }
 
 QString KnowledgeBaseManager::storagePath() const {
+    std::string customPath = docmind::ConfigManager::getInstance()
+                                 .getNestedJson("defaults")
+                                 .value("kb_storage_path", nlohmann::json(""))
+                                 .get<std::string>();
+    if (!customPath.empty()) {
+        QString qpath = QString::fromStdString(customPath);
+        if (!qpath.endsWith('/') && !qpath.endsWith('\\'))
+            qpath += '/';
+        return qpath;
+    }
     return QCoreApplication::applicationDirPath() + "/knowledge_base/";
 }
 
