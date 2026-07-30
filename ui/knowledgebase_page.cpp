@@ -130,27 +130,7 @@ void KnowledgeBasePage::setupUI() {
     layout->setSpacing(10);
 
     // ================================================================
-    // 1. 页头 — 标题 + 文档数
-    // ================================================================
-    auto* headerRow = new QHBoxLayout;
-    headerRow->setContentsMargins(0, 0, 0, 0);
-    headerRow->setSpacing(8);
-
-    auto* sectionTitle = new QLabel(tr("Knowledge Base"));
-    sectionTitle->setObjectName("sectionTitle");
-    sectionTitle->setStyleSheet("font-size: 17px; font-weight: 700; color: #1A1A2E; background: transparent; border: none;");
-    headerRow->addWidget(sectionTitle);
-
-    countLabel_ = new QLabel;
-    countLabel_->setStyleSheet("font-size: 12px; color: #889096; background: transparent; border: none;");
-    headerRow->addWidget(countLabel_);
-
-    headerRow->addStretch();
-
-    layout->addLayout(headerRow);
-
-    // ================================================================
-    // 2. 上传区
+    // 1. 上传区
     // ================================================================
     dropZone_ = new DropZoneWidget;
     dropZone_->setFixedHeight(72);
@@ -193,7 +173,7 @@ void KnowledgeBasePage::setupUI() {
     layout->addWidget(dropZone_);
 
     // ================================================================
-    // 3. 工具栏
+    // 2. 工具栏
     // ================================================================
     auto* toolbar = new QFrame;
     toolbar->setObjectName("card");
@@ -325,7 +305,7 @@ void KnowledgeBasePage::setupUI() {
     layout->addWidget(toolbar);
 
     // ================================================================
-    // 4. 文档列表（卡片容器）
+    // 3. 文档列表（卡片容器）
     // ================================================================
     listCard_ = new QFrame;
     listCard_->setStyleSheet(QStringLiteral(
@@ -394,7 +374,7 @@ void KnowledgeBasePage::setupUI() {
     layout->addWidget(listCard_, 1);
 
     // ================================================================
-    // 5. 底部批量操作栏
+    // 4. 底部批量操作栏
     // ================================================================
     batchBar_ = new QFrame;
     batchBar_->setObjectName("card");
@@ -494,9 +474,6 @@ void KnowledgeBasePage::refreshList() {
     } else {
         docs = km.getAllEntries();
     }
-
-    if (countLabel_)
-        countLabel_->setText(QStringLiteral("%1 %2").arg(docs.size()).arg(tr("documents")));
 
     emptyHint_->setVisible(docs.isEmpty());
     for (const auto& doc : docs) {

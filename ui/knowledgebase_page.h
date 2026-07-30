@@ -97,7 +97,6 @@ private:
     QVBoxLayout* listLayout_ = nullptr;
     QScrollArea* listScroll_ = nullptr;
     QLabel* emptyHint_ = nullptr;
-    QLabel* countLabel_ = nullptr;
 
     // 底部批量操作栏
     QWidget* batchBar_ = nullptr;
