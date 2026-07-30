@@ -610,14 +610,25 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
     dateLbl->setFixedWidth(80);
     dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    rowLayout->addWidget(dateLbl);
+    // ---- 日期 + 标签 + 操作（右对齐列组）----
+    auto* rightCol = new QVBoxLayout;
+    rightCol->setContentsMargins(0, 0, 0, 0);
+    rightCol->setSpacing(4);
 
-    // ---- 标签 ----
+    // 日期
+    auto* dateRow = new QHBoxLayout;
+    dateRow->setContentsMargins(0, 0, 0, 0);
+    dateRow->setSpacing(0);
+    dateRow->addWidget(dateLbl);
+    rightCol->addLayout(dateRow);
+
+    // 标签
     auto* tagContainer = new QWidget;
     tagContainer->setStyleSheet("background: transparent; border: none;");
     auto* tagFlow = new QHBoxLayout(tagContainer);
     tagFlow->setContentsMargins(0, 0, 0, 0);
     tagFlow->setSpacing(4);
+    tagFlow->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     int shown = 0;
     for (const QString& t : tags) {
         if (shown++ >= 2) break;
@@ -633,21 +644,24 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         tagFlow->addWidget(more);
     }
     tagContainer->setFixedWidth(140);
-    rowLayout->addWidget(tagContainer);
+    rightCol->addWidget(tagContainer);
 
-    // ---- 操作按钮 ----
+    // 操作按钮
     auto* actions = new QWidget;
     actions->setStyleSheet("background: transparent; border: none;");
     auto* actionLayout = new QHBoxLayout(actions);
     actionLayout->setContentsMargins(0, 0, 0, 0);
     actionLayout->setSpacing(2);
+    actionLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
     auto* viewBtn = makeGhostBtn(tr("View"), tr("Open source file"));
-    auto* delBtn = makeGhostBtn("\u2715", tr("Delete"));
+    auto* delBtn = makeGhostBtn("✕", tr("Delete"));
 
     actionLayout->addWidget(viewBtn);
     actionLayout->addWidget(delBtn);
-    rowLayout->addWidget(actions);
+    rightCol->addWidget(actions);
+
+    rowLayout->addLayout(rightCol);
 
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
