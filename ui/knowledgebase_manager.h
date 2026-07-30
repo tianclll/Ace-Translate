@@ -49,6 +49,7 @@ public:
     // ---- 搜索 ----
     QList<KnowledgeEntry> searchEntries(const QString& keyword);
     QList<KnowledgeEntry> getEntriesByTag(int tagId);
+    QList<KnowledgeEntry> getEntriesByDate(const QString& from, const QString& to);
 
     // ---- 摘要 & 状态 ----
     bool updateSummary(int docId, const QString& summary);

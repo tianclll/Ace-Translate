@@ -302,6 +302,47 @@ bool KnowledgeBaseManager::exportEntry(int id, const QString& outputPath) {
 }
 
 // ============================================================
+// 日期范围搜索
+// ============================================================
+QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByDate(const QString& from, const QString& to) {
+    QList<KnowledgeEntry> list;
+    if (!initialized_) return list;
+
+    QSqlQuery q(db_);
+    if (!from.isEmpty() && !to.isEmpty()) {
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+                  "FROM documents WHERE date(created_at) BETWEEN :from AND :to ORDER BY id DESC");
+        q.bindValue(":from", from);
+        q.bindValue(":to", to);
+    } else if (!from.isEmpty()) {
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+                  "FROM documents WHERE date(created_at) >= :from ORDER BY id DESC");
+        q.bindValue(":from", from);
+    } else if (!to.isEmpty()) {
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+                  "FROM documents WHERE date(created_at) <= :to ORDER BY id DESC");
+        q.bindValue(":to", to);
+    } else {
+        return getAllEntries();
+    }
+    if (!q.exec()) return list;
+    while (q.next()) {
+        KnowledgeEntry e;
+        e.id             = q.value(0).toInt();
+        e.title          = q.value(1).toString();
+        e.fileType       = q.value(2).toString();
+        e.sourcePath     = q.value(3).toString();
+        e.mdFilePath     = q.value(4).toString();
+        e.translatedLang = q.value(5).toString();
+        e.fileSize       = q.value(6).toLongLong();
+        e.summary        = q.value(7).toString();
+        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+        list.append(e);
+    }
+    return list;
+}
+
+// ============================================================
 // 标签 CRUD
 // ============================================================
 bool KnowledgeBaseManager::addTag(const QString& name) {

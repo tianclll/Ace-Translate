@@ -143,8 +143,43 @@ void KnowledgeBasePage::setupUI() {
     searchInput_ = new QLineEdit;
     searchInput_->setPlaceholderText("搜索标题、全文内容…");
     searchInput_->setFixedHeight(30);
+    searchInput_->setFixedWidth(160);
     connect(searchInput_, &QLineEdit::textChanged, this, &KnowledgeBasePage::onSearchTextChanged);
-    toolbarLayout->addWidget(searchInput_, 1);
+    toolbarLayout->addWidget(searchInput_, 0);
+
+    dateFrom_ = new QDateEdit;
+    dateFrom_->setDisplayFormat("yyyy-MM-dd");
+    dateFrom_->setCalendarPopup(true);
+    dateFrom_->setFixedHeight(30);
+    dateFrom_->setFixedWidth(130);
+    dateFrom_->setSpecialValueText("起始日期");
+    connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
+    toolbarLayout->addWidget(dateFrom_, 0);
+
+    auto* dateSep = new QLabel("~");
+    dateSep->setStyleSheet("color: #9CA3AF; background: transparent;");
+    toolbarLayout->addWidget(dateSep, 0);
+
+    dateTo_ = new QDateEdit;
+    dateTo_->setDisplayFormat("yyyy-MM-dd");
+    dateTo_->setCalendarPopup(true);
+    dateTo_->setFixedHeight(30);
+    dateTo_->setFixedWidth(130);
+    dateTo_->setSpecialValueText("截止日期");
+    connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
+    toolbarLayout->addWidget(dateTo_, 0);
+
+    auto* clearDateBtn = new QPushButton("清除日期");
+    clearDateBtn->setFixedHeight(30);
+    clearDateBtn->setStyleSheet(
+        "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 10px; background: transparent; color: #6B7280; font-size: 11px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+    connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
+        dateFrom_->clear();
+        dateTo_->clear();
+        refreshList();
+    });
+    toolbarLayout->addWidget(clearDateBtn, 0);
 
     tagFilterCombo_ = new QComboBox;
     tagFilterCombo_->setFixedHeight(30);
@@ -266,9 +301,43 @@ void KnowledgeBasePage::refreshList() {
     QList<KnowledgeEntry> docs;
     QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
     int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
-    if (!keyword.isEmpty()) docs = km.searchEntries(keyword);
-    else if (tagFilter > 0) docs = km.getEntriesByTag(tagFilter);
-    else docs = km.getAllEntries();
+    QString dateFrom = dateFrom_ && dateFrom_->date().isValid() ? dateFrom_->date().toString("yyyy-MM-dd") : QString();
+    QString dateTo = dateTo_ && dateTo_->date().isValid() ? dateTo_->date().toString("yyyy-MM-dd") : QString();
+    bool hasDateFilter = !dateFrom.isEmpty() || !dateTo.isEmpty();
+
+    if (!keyword.isEmpty()) {
+        docs = km.searchEntries(keyword);
+        if (hasDateFilter) {
+            QList<KnowledgeEntry> filtered;
+            for (const auto& d : docs) {
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                if (!dStr.isEmpty()) {
+                    if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
+                    if (!dateTo.isEmpty() && dStr > dateTo) continue;
+                }
+                filtered.append(d);
+            }
+            docs = filtered;
+        }
+    } else if (tagFilter > 0) {
+        docs = km.getEntriesByTag(tagFilter);
+        if (hasDateFilter) {
+            QList<KnowledgeEntry> filtered;
+            for (const auto& d : docs) {
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                if (!dStr.isEmpty()) {
+                    if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
+                    if (!dateTo.isEmpty() && dStr > dateTo) continue;
+                }
+                filtered.append(d);
+            }
+            docs = filtered;
+        }
+    } else if (hasDateFilter) {
+        docs = km.getEntriesByDate(dateFrom, dateTo);
+    } else {
+        docs = km.getAllEntries();
+    }
 
     emptyHint_->setVisible(docs.isEmpty());
     for (const auto& doc : docs) {
@@ -748,6 +817,7 @@ void KnowledgeBasePage::onSearchTextChanged(const QString&) {
     debounce->start(300);
 }
 void KnowledgeBasePage::onTagFilterChanged(int) { refreshList(); }
+void KnowledgeBasePage::onDateFilterChanged() { refreshList(); }
 void KnowledgeBasePage::onAddNewTag() {
     bool ok;
     QString name = QInputDialog::getText(this, "新建标签", "请输入标签名称:", QLineEdit::Normal, {}, &ok);
