@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QTextStream>
+#include <QRegularExpression>
 #include <string>
 #include <windows.h>
 
@@ -145,10 +146,14 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
         return false;
     }
 
-    // 写入 .md 文件
+    // 写入 .md 文件（用文件名做文件名，避免冲突）
     QString mdDir = storagePath() + "md/";
     QDir().mkpath(mdDir);
-    QString mdFilePath = mdDir + QString::number(newId) + ".md";
+    QString safeName = entry.title;
+    safeName.replace(QRegularExpression("[^a-zA-Z0-9_一-鿿\\.-]"), "_");
+    if (safeName.isEmpty() || safeName.length() > 80)
+        safeName = QString::number(newId);
+    QString mdFilePath = mdDir + safeName + ".md";
     // 尝试创建 .md 文件并用 QFile::exists 验证
     QFile file(mdFilePath);
     bool fileOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -174,7 +179,7 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
     update.bindValue(":t",   entry.title);
     update.bindValue(":ft",  entry.fileType);
     update.bindValue(":sp",  entry.sourcePath);
-    update.bindValue(":mp",  QString("md/%1.md").arg(newId));
+    update.bindValue(":mp",  QString("md/%1.md").arg(safeName));
     update.bindValue(":l",   entry.translatedLang);
     update.bindValue(":fs",  entry.fileSize);
     update.bindValue(":id",  newId);
@@ -196,9 +201,19 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
 bool KnowledgeBaseManager::deleteEntry(int id) {
     if (!ensureDb()) return false;
 
+    // 先查询 md_path
+    QSqlQuery q(db_);
+    q.prepare("SELECT md_path FROM documents WHERE id = :id");
+    q.bindValue(":id", id);
+    QString mdPath;
+    if (q.exec() && q.next()) {
+        mdPath = q.value(0).toString();
+    }
+
     // 删除 .md 文件
-    QString mdFile = storagePath() + "md/" + QString::number(id) + ".md";
-    QFile::remove(mdFile);
+    if (!mdPath.isEmpty()) {
+        QFile::remove(storagePath() + mdPath);
+    }
 
     // 删除 DB 行
     QSqlQuery query(db_);
@@ -215,15 +230,24 @@ int KnowledgeBaseManager::deleteEntries(const QList<int>& ids) {
         if (!db_.open()) return 0;
     }
 
+    // 查询所有 md_path
+    QStringList idStrs;
+    for (int id : ids) idStrs << QString::number(id);
+    QSqlQuery q(db_);
+    q.exec("SELECT id, md_path FROM documents WHERE id IN (" + idStrs.join(",") + ")");
+    QStringList mdPaths;
+    while (q.next()) {
+        mdPaths.append(q.value(1).toString());
+    }
+
     // 删除 .md 文件
-    QString mdDir = storagePath() + "md/";
-    for (int id : ids) {
-        QFile::remove(mdDir + QString::number(id) + ".md");
+    for (const QString& mdPath : mdPaths) {
+        if (!mdPath.isEmpty()) {
+            QFile::remove(storagePath() + mdPath);
+        }
     }
 
     // 一次 SQL 删除所有文档
-    QStringList idStrs;
-    for (int id : ids) idStrs << QString::number(id);
     QSqlQuery query(db_);
     if (!query.prepare("DELETE FROM documents WHERE id IN (" + idStrs.join(",") + ")")) {
         qWarning() << "[KB] deleteEntries prepare failed:" << query.lastError().text();
