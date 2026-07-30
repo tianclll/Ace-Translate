@@ -5,15 +5,11 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QFile>
-#include <QTextStream>
-#include <QTextStream>
 #include <QMessageBox>
-#include <QDateTime>
 #include <QDialog>
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QCheckBox>
-#include <QApplication>
 #include <QFileInfo>
 #include <QTimer>
 #include <QRegularExpression>
@@ -21,7 +17,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QCoreApplication>
-#include <QDir>
 
 #include "docmind/DocumentEngine.h"
 #include "docmind/core/GlobalEngineContext.hpp"
@@ -88,18 +83,9 @@ namespace {
 }
 
 // ============================================================
-// 辅助：创建文件类型小标签
+// 辅助函数
 // ============================================================
 namespace {
-QLabel* makeTypeBadge(const QString& ext) {
-    auto* badge = new QLabel(ext.toUpper());
-    badge->setStyleSheet(
-        "QLabel { background: #E8F5F3; color: #0B7C72; border-radius: 4px;"
-        " padding: 2px 8px; font-size: 11px; font-weight: 600; }");
-    badge->setFixedHeight(20);
-    return badge;
-}
-
 QPushButton* makeGhostBtn(const QString& text, const QString& tooltip) {
     auto* btn = new QPushButton(text);
     btn->setToolTip(tooltip);
@@ -109,6 +95,14 @@ QPushButton* makeGhostBtn(const QString& text, const QString& tooltip) {
         " background: transparent; color: #6B7280; font-size: 11px; }"
         "QPushButton:hover { background: #F0F7F6; color: #0B7C72; }");
     return btn;
+}
+
+QLabel* makeBadge(const QString& text, const QString& bg, const QString& fg) {
+    auto* badge = new QLabel(text);
+    badge->setStyleSheet(
+        QStringLiteral("QLabel { background: %1; color: %2; border-radius: 4px;"
+                       " padding: 1px 8px; font-size: 10px; }").arg(bg, fg));
+    return badge;
 }
 }
 
@@ -215,75 +209,77 @@ void KnowledgeBasePage::setupUI() {
 
     // 搜索框
     searchInput_ = new QLineEdit;
-    searchInput_->setPlaceholderText(tr("Search titles, content…"));
+    searchInput_->setPlaceholderText(tr("Search titles, content\u2026"));
     searchInput_->setFixedHeight(30);
     searchInput_->setFixedWidth(170);
     searchInput_->setStyleSheet(
         "QLineEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
         " padding: 0 10px 0 30px; font-size: 12px; background: #F8FAFA; }"
         "QLineEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
-    // 搜索图标
-    auto* searchIcon = new QLabel("\U0001F50D");
+    // search icon overlaid on the left
+    auto* searchIcon = new QLabel("\U0001F50D", searchInput_);
     searchIcon->setStyleSheet("font-size: 13px; background: transparent;");
-    auto* searchWrap = new QWidget;
-    auto* searchWrapLayout = new QHBoxLayout(searchWrap);
-    searchWrapLayout->setContentsMargins(0, 0, 0, 0);
-    searchWrapLayout->setSpacing(0);
-    searchWrapLayout->addWidget(searchIcon);
-    searchWrapLayout->addWidget(searchInput_);
-    searchWrapLayout->setAlignment(searchIcon, Qt::AlignVCenter);
-    searchWrapLayout->setAlignment(searchInput_, Qt::AlignVCenter);
-    // Position icon over the input
-    searchIcon->setParent(searchInput_);
-    searchIcon->move(8, 8);
+    searchIcon->move(9, 8);
     connect(searchInput_, &QLineEdit::textChanged, this, &KnowledgeBasePage::onSearchTextChanged);
     tbLayout->addWidget(searchInput_, 0);
 
-    // 日期筛选
+    // 日期筛选 — 组合在同一个 group 中
+    auto* dateGroup = new QFrame;
+    dateGroup->setStyleSheet(
+        "QFrame { background: #F8FAFA; border: 1px solid #DDE1E5; border-radius: 8px; }");
+    auto* dateGLayout = new QHBoxLayout(dateGroup);
+    dateGLayout->setContentsMargins(6, 2, 6, 2);
+    dateGLayout->setSpacing(4);
+
+    auto* dateIcon = new QLabel("\U0001F4C5");
+    dateIcon->setStyleSheet("font-size: 12px; background: transparent;");
+    dateGLayout->addWidget(dateIcon);
+
     dateFrom_ = new QDateEdit;
     dateFrom_->setDisplayFormat("yyyy/MM/dd");
     dateFrom_->setCalendarPopup(true);
-    dateFrom_->setFixedHeight(30);
-    dateFrom_->setFixedWidth(120);
+    dateFrom_->setFixedHeight(28);
+    dateFrom_->setFixedWidth(108);
     dateFrom_->setSpecialValueText("From");
     dateFrom_->setDate(QDate::currentDate().addMonths(-3));
     dateFrom_->setStyleSheet(
-        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
-        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
-        "QDateEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
+        "QDateEdit { border: none; padding: 0 4px; font-size: 12px; background: transparent; }"
+        "QDateEdit:focus { background: #FFFFFF; }");
     connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    tbLayout->addWidget(dateFrom_, 0);
+    dateGLayout->addWidget(dateFrom_);
 
-    auto* dateSep = new QLabel("—");
+    auto* dateSep = new QLabel("\u2013");  // en dash
     dateSep->setStyleSheet("color: #C0C4C8; font-size: 13px; background: transparent;");
-    tbLayout->addWidget(dateSep, 0);
+    dateGLayout->addWidget(dateSep);
 
     dateTo_ = new QDateEdit;
     dateTo_->setDisplayFormat("yyyy/MM/dd");
     dateTo_->setCalendarPopup(true);
-    dateTo_->setFixedHeight(30);
-    dateTo_->setFixedWidth(120);
+    dateTo_->setFixedHeight(28);
+    dateTo_->setFixedWidth(108);
     dateTo_->setSpecialValueText("To");
     dateTo_->setDate(QDate::currentDate());
     dateTo_->setStyleSheet(
-        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 8px;"
-        " padding: 0 8px; font-size: 12px; background: #F8FAFA; }"
-        "QDateEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
+        "QDateEdit { border: none; padding: 0 4px; font-size: 12px; background: transparent; }"
+        "QDateEdit:focus { background: #FFFFFF; }");
     connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    tbLayout->addWidget(dateTo_, 0);
+    dateGLayout->addWidget(dateTo_);
 
     auto* clearDateBtn = new QPushButton(tr("Clear"));
-    clearDateBtn->setFixedHeight(30);
+    clearDateBtn->setFixedHeight(28);
+    clearDateBtn->setCursor(Qt::PointingHandCursor);
     clearDateBtn->setStyleSheet(
-        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        "QPushButton { border: none; border-radius: 4px; padding: 0 6px;"
         " background: transparent; color: #889096; font-size: 11px; }"
-        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+        "QPushButton:hover { color: #0B7C72; }");
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
         dateFrom_->clear();
         dateTo_->clear();
         refreshList();
     });
-    tbLayout->addWidget(clearDateBtn, 0);
+    dateGLayout->addWidget(clearDateBtn);
+
+    tbLayout->addWidget(dateGroup, 0);
 
     // 分隔线
     auto* sep = new QFrame;
@@ -305,7 +301,7 @@ void KnowledgeBasePage::setupUI() {
             this, &KnowledgeBasePage::onTagFilterChanged);
     tbLayout->addWidget(tagFilterCombo_);
 
-    auto* addTagBtn = new QPushButton(QStringLiteral("＋ %1").arg(tr("Tag")));
+    auto* addTagBtn = new QPushButton(QStringLiteral("+ %1").arg(tr("Tag")));
     addTagBtn->setFixedHeight(30);
     addTagBtn->setStyleSheet(
         "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
@@ -346,20 +342,24 @@ void KnowledgeBasePage::setupUI() {
     // 列表头部
     auto* listHeader = new QFrame;
     listHeader->setFixedHeight(32);
+    listHeader->setStyleSheet("background: #F8FAFA; border-bottom: 1px solid #F0F0F0;");
     auto* listHeaderLayout = new QHBoxLayout(listHeader);
     listHeaderLayout->setContentsMargins(14, 0, 14, 0);
     listHeaderLayout->setSpacing(0);
     auto* colDoc = new QLabel(tr("Document"));
-    colDoc->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    colDoc->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
     listHeaderLayout->addWidget(colDoc, 1);
     auto* colDate = new QLabel(tr("Date"));
-    colDate->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    colDate->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
+    colDate->setFixedWidth(80);
+    colDate->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     listHeaderLayout->addWidget(colDate);
     auto* colTags = new QLabel(tr("Tags"));
-    colTags->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    colTags->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
+    colTags->setFixedWidth(140);
     listHeaderLayout->addWidget(colTags);
     auto* colActions = new QLabel(tr("Actions"));
-    colActions->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; text-transform: uppercase; letter-spacing: 0.5px; background: transparent; border: none;");
+    colActions->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
     listHeaderLayout->addWidget(colActions);
     listCardLayout->addWidget(listHeader);
 
@@ -380,7 +380,7 @@ void KnowledgeBasePage::setupUI() {
     listContainer_->setStyleSheet("QWidget { background: transparent; }");
     listLayout_ = new QVBoxLayout(listContainer_);
     listLayout_->setContentsMargins(8, 4, 8, 4);
-    listLayout_->setSpacing(2);
+    listLayout_->setSpacing(1);
 
     emptyHint_ = new QLabel;
     emptyHint_->setAlignment(Qt::AlignCenter);
@@ -571,10 +571,10 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     // ---- 标题 + 摘要（弹性列）----
     auto* infoLayout = new QVBoxLayout;
     infoLayout->setContentsMargins(0, 0, 0, 0);
-    infoLayout->setSpacing(2);
+    infoLayout->setSpacing(3);
 
     auto highlightText = [](const QString& text, const QString& kw) -> QString {
-        if (kw.isEmpty()) return text.toHtmlEscaped();
+        if (kw.isEmpty() || text.isEmpty()) return text.toHtmlEscaped();
         QString escaped = text.toHtmlEscaped();
         QRegularExpression re("(" + QRegularExpression::escape(kw) + ")", QRegularExpression::CaseInsensitiveOption);
         return escaped.replace(re, "<span style='background:#FFF3CD;color:#856404;border-radius:2px;padding:0 1px;'>\\1</span>");
@@ -585,33 +585,32 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     titleLbl->setStyleSheet("font-size: 13px; font-weight: 500; color: #1C1C1E; background: transparent; border: none;");
     infoLayout->addWidget(titleLbl);
 
-    // 隐藏的摘要（点击展开时显示）
-    auto* sumLbl = new QLabel(highlightText(summary, keyword));
-    sumLbl->setTextFormat(Qt::RichText);
-    sumLbl->setWordWrap(true);
-    sumLbl->setStyleSheet("font-size: 12px; color: #5B6269; line-height: 1.5; background: transparent; border: none;");
-    sumLbl->setVisible(false);
+    // 摘要始终可见
+    if (!summary.isEmpty()) {
+        auto* sumRow = new QWidget;
+        sumRow->setStyleSheet("background: transparent; border: none;");
+        auto* sumRowLayout = new QHBoxLayout(sumRow);
+        sumRowLayout->setContentsMargins(0, 0, 0, 0);
+        sumRowLayout->setSpacing(8);
+        auto* sumBar = new QFrame;
+        sumBar->setFixedWidth(3);
+        sumBar->setFixedHeight(20);
+        sumBar->setStyleSheet("background: #D0E8E4; border-radius: 2px;");
+        sumRowLayout->addWidget(sumBar, 0);
+        auto* sumLbl = new QLabel(highlightText(summary, keyword));
+        sumLbl->setTextFormat(Qt::RichText);
+        sumLbl->setWordWrap(true);
+        sumLbl->setStyleSheet("font-size: 12px; color: #6B7280; line-height: 1.4; background: transparent; border: none;");
+        sumRowLayout->addWidget(sumLbl, 1);
+        infoLayout->addWidget(sumRow);
+    }
 
-    // 摘要容器（带左边框标记）
-    auto* sumWrap = new QWidget;
-    sumWrap->setVisible(false);
-    sumWrap->setStyleSheet("background: transparent; border: none;");
-    auto* sumWrapLayout = new QHBoxLayout(sumWrap);
-    sumWrapLayout->setContentsMargins(0, 0, 0, 0);
-    sumWrapLayout->setSpacing(8);
-    auto* sumBar = new QFrame;
-    sumBar->setFixedWidth(3);
-    sumBar->setStyleSheet("background: #0B7C72; border-radius: 2px;");
-    sumWrapLayout->addWidget(sumBar, 0);
-    sumWrapLayout->addWidget(sumLbl, 1);
-
-    infoLayout->addWidget(sumWrap);
     rowLayout->addLayout(infoLayout, 1);
 
     // ---- 日期 ----
     auto* dateLbl = new QLabel(date);
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
-    dateLbl->setFixedWidth(75);
+    dateLbl->setFixedWidth(80);
     dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     rowLayout->addWidget(dateLbl);
 
@@ -645,45 +644,14 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     actionLayout->setContentsMargins(0, 0, 0, 0);
     actionLayout->setSpacing(2);
 
-    auto* expandBtn = new QPushButton("\u25B6");  // ▶
-    expandBtn->setFixedSize(22, 22);
-    expandBtn->setCursor(Qt::PointingHandCursor);
-    expandBtn->setStyleSheet(
-        "QPushButton { border: none; border-radius: 4px; font-size: 9px;"
-        " color: #9CA3AF; background: transparent; }"
-        "QPushButton:hover { background: #E8F0EF; color: #0B7C72; }");
-
     auto* viewBtn = makeGhostBtn(tr("View"), tr("Open source file"));
-    auto* exportBtn = makeGhostBtn(tr("Export"), tr("Export as .md"));
     auto* delBtn = makeGhostBtn("\u2715", tr("Delete"));
 
-    actionLayout->addWidget(expandBtn);
     actionLayout->addWidget(viewBtn);
-    actionLayout->addWidget(exportBtn);
     actionLayout->addWidget(delBtn);
     rowLayout->addWidget(actions);
 
-    // ---- 展开/折叠详情 ----
-    bool summaryMatch = !keyword.isEmpty() && summary.contains(keyword, Qt::CaseInsensitive);
-    if (summaryMatch) {
-        sumWrap->setVisible(true);
-        expandBtn->setText("\u25BC");  // ▼
-    }
-
-    connect(expandBtn, &QPushButton::clicked, row, [row, sumWrap, expandBtn]() {
-        bool vis = sumWrap->isVisible();
-        sumWrap->setVisible(!vis);
-        expandBtn->setText(vis ? "\u25B6" : "\u25BC");
-    });
-
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
-    connect(exportBtn, &QPushButton::clicked, this, [this, id]() {
-        auto& km = KnowledgeBaseManager::getInstance();
-        auto entry = km.getEntry(id);
-        if (entry.id < 0) return;
-        QString path = QFileDialog::getSaveFileName(this, tr("Export as"), entry.title + ".md", "Markdown (*.md)");
-        if (!path.isEmpty()) km.exportEntry(id, path);
-    });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
         auto reply = QMessageBox::question(this, tr("Delete"),
             tr("Delete this document?"),
@@ -768,7 +736,7 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
 
     int total = tasks.size();
     setEnabled(false);
-    emit statusMessage(QStringLiteral("%1 %2").arg(total).arg(tr("files parsing…")));
+    emit statusMessage(QStringLiteral("%1 %2").arg(total).arg(tr("files parsing\u2026")));
     QString baseDir = QCoreApplication::applicationDirPath();
     importGeneration_++;
     pendingTasks_ = tasks;
@@ -875,7 +843,7 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     }
 
     const ImportTask& task = pendingTasks_[processIndex_];
-    emit statusMessage(QStringLiteral("%1/%2 %3…").arg(processIndex_ + 1).arg(pendingTasks_.size()).arg(tr("parsing")));
+    emit statusMessage(QStringLiteral("%1/%2 %3\u2026").arg(processIndex_ + 1).arg(pendingTasks_.size()).arg(tr("parsing")));
 
     QString ext = task.fileType;
     if (ext == "md" || ext == "txt") {
@@ -959,9 +927,9 @@ void KnowledgeBasePage::finishEntry(const ImportTask& task, const QString& markd
                 }
                 if (summary.isEmpty()) {
                     QString plain = savedMarkdown.simplified();
-                    if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                    if (plain.length() > 2000) plain = plain.left(2000) + "\u2026";
                     summary = plain.left(200);
-                    if (plain.length() > 200) summary += "……";
+                    if (plain.length() > 200) summary += "\u2026";
                 }
                 QMetaObject::invokeMethod(this, [this, savedId, summary]() {
                     onSummaryReady(savedId, summary);
