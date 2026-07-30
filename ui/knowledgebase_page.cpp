@@ -1,5 +1,6 @@
 #include "knowledgebase_page.h"
 #include "knowledgebase_manager.h"
+#include "toast.h"
 #include "mainwindow.h"        // DropZoneWidget
 #include <QFrame>
 #include <QFileDialog>
@@ -688,6 +689,7 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         refreshList();
         setEnabled(true);
         emit statusMessage(QStringLiteral("导入完成，共 %1 个文件").arg(importCount_));
+        ToastNotification::show(this, QStringLiteral("已导入 %1 个文档").arg(importCount_), 4000, QColor(11, 124, 114));
         importCount_ = 0;
         processIndex_ = 0;
         isImporting_ = false;

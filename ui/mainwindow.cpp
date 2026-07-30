@@ -3465,7 +3465,7 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 if (knowledgePage_) knowledgePage_->refreshList();
                                 // 知识库页面显示 Toast 通知
                                 if (knowledgePage_) {
-                                    ToastNotification::show(knowledgePage_, tr("Document archived: %1").arg(fi.fileName()));
+                                    ToastNotification::show(knowledgePage_, tr("Document archived: %1").arg(fi.fileName()), 4000, QColor(11, 124, 114));
                                 }
                             } else {
                                 statusBar_->showMessage(tr("Archive failed"), 3000);
