@@ -889,12 +889,13 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
             }
             if (dt) {
                 auto* cal = new QCalendarWidget;
-                cal->setLocale(QLocale(QLocale::Chinese, QLocale::China));
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
                 cal->setCurrentPage(dt->date().year(), dt->date().month());
                 cal->setNavigationBarVisible(true);
                 cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
+                // 先设置中文 locale，再设置星期格式，才能显示中文星期名
+                cal->setLocale(QLocale(QLocale::Chinese, QLocale::China));
                 cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
                 cal->setFirstDayOfWeek(Qt::Monday);
                 cal->setGridVisible(false);
