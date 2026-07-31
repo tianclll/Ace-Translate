@@ -42,6 +42,11 @@ int main(int argc, char* argv[]) {
     // 注册全局 SEH 处理器（捕获所有线程的崩溃，防止 ONNX/CUDA 导致程序退出）
     AddVectoredExceptionHandler(1, sehVectoredHandler);
 
+    // 主线程按 STA（单线程单元）初始化 COM：原生文件对话框及其右键
+    // 上下文菜单需要 STA shell 组件，否则会因 RPC_E_WRONG_THREAD 崩溃。
+    HRESULT comHr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    // 若已初始化则忽略（RPC_E_CHANGED_MODE / S_FALSE）；只要不是致命错误都继续
+
     // CPU 版：禁止 onnxruntime 加载 CUDA provider
 #ifndef GGML_USE_CUDA
     _putenv_s("ORT_DISABLE_ALL_PROVIDERS", "1");

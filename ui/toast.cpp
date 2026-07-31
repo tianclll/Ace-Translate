@@ -50,11 +50,11 @@ ToastNotification::ToastNotification(QWidget* parent, const QString& message, in
     label_->setWordWrap(false);
     layout->addWidget(label_, 1);
 
-    // 动作按钮（如"打开设置"）
+    // 动作链接（如"打开此文件夹"）与消息同一行、紧跟在文字后
     if (!actionText.isEmpty() && !actionUrl.isEmpty()) {
         auto* actionLabel = new QLabel(QStringLiteral("<a href=\"%1\" style=\"color:#FFFFFF; text-decoration:underline;\">%2</a>")
                                         .arg(actionUrl, actionText));
-        actionLabel->setStyleSheet("background: transparent;");
+        actionLabel->setStyleSheet("background: transparent; font-size: 13px;");
         actionLabel->setCursor(Qt::PointingHandCursor);
         connect(actionLabel, &QLabel::linkActivated, this, [actionUrl]() {
             QDesktopServices::openUrl(QUrl(actionUrl));

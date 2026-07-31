@@ -3732,7 +3732,7 @@ void MainWindow::speakText(const QString& text) {
     }
 
     ISpVoice* pVoice = nullptr;
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     hr = CoCreateInstance(CLSID_SpVoice, nullptr, CLSCTX_ALL, IID_ISpVoice, (void**)&pVoice);
     if (FAILED(hr) || !pVoice) {
         qWarning() << "SAPI voice initialization failed:" << hr;
