@@ -846,9 +846,14 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     // 单击选中，双击取消选中
     row->installEventFilter(this);
-
-    // 行内复选框关联 rowClick（供双击选中用）
     checkBox->setProperty("_kb_rowClick", id);
+
+    // 为行内所有子控件也安装事件过滤器（子控件会拦截鼠标事件）
+    const QList<QWidget*> children = row->findChildren<QWidget*>();
+    for (QWidget* child : children) {
+        if (child != row)
+            child->installEventFilter(this);
+    }
 
     return row;
 }
@@ -861,6 +866,13 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     if (!w) return QWidget::eventFilter(obj, event);
 
     int docId = w->property("_kb_rowClick").toInt();
+    if (docId <= 0) {
+        // 子控件没有 _kb_rowClick，沿父链找到行
+        for (QWidget* p = w->parentWidget(); p; p = p->parentWidget()) {
+            docId = p->property("_kb_rowClick").toInt();
+            if (docId > 0) { w = p; break; }
+        }
+    }
     if (docId <= 0) return QWidget::eventFilter(obj, event);
 
     if (event->type() == QEvent::MouseButtonDblClick) {
