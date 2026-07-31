@@ -12,7 +12,6 @@
 #include <QDialogButtonBox>
 #include <QCalendarWidget>
 #include <QCheckBox>
-#include <QTableView>
 #include <QFileInfo>
 #include <QTimer>
 #include <QRegularExpression>
@@ -973,13 +972,6 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 cal->show();
-                // QCalendarWidget 懒创建内部 QTableView，show 后才能替换表头
-                QMetaObject::invokeMethod(cal, [cal]() {
-                    if (auto* tv = cal->findChild<QTableView*>()) {
-                        auto* zhHdr = new ZhWeekdayHeader(tv);
-                        tv->setHorizontalHeader(zhHdr);
-                    }
-                }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
                     dt->setDate(d);
                 });
