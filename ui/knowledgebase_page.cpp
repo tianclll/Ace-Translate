@@ -973,24 +973,22 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 cal->show();
-                // 自定义导航箭头：◁▷ 调月，◀▶ 调年
+                // 自定义导航箭头：◁▷ 调年，◀▶ 调月
                 QMetaObject::invokeMethod(cal, [cal]() {
                     auto* nav = cal->findChild<QWidget*>("qt_calendar_navigationbar");
                     if (!nav) return;
                     auto btns = nav->findChildren<QToolButton*>();
                     if (btns.isEmpty()) return;
-                    // 通常顺序：prevMonth, prevYear(隐藏), nextYear(隐藏), nextMonth
-                    // 第一个按钮 = 上一个月，最后一个按钮 = 下一个月
-                    btns.first()->setText("◁");
-                    btns.first()->setToolTip(tr("Previous month"));
-                    btns.last()->setText("▷");
-                    btns.last()->setToolTip(tr("Next month"));
-                    // 如果有 4 个按钮，中间两个用于年份
+                    // 默认顺序：prevMonth(0), prevYear(1,隐藏), nextYear(2,隐藏), nextMonth(3)
+                    btns[0]->setText("◀");
+                    btns[0]->setToolTip(tr("Previous month"));
+                    btns[3]->setText("▶");
+                    btns[3]->setToolTip(tr("Next month"));
                     if (btns.size() >= 4) {
-                        btns[1]->setText("◀");
+                        btns[1]->setText("◁");
                         btns[1]->setToolTip(tr("Previous year"));
                         btns[1]->show();
-                        btns[2]->setText("▶");
+                        btns[2]->setText("▷");
                         btns[2]->setToolTip(tr("Next year"));
                         btns[2]->show();
                     }
