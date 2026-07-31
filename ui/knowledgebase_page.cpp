@@ -10,6 +10,7 @@
 #include <QDialog>
 #include <QInputDialog>
 #include <QDialogButtonBox>
+#include <QCalendarWidget>
 #include <QCheckBox>
 #include <QFileInfo>
 #include <QTimer>
@@ -301,6 +302,8 @@ void KnowledgeBasePage::setupUI() {
         "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
         "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
         "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }");
+    // 箭头被隐藏后，点击输入框也要能弹出日历
+    dateFrom_->installEventFilter(this);
     connect(dateFrom_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateFrom_);
 
@@ -321,6 +324,7 @@ void KnowledgeBasePage::setupUI() {
     dateTo_->setSpecialValueText(tr("To"));
     dateTo_->setDateTime(QDateTime::currentDateTime());
     dateTo_->setStyleSheet(dateFieldStyle);
+    dateTo_->installEventFilter(this);
     connect(dateTo_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateTo_);
 
@@ -859,11 +863,30 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 }
 
 // ============================================================
-// eventFilter — 单击选中文件，双击取消选中
+// eventFilter — 日历框点击弹出日历 / 行单击 toggle 选中
 // ============================================================
 bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     auto* w = qobject_cast<QWidget*>(obj);
     if (!w) return QWidget::eventFilter(obj, event);
+
+    // QDateTimeEdit 点击弹出日历（箭头被隐藏，需要手动触发）
+    if ((w == dateFrom_ || w == dateTo_) && event->type() == QEvent::MouseButtonPress) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        if (me->button() == Qt::LeftButton) {
+            auto* dt = qobject_cast<QDateTimeEdit*>(w);
+            if (dt) {
+                auto* cal = new QCalendarWidget;
+                cal->setWindowFlags(Qt::Popup);
+                cal->setAttribute(Qt::WA_DeleteOnClose);
+                cal->setCurrentPage(dt->date().year(), dt->date().month());
+                cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
+                connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
+                    dt->setDate(d);
+                });
+                cal->show();
+            }
+        }
+    }
 
     // 找到带有 _kb_rowClick 的行（自身或沿父链向上）
     int docId = 0;
