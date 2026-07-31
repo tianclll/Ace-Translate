@@ -17,6 +17,11 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QCoreApplication>
+#include <QApplication>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPixmap>
+#include <functional>
 
 #include "docmind/DocumentEngine.h"
 #include "docmind/core/GlobalEngineContext.hpp"
@@ -104,6 +109,50 @@ QLabel* makeBadge(const QString& text, const QString& bg, const QString& fg) {
                        " padding: 1px 8px; font-size: 10px; }").arg(bg, fg));
     return badge;
 }
+
+/// 创建无边框圆角弹窗：返回 dialog 与白色圆角容器，并绑定自适应尺寸逻辑。
+/// content 需自己填充；最后调用 applyDialogSize() 让其按内容自适应（超高时由内部滚动区承接）。
+struct RoundedDlg {
+    QDialog* dlg = nullptr;
+    QWidget* container = nullptr;
+    QVBoxLayout* lay = nullptr;
+
+    RoundedDlg(QWidget* parent) {
+        dlg = new QDialog(parent);
+        dlg->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+        dlg->setAttribute(Qt::WA_TranslucentBackground);
+        dlg->setModal(true);
+
+        container = new QWidget(dlg);
+        container->setObjectName("kbRoundedDlg");
+        container->setStyleSheet(
+            "QWidget#kbRoundedDlg { background: #FFFFFF; border-radius: 14px; }");
+        auto* outer = new QVBoxLayout(dlg);
+        outer->setContentsMargins(16, 16, 16, 16);
+        outer->addWidget(container);
+
+        lay = new QVBoxLayout(container);
+        lay->setContentsMargins(20, 18, 20, 16);
+        lay->setSpacing(10);
+    }
+
+    /// 按内容自适应宽高，并在所属顶层窗口内居中；超高时夹紧高度，由内部滚动区承接。
+    void applyDialogSize(int minW = 320) {
+        // 找到所属顶层窗口，以其全局几何为基准定位
+        QWidget* win = dlg;
+        while (win->parentWidget()) win = win->parentWidget();
+
+        QSize sh = dlg->layout()->sizeHint();
+        int w = qMax(sh.width(), minW);
+        int h = qMin(sh.height(), qMax(260, win->height() - 120));
+        int maxW = win->width() - 48;
+        dlg->resize(qMin(w, maxW), h);
+
+        QRect g = win->geometry();
+        dlg->move(g.x() + g.width() / 2 - dlg->width() / 2,
+                   g.y() + g.height() / 2 - dlg->height() / 2);
+    }
+};
 }
 
 // ============================================================
@@ -195,7 +244,7 @@ void KnowledgeBasePage::setupUI() {
     auto* searchIcon = new QLabel("\U0001F50D", searchInput_);
     searchIcon->setStyleSheet("font-size: 13px; background: transparent;");
     searchIcon->move(9, 8);
-    connect(searchInput_, &QLineEdit::textChanged, this, &KnowledgeBasePage::onSearchTextChanged);
+    connect(searchInput_, &QLineEdit::returnPressed, this, &KnowledgeBasePage::refreshList);
     tbLayout->addWidget(searchInput_, 0);
 
     // 日期筛选 — 组合在同一个 group 中
@@ -203,49 +252,59 @@ void KnowledgeBasePage::setupUI() {
     dateGroup->setStyleSheet(
         "QFrame { background: #F8FAFA; border: 1px solid #DDE1E5; border-radius: 8px; }");
     auto* dateGLayout = new QHBoxLayout(dateGroup);
-    dateGLayout->setContentsMargins(6, 2, 6, 2);
-    dateGLayout->setSpacing(4);
+    dateGLayout->setContentsMargins(10, 2, 10, 2);
+    dateGLayout->setSpacing(6);
 
     auto* dateIcon = new QLabel("\U0001F4C5");
-    dateIcon->setStyleSheet("font-size: 12px; background: transparent;");
+    dateIcon->setStyleSheet("font-size: 13px; background: transparent;");
     dateGLayout->addWidget(dateIcon);
 
     dateFrom_ = new QDateEdit;
     dateFrom_->setDisplayFormat("yyyy/MM/dd");
     dateFrom_->setCalendarPopup(true);
-    dateFrom_->setFixedHeight(28);
-    dateFrom_->setFixedWidth(108);
-    dateFrom_->setSpecialValueText("From");
+    dateFrom_->setFixedHeight(30);
+    dateFrom_->setFixedWidth(106);
+    dateFrom_->setSpecialValueText(tr("From"));
     dateFrom_->setDate(QDate::currentDate().addMonths(-3));
     dateFrom_->setStyleSheet(
-        "QDateEdit { border: none; padding: 0 4px; font-size: 12px; background: transparent; }"
-        "QDateEdit:focus { background: #FFFFFF; }");
+        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 6px;"
+        " padding: 0 6px; font-size: 12px; background: #FFFFFF; }"
+        "QDateEdit:hover { border-color: #0B7C72; }"
+        "QDateEdit:focus { border-color: #0B7C72; }"
+        "QDateEdit::drop-down { border: none; width: 18px; }"
+        "QDateEdit::down-arrow { image: none; width: 0; height: 0; }");
     connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateFrom_);
 
-    auto* dateSep = new QLabel("\u2013");  // en dash
+    auto dateFieldStyle =
+        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 6px;"
+        " padding: 0 6px; font-size: 12px; background: #FFFFFF; }"
+        "QDateEdit:hover { border-color: #0B7C72; }"
+        "QDateEdit:focus { border-color: #0B7C72; }"
+        "QDateEdit::drop-down { border: none; width: 18px; }"
+        "QDateEdit::down-arrow { image: none; width: 0; height: 0; }";
+
+    auto* dateSep = new QLabel("–");  // en dash（不需要 To 文字，只保留分隔线）
     dateSep->setStyleSheet("color: #C0C4C8; font-size: 13px; background: transparent;");
     dateGLayout->addWidget(dateSep);
 
     dateTo_ = new QDateEdit;
     dateTo_->setDisplayFormat("yyyy/MM/dd");
     dateTo_->setCalendarPopup(true);
-    dateTo_->setFixedHeight(28);
-    dateTo_->setFixedWidth(108);
-    dateTo_->setSpecialValueText("To");
+    dateTo_->setFixedHeight(30);
+    dateTo_->setFixedWidth(106);
+    dateTo_->setSpecialValueText(tr("To"));
     dateTo_->setDate(QDate::currentDate());
-    dateTo_->setStyleSheet(
-        "QDateEdit { border: none; padding: 0 4px; font-size: 12px; background: transparent; }"
-        "QDateEdit:focus { background: #FFFFFF; }");
+    dateTo_->setStyleSheet(dateFieldStyle);
     connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateTo_);
 
     auto* clearDateBtn = new QPushButton(tr("Clear"));
-    clearDateBtn->setFixedHeight(28);
+    clearDateBtn->setFixedHeight(30);
     clearDateBtn->setCursor(Qt::PointingHandCursor);
     clearDateBtn->setStyleSheet(
         "QPushButton { border: none; border-radius: 4px; padding: 0 6px;"
-        " background: transparent; color: #889096; font-size: 11px; }"
+        " background: transparent; color: #889096; font-size: 12px; }"
         "QPushButton:hover { color: #0B7C72; }");
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
         dateFrom_->clear();
@@ -255,6 +314,13 @@ void KnowledgeBasePage::setupUI() {
     dateGLayout->addWidget(clearDateBtn);
 
     tbLayout->addWidget(dateGroup, 0);
+
+    // 搜索按钮（点击/回车触发搜索，放在日期之后）
+    auto* searchBtn = new QPushButton(tr("Search"));
+    searchBtn->setObjectName("primaryBtn");
+    searchBtn->setFixedHeight(30);
+    connect(searchBtn, &QPushButton::clicked, this, &KnowledgeBasePage::refreshList);
+    tbLayout->addWidget(searchBtn);
 
     // 分隔线
     auto* sep = new QFrame;
@@ -276,8 +342,10 @@ void KnowledgeBasePage::setupUI() {
             this, &KnowledgeBasePage::onTagFilterChanged);
     tbLayout->addWidget(tagFilterCombo_);
 
+    // 新建标签
     auto* addTagBtn = new QPushButton(QStringLiteral("+ %1").arg(tr("Tag")));
     addTagBtn->setFixedHeight(30);
+    addTagBtn->setCursor(Qt::PointingHandCursor);
     addTagBtn->setStyleSheet(
         "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
         " background: transparent; color: #374151; font-size: 12px; }"
@@ -296,12 +364,6 @@ void KnowledgeBasePage::setupUI() {
     connect(selectAllBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onSelectAll);
     tbLayout->addWidget(selectAllBtn_);
 
-    auto* batchBtn = new QPushButton(tr("Batch Import"));
-    batchBtn->setObjectName("primaryBtn");
-    batchBtn->setFixedHeight(30);
-    connect(batchBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchImport);
-    tbLayout->addWidget(batchBtn);
-
     layout->addWidget(toolbar);
 
     // ================================================================
@@ -313,30 +375,6 @@ void KnowledgeBasePage::setupUI() {
     auto* listCardLayout = new QVBoxLayout(listCard_);
     listCardLayout->setContentsMargins(0, 0, 0, 0);
     listCardLayout->setSpacing(0);
-
-    // 列表头部
-    auto* listHeader = new QFrame;
-    listHeader->setFixedHeight(32);
-    listHeader->setStyleSheet("background: #F8FAFA; border-bottom: 1px solid #F0F0F0;");
-    auto* listHeaderLayout = new QHBoxLayout(listHeader);
-    listHeaderLayout->setContentsMargins(14, 0, 14, 0);
-    listHeaderLayout->setSpacing(0);
-    auto* colDoc = new QLabel(tr("Document"));
-    colDoc->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
-    listHeaderLayout->addWidget(colDoc, 1);
-    auto* colDate = new QLabel(tr("Date"));
-    colDate->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
-    colDate->setFixedWidth(95);
-    colDate->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    listHeaderLayout->addWidget(colDate);
-    auto* colTags = new QLabel(tr("Tags"));
-    colTags->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
-    colTags->setFixedWidth(140);
-    listHeaderLayout->addWidget(colTags);
-    auto* colActions = new QLabel(tr("Actions"));
-    colActions->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
-    listHeaderLayout->addWidget(colActions);
-    listCardLayout->addWidget(listHeader);
 
     // 滚动区
     listScroll_ = new QScrollArea;
@@ -354,8 +392,59 @@ void KnowledgeBasePage::setupUI() {
     listContainer_ = new QWidget;
     listContainer_->setStyleSheet("QWidget { background: transparent; }");
     listLayout_ = new QVBoxLayout(listContainer_);
-    listLayout_->setContentsMargins(8, 4, 8, 4);
+    listLayout_->setContentsMargins(0, 0, 0, 0);
     listLayout_->setSpacing(1);
+
+    // 表头（放滚动区内第 0 项，与数据行共享相同的横向结构以对齐）
+    listHeader_ = new QFrame;
+    listHeader_->setObjectName("kbListHeader");
+    listHeader_->setFixedHeight(32);
+    listHeader_->setStyleSheet(
+        "QFrame#kbListHeader { background: #F8FAFA; border-bottom: 1px solid #F0F0F0; }");
+    auto* listHeaderLayout = new QHBoxLayout(listHeader_);
+    listHeaderLayout->setContentsMargins(10, 0, 10, 0);
+    listHeaderLayout->setSpacing(14);
+
+    auto makeHeaderStub = []() {
+        auto* stub = new QLabel;
+        stub->setFixedHeight(1);
+        stub->setStyleSheet("background: transparent; border: none;");
+        return stub;
+    };
+
+    // 占位：与数据行的 checkbox(18) + spacing + icon(22) 对齐
+    auto* headerStubCheck = makeHeaderStub();
+    headerStubCheck->setFixedWidth(18);
+    listHeaderLayout->addWidget(headerStubCheck);
+    auto* headerStubIcon = makeHeaderStub();
+    headerStubIcon->setFixedWidth(22);
+    listHeaderLayout->addWidget(headerStubIcon);
+
+    auto headerItemStyle = "font-size: 11px; font-weight: 600; color: #889096;"
+                           "background: transparent; border: none;";
+    auto* colDoc = new QLabel(tr("Document"));
+    colDoc->setStyleSheet(headerItemStyle);
+    listHeaderLayout->addWidget(colDoc, 1);
+
+    auto* colDate = new QLabel(tr("Date"));
+    colDate->setStyleSheet(headerItemStyle);
+    colDate->setFixedWidth(120);
+    colDate->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    listHeaderLayout->addWidget(colDate);
+
+    auto* colTags = new QLabel(tr("Tags"));
+    colTags->setStyleSheet(headerItemStyle);
+    colTags->setFixedWidth(150);
+    colTags->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    listHeaderLayout->addWidget(colTags);
+
+    auto* colActions = new QLabel(tr("Actions"));
+    colActions->setStyleSheet(headerItemStyle);
+    colActions->setFixedWidth(90);
+    colActions->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    listHeaderLayout->addWidget(colActions);
+
+    listLayout_->addWidget(listHeader_);
 
     emptyHint_ = new QLabel;
     emptyHint_->setAlignment(Qt::AlignCenter);
@@ -398,6 +487,16 @@ void KnowledgeBasePage::setupUI() {
     connect(batchTagBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchChangeTags);
     batchLayout->addWidget(batchTagBtn_);
 
+    batchExportBtn_ = new QPushButton(tr("Export"));
+    batchExportBtn_->setFixedHeight(28);
+    batchExportBtn_->setCursor(Qt::PointingHandCursor);
+    batchExportBtn_->setStyleSheet(
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 6px; padding: 0 14px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+    connect(batchExportBtn_, &QPushButton::clicked, this, &KnowledgeBasePage::onBatchExport);
+    batchLayout->addWidget(batchExportBtn_);
+
     batchDelBtn_ = new QPushButton(tr("Delete"));
     batchDelBtn_->setFixedHeight(28);
     batchDelBtn_->setStyleSheet(
@@ -419,6 +518,7 @@ void KnowledgeBasePage::refreshList() {
         QLayoutItem* item = listLayout_->itemAt(i);
         if (!item) continue;
         if (item->widget() == emptyHint_) continue;
+        if (item->widget() == listHeader_) continue;
         if (item->spacerItem()) continue;
         if (item->widget()) {
             item->widget()->removeEventFilter(this);
@@ -443,6 +543,25 @@ void KnowledgeBasePage::refreshList() {
 
     if (!keyword.isEmpty()) {
         docs = km.searchEntries(keyword);
+        if (hasDateFilter) {
+            QList<KnowledgeEntry> filtered;
+            for (const auto& d : docs) {
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                if (!dStr.isEmpty()) {
+                    if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
+                    if (!dateTo.isEmpty() && dStr > dateTo) continue;
+                }
+                filtered.append(d);
+            }
+            docs = filtered;
+        }
+    } else if (tagFilter == -2) {
+        // 只看「无标签」的文档
+        docs = km.getAllEntries();
+        QList<KnowledgeEntry> notagged;
+        for (const auto& d : docs)
+            if (km.getDocumentTagNames(d.id).isEmpty()) notagged.append(d);
+        docs = notagged;
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
@@ -502,7 +621,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     auto* rowLayout = new QHBoxLayout(row);
     rowLayout->setContentsMargins(10, 6, 10, 6);
-    rowLayout->setSpacing(10);
+    rowLayout->setSpacing(14);
 
     // ---- CheckBox ----
     auto* checkBox = new QCheckBox;
@@ -605,30 +724,21 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     rowLayout->addLayout(infoLayout, 1);
 
-    // ---- 日期 ----
+    // ---- 日期（独立列，居中，宽 120 与表头 Date 对齐，容纳较长日期）----
     auto* dateLbl = new QLabel(date);
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
-    dateLbl->setFixedWidth(80);
-    dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    // ---- 日期 + 标签 + 操作（右对齐列组）----
-    auto* rightCol = new QVBoxLayout;
-    rightCol->setContentsMargins(0, 0, 0, 0);
-    rightCol->setSpacing(4);
+    dateLbl->setFixedWidth(120);
+    dateLbl->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    rowLayout->addWidget(dateLbl);
 
-    // 日期
-    auto* dateRow = new QHBoxLayout;
-    dateRow->setContentsMargins(0, 0, 0, 0);
-    dateRow->setSpacing(0);
-    dateRow->addWidget(dateLbl);
-    rightCol->addLayout(dateRow);
-
-    // 标签
+    // ---- 标签（独立列，居中流式，宽 150 与表头 Tags 对齐）----
     auto* tagContainer = new QWidget;
     tagContainer->setStyleSheet("background: transparent; border: none;");
+    tagContainer->setFixedWidth(150);
     auto* tagFlow = new QHBoxLayout(tagContainer);
     tagFlow->setContentsMargins(0, 0, 0, 0);
     tagFlow->setSpacing(4);
-    tagFlow->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    tagFlow->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     int shown = 0;
     for (const QString& t : tags) {
         if (shown++ >= 2) break;
@@ -643,25 +753,23 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         more->setStyleSheet("font-size: 10px; color: #9CA3AF; background: transparent; border: none;");
         tagFlow->addWidget(more);
     }
-    tagContainer->setFixedWidth(140);
-    rightCol->addWidget(tagContainer);
+    rowLayout->addWidget(tagContainer);
 
-    // 操作按钮
+    // ---- 操作（独立列，居中，宽 90 与表头 Actions 对齐）----
     auto* actions = new QWidget;
+    actions->setFixedWidth(90);
     actions->setStyleSheet("background: transparent; border: none;");
     auto* actionLayout = new QHBoxLayout(actions);
     actionLayout->setContentsMargins(0, 0, 0, 0);
     actionLayout->setSpacing(2);
-    actionLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    actionLayout->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
     auto* viewBtn = makeGhostBtn(tr("View"), tr("Open source file"));
     auto* delBtn = makeGhostBtn("✕", tr("Delete"));
 
     actionLayout->addWidget(viewBtn);
     actionLayout->addWidget(delBtn);
-    rightCol->addWidget(actions);
-
-    rowLayout->addLayout(rightCol);
+    rowLayout->addWidget(actions);
 
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
@@ -675,27 +783,78 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         refreshList();
     });
 
-    // 双击打开源文件
+    // 单击行切换摘要展开/折叠，双击行选中（打开文件仅由 View 按钮触发）
+    row->setProperty("_kb_rowClick", id);
+    row->setProperty("_kb_sumRow", QVariant::fromValue<QWidget*>(sumRow));
+    row->setProperty("_kb_sumToggle", QVariant::fromValue<QWidget*>(sumToggle));
     row->installEventFilter(this);
-    row->setProperty("_kb_docId", id);
-    row->setProperty("_kb_doubleClick", true);
+
+    // 行内复选框关联 rowClick（供双击选中用）
+    checkBox->setProperty("_kb_rowClick", id);
 
     return row;
 }
 
 // ============================================================
-// eventFilter
+// eventFilter — 行单击展开摘要、双击选中
 // ============================================================
 bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
+    auto* w = qobject_cast<QWidget*>(obj);
+    if (!w) return QWidget::eventFilter(obj, event);
+
+    int docId = w->property("_kb_rowClick").toInt();
+    if (docId <= 0) return QWidget::eventFilter(obj, event);
+
     if (event->type() == QEvent::MouseButtonDblClick) {
-        auto* w = qobject_cast<QWidget*>(obj);
-        if (!w) return QWidget::eventFilter(obj, event);
-        if (w->property("_kb_doubleClick").toBool()) {
-            int docId = w->property("_kb_docId").toInt();
-            if (docId > 0) { showDocumentDetail(docId); return true; }
+        auto* me = static_cast<QMouseEvent*>(event);
+        if (me->button() == Qt::LeftButton) {
+            // 取消待决的单击（防止双击时又触发展开）
+            if (rowGestureTimer_) {
+                rowGestureTimer_->stop();
+                rowGestureDocId_ = 0;
+                rowGestureSumRow_.clear();
+                rowGestureSumToggle_.clear();
+            }
+            // 双击选中该行
+            if (auto* cb = w->findChild<QCheckBox*>())
+                cb->setChecked(true);
+            return true;
+        }
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        if (me->button() == Qt::LeftButton) {
+            // 延迟到双击区间结束再执行单击动作，以区分双击
+            if (!rowGestureTimer_) {
+                rowGestureTimer_ = new QTimer(this);
+                rowGestureTimer_->setSingleShot(true);
+                connect(rowGestureTimer_, &QTimer::timeout, this, [this]() {
+                    doRowSingleClick(rowGestureDocId_);
+                    rowGestureDocId_ = 0;
+                    rowGestureSumRow_.clear();
+                    rowGestureSumToggle_.clear();
+                });
+            }
+            rowGestureTimer_->stop();
+            rowGestureDocId_ = docId;
+            rowGestureSumRow_ = w->property("_kb_sumRow").value<QWidget*>();
+            rowGestureSumToggle_ = w->property("_kb_sumToggle").value<QWidget*>();
+            rowGestureTimer_->start(QApplication::doubleClickInterval() + 40);
         }
     }
     return QWidget::eventFilter(obj, event);
+}
+
+// ============================================================
+// doRowSingleClick — 折叠/展开该行摘要
+// ============================================================
+void KnowledgeBasePage::doRowSingleClick(int docId) {
+    if (docId <= 0) return;
+    auto* sumRow = rowGestureSumRow_.data();
+    auto* sumToggle = qobject_cast<QPushButton*>(rowGestureSumToggle_.data());
+    if (!sumRow) return;
+    bool vis = sumRow->isVisible();
+    sumRow->setVisible(!vis);
+    if (sumToggle) sumToggle->setText(vis ? "▶" : "▼");
 }
 
 // ============================================================
@@ -749,6 +908,7 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     int total = tasks.size();
     setEnabled(false);
     emit statusMessage(QStringLiteral("%1 %2").arg(total).arg(tr("files parsing\u2026")));
+    emit busyChanged(true);  // \u9a71\u52a8\u4e3b\u7a97\u53e3\u5e95\u90e8\u72b6\u6001\u680f\u6c99\u6f0f
     QString baseDir = QCoreApplication::applicationDirPath();
     importGeneration_++;
     pendingTasks_ = tasks;
@@ -847,6 +1007,7 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         refreshList();
         setEnabled(true);
         emit statusMessage(QStringLiteral("%1 %2").arg(importCount_).arg(tr("documents imported")));
+        emit busyChanged(false);  // 结束沙漏
         ToastNotification::show(this, QStringLiteral("已导入 %1 个文档").arg(importCount_), 4000, QColor(11, 124, 114));
         importCount_ = 0;
         processIndex_ = 0;
@@ -907,8 +1068,6 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     }
 }
 
-void KnowledgeBasePage::onBatchImport() { onFileDropped(QStringList()); }
-
 // ============================================================
 // finishEntry — 入库 + 后台生成摘要
 // ============================================================
@@ -923,6 +1082,13 @@ void KnowledgeBasePage::finishEntry(const ImportTask& task, const QString& markd
     int newId = -1;
     if (km.addEntry(entry, &newId)) {
         importCount_++;
+        // 应用预设标签：在「标签筛选」框中选中了某标签时，新导入的文件自动带上该标签
+        int presetTagId = (tagFilterCombo_ && tagFilterCombo_->currentData().toInt() > 0)
+                              ? tagFilterCombo_->currentData().toInt()
+                              : -1;
+        if (presetTagId > 0) {
+            km.setDocumentTags(newId, QList<int>{presetTagId});
+        }
         if (!markdown.trimmed().isEmpty()) {
             QString savedMarkdown = markdown;
             int savedId = newId;
@@ -959,30 +1125,141 @@ void KnowledgeBasePage::onSummaryReady(int docId, const QString& summary) {
 // ============================================================
 // 工具栏回调
 // ============================================================
-void KnowledgeBasePage::onSearchTextChanged(const QString&) {
-    static QTimer* debounce = nullptr;
-    if (!debounce) { debounce = new QTimer(this); debounce->setSingleShot(true); connect(debounce, &QTimer::timeout, this, &KnowledgeBasePage::refreshList); }
-    debounce->start(300);
-}
 void KnowledgeBasePage::onTagFilterChanged(int) { refreshList(); }
 void KnowledgeBasePage::onDateFilterChanged() { refreshList(); }
 void KnowledgeBasePage::onAddNewTag() {
-    bool ok;
-    QString name = QInputDialog::getText(this, tr("New Tag"), tr("Tag name:"), QLineEdit::Normal, {}, &ok);
-    if (ok && !name.trimmed().isEmpty()) {
+    // 标签管理弹窗（无边框圆角）：可新建标签，也可删除已有标签
+    RoundedDlg rd(this);
+    auto* dlg = rd.dlg;
+    auto* lay = rd.lay;
+
+    auto* title = new QLabel(tr("Manage Tags"));
+    title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
+    lay->addWidget(title);
+
+    auto* hint = new QLabel(tr("Create or remove tags."));
+    hint->setWordWrap(true);
+    hint->setStyleSheet("font-size: 12px; color: #9CA3AF; background: transparent;");
+    lay->addWidget(hint);
+
+    // 新建标签输入行
+    auto* inputRow = new QHBoxLayout;
+    inputRow->setSpacing(6);
+    auto* nameEdit = new QLineEdit;
+    nameEdit->setPlaceholderText(tr("New tag name…"));
+    nameEdit->setFixedHeight(30);
+    nameEdit->setStyleSheet(
+        "QLineEdit { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 10px;"
+        " font-size: 12px; background: #F8FAFA; }"
+        "QLineEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
+    inputRow->addWidget(nameEdit, 1);
+    auto* addBtn = new QPushButton(tr("Add"));
+    addBtn->setObjectName("primaryBtn");
+    addBtn->setFixedHeight(30);
+    inputRow->addWidget(addBtn);
+    lay->addLayout(inputRow);
+
+    auto addTagName = [this, nameEdit]() {
+        QString name = nameEdit->text().trimmed();
+        if (name.isEmpty()) return;
         auto& km = KnowledgeBaseManager::getInstance();
-        if (km.addTag(name.trimmed())) { refreshTags(); emit statusMessage(tr("Tag created: %1").arg(name.trimmed())); }
-        else emit statusMessage(tr("Tag already exists"));
-    }
+        if (km.addTag(name)) {
+            nameEdit->clear();
+            refreshTags();
+        } else {
+            emit statusMessage(tr("Tag already exists: %1").arg(name));
+        }
+    };
+    connect(addBtn, &QPushButton::clicked, dlg, addTagName);
+    connect(nameEdit, &QLineEdit::returnPressed, dlg, addTagName);
+
+    // 已有标签列表（可删除）
+    auto* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setMaximumHeight(220);
+    scroll->setStyleSheet("QScrollArea { border: 1px solid #E8ECEF; border-radius: 8px; background: transparent; }");
+    auto* listHost = new QWidget;
+    listHost->setStyleSheet("background: transparent;");
+    auto* listLay = new QVBoxLayout(listHost);
+    listLay->setContentsMargins(8, 8, 8, 8);
+    listLay->setSpacing(4);
+    scroll->setWidget(listHost);
+    lay->addWidget(scroll, 1);
+
+    std::function<void()> rebuildTagList = [this, listLay, dlg, &rebuildTagList]() {
+        // 清空
+        while (auto* it = listLay->takeAt(0)) {
+            if (auto* w = it->widget()) w->deleteLater();
+            delete it;
+        }
+        auto tags = KnowledgeBaseManager::getInstance().getAllTags();
+        if (tags.isEmpty()) {
+            auto* none = new QLabel(tr("No tags yet."));
+            none->setStyleSheet("color: #9CA3AF; font-size: 12px; background: transparent; padding: 12px;");
+            none->setAlignment(Qt::AlignCenter);
+            listLay->addWidget(none);
+        } else {
+            for (const auto& t : tags) {
+                auto* row = new QWidget;
+                row->setStyleSheet("background: transparent;");
+                auto* rh = new QHBoxLayout(row);
+                rh->setContentsMargins(4, 2, 4, 2);
+                rh->setSpacing(6);
+                auto* badge = new QLabel(t.second);
+                badge->setStyleSheet(
+                    "QLabel { background: #F0F7F6; color: #0B7C72; border-radius: 4px;"
+                    " padding: 2px 10px; font-size: 12px; }");
+                rh->addWidget(badge, 1);
+                auto* delBtn = new QPushButton(tr("Delete"));
+                delBtn->setFixedHeight(26);
+                delBtn->setCursor(Qt::PointingHandCursor);
+                delBtn->setStyleSheet(
+                    "QPushButton { border: 1px solid #FECACA; border-radius: 6px; padding: 0 10px;"
+                    " background: transparent; color: #DC2626; font-size: 11px; }"
+                    "QPushButton:hover { background: #FEF2F2; }");
+                connect(delBtn, &QPushButton::clicked, dlg, [this, t, rebuildTagList]() {
+                    auto& km = KnowledgeBaseManager::getInstance();
+                    km.deleteTag(t.first);
+                    refreshTags();
+                    refreshList();
+                    rebuildTagList();
+                });
+                rh->addWidget(delBtn);
+                listLay->addWidget(row);
+            }
+        }
+        listLay->addStretch();
+    };
+    rebuildTagList();
+
+    // 底部按钮行（无 Close 按钮，用「完成」）
+    auto* btnRow = new QHBoxLayout;
+    btnRow->setContentsMargins(0, 4, 0, 0);
+    btnRow->setSpacing(8);
+    btnRow->addStretch();
+    auto* doneBtn = new QPushButton(tr("Done"));
+    doneBtn->setObjectName("primaryBtn");
+    doneBtn->setFixedHeight(30);
+    doneBtn->setCursor(Qt::PointingHandCursor);
+    connect(doneBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+    btnRow->addWidget(doneBtn);
+    lay->addLayout(btnRow);
+
+    rd.applyDialogSize(340);
+    dlg->exec();
+    refreshTags();
+    refreshList();
 }
 void KnowledgeBasePage::refreshTags() {
-    if (!tagFilterCombo_) return;
-    tagFilterCombo_->blockSignals(true);
-    tagFilterCombo_->clear();
-    tagFilterCombo_->addItem(tr("All Documents"), -1);
-    for (const auto& t : KnowledgeBaseManager::getInstance().getAllTags())
-        tagFilterCombo_->addItem(t.second, t.first);
-    tagFilterCombo_->blockSignals(false);
+    if (tagFilterCombo_) {
+        tagFilterCombo_->blockSignals(true);
+        tagFilterCombo_->clear();
+        tagFilterCombo_->addItem(tr("All Documents"), -1);
+        tagFilterCombo_->addItem(tr("No tag"), -2);
+        for (const auto& t : KnowledgeBaseManager::getInstance().getAllTags())
+            tagFilterCombo_->addItem(t.second, t.first);
+        tagFilterCombo_->blockSignals(false);
+    }
 }
 
 // ============================================================
@@ -1018,10 +1295,44 @@ void KnowledgeBasePage::onSelectAll() {
 
 void KnowledgeBasePage::onBatchDelete() {
     if (checkedDocIds_.isEmpty()) return;
-    auto reply = QMessageBox::question(this, tr("Batch Delete"),
-        QStringLiteral("%1 %2?").arg(checkedDocIds_.size()).arg(tr("documents to delete")),
-        QMessageBox::Yes | QMessageBox::No);
-    if (reply != QMessageBox::Yes) return;
+
+    // 批量删除确认弹窗（无边框圆角，风格与添加标签一致）
+    RoundedDlg rd(this);
+    auto* dlg = rd.dlg;
+    auto* lay = rd.lay;
+
+    auto* title = new QLabel(tr("Batch Delete"));
+    title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
+    lay->addWidget(title);
+
+    auto* hint = new QLabel(QStringLiteral("%1 %2？").arg(checkedDocIds_.size()).arg(tr("documents to delete")));
+    hint->setWordWrap(true);
+    hint->setStyleSheet("font-size: 12px; color: #374151; background: transparent;");
+    lay->addWidget(hint);
+
+    lay->addSpacing(6);
+
+    auto* btnRow = new QHBoxLayout;
+    btnRow->setContentsMargins(0, 4, 0, 0);
+    btnRow->setSpacing(8);
+    btnRow->addStretch();
+    auto* cancelBtn = new QPushButton(tr("Cancel"));
+    cancelBtn->setObjectName("secondaryBtn");
+    cancelBtn->setFixedHeight(30);
+    cancelBtn->setCursor(Qt::PointingHandCursor);
+    connect(cancelBtn, &QPushButton::clicked, dlg, &QDialog::reject);
+    btnRow->addWidget(cancelBtn);
+    auto* delBtn = new QPushButton(tr("Delete"));
+    delBtn->setObjectName("primaryBtn");
+    delBtn->setFixedHeight(30);
+    delBtn->setCursor(Qt::PointingHandCursor);
+    connect(delBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+    btnRow->addWidget(delBtn);
+    lay->addLayout(btnRow);
+
+    rd.applyDialogSize(300);
+
+    if (dlg->exec() != QDialog::Accepted) return;
     auto& km = KnowledgeBaseManager::getInstance();
     QSet<int> ids = checkedDocIds_;
     int deleted = km.deleteEntries(QList<int>(ids.begin(), ids.end()));
@@ -1034,26 +1345,74 @@ void KnowledgeBasePage::onBatchChangeTags() {
     auto& km = KnowledgeBaseManager::getInstance();
     auto allTags = km.getAllTags();
     if (allTags.isEmpty()) {
-        QMessageBox::information(this, tr("Batch Tag"), tr("No tags yet, create one first"));
+        QMessageBox::information(this, tr("Batch Tag"),
+                                 tr("No tags yet. Create one first with the +Tag button."));
         return;
     }
 
-    QDialog dlg(this);
-    dlg.setWindowTitle(QStringLiteral("%1 (%2)").arg(tr("Batch Tag")).arg(checkedDocIds_.size()));
-    dlg.setMinimumWidth(300);
-    auto* lay = new QVBoxLayout(&dlg);
+    RoundedDlg rd(this);
+    auto* dlg = rd.dlg;
+    auto* lay = rd.lay;
+
+    auto* title = new QLabel(tr("Batch Modify Tags"));
+    title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
+    lay->addWidget(title);
+
+    lay->addSpacing(2);
+
+    // 全选/全不选
+    auto* masterCb = new QCheckBox(tr("Select all tags"));
+    masterCb->setStyleSheet("font-size: 12px; color: #374151; background: transparent;");
+    lay->addWidget(masterCb);
+
+    // 标签列表放在滚动区：过多时滚动，普通时自适应高度
+    auto* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setMaximumHeight(260);
+    scroll->setStyleSheet(
+        "QScrollArea { border: 1px solid #E8ECEF; border-radius: 8px; background: transparent; }");
+    auto* listHost = new QWidget;
+    listHost->setStyleSheet("background: transparent;");
+    auto* listLay = new QVBoxLayout(listHost);
+    listLay->setContentsMargins(8, 8, 8, 8);
+    listLay->setSpacing(6);
     QList<QCheckBox*> checks;
     for (const auto& t : allTags) {
         auto* cb = new QCheckBox(t.second);
+        cb->setStyleSheet("font-size: 12px; color: #1C1C1E; background: transparent;");
         checks.append(cb);
-        lay->addWidget(cb);
+        listLay->addWidget(cb);
     }
-    auto* btnBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    connect(btnBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
-    connect(btnBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-    lay->addWidget(btnBox);
+    scroll->setWidget(listHost);
+    lay->addWidget(scroll, 1);
 
-    if (dlg.exec() == QDialog::Accepted) {
+    // 全选框的联动
+    connect(masterCb, &QCheckBox::toggled, dlg, [checks](bool on) {
+        for (auto* cb : checks) cb->setChecked(on);
+    });
+
+    // 底部按钮（紧凑）
+    auto* btnRow = new QHBoxLayout;
+    btnRow->setContentsMargins(0, 4, 0, 0);
+    btnRow->setSpacing(8);
+    btnRow->addStretch();
+    auto* cancelBtn = new QPushButton(tr("Cancel"));
+    cancelBtn->setObjectName("secondaryBtn");
+    cancelBtn->setFixedHeight(30);
+    cancelBtn->setCursor(Qt::PointingHandCursor);
+    connect(cancelBtn, &QPushButton::clicked, dlg, &QDialog::reject);
+    btnRow->addWidget(cancelBtn);
+    auto* okBtn = new QPushButton(tr("OK"));
+    okBtn->setObjectName("primaryBtn");
+    okBtn->setFixedHeight(30);
+    okBtn->setCursor(Qt::PointingHandCursor);
+    connect(okBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+    btnRow->addWidget(okBtn);
+    lay->addLayout(btnRow);
+
+    rd.applyDialogSize(320);
+
+    if (dlg->exec() == QDialog::Accepted) {
         QList<int> selected;
         for (int i = 0; i < checks.size(); ++i)
             if (checks[i]->isChecked()) selected.append(allTags[i].first);
@@ -1061,5 +1420,48 @@ void KnowledgeBasePage::onBatchChangeTags() {
             km.setDocumentTags(id, selected);
         emit statusMessage(QStringLiteral("%1 %2").arg(checkedDocIds_.size()).arg(tr("documents tagged")));
         refreshList();
+    }
+}
+
+// ============================================================
+// onBatchExport — 把选中的文档原始文件复制到选择的文件夹
+// ============================================================
+void KnowledgeBasePage::onBatchExport() {
+    if (checkedDocIds_.isEmpty()) return;
+
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Choose export folder"), QString());
+    if (dir.isEmpty()) return;
+
+    auto& km = KnowledgeBaseManager::getInstance();
+    int okCount = 0, skipCount = 0;
+    QStringList skippedNames;
+    for (int id : checkedDocIds_) {
+        auto e = km.getEntry(id);
+        QString src = e.sourcePath;
+        if (src.isEmpty()) { skipCount++; skippedNames << (e.title.isEmpty() ? QString::number(id) : e.title); continue; }
+        QFileInfo si(src);
+        if (!si.exists() || !si.isFile()) { skipCount++; skippedNames << si.fileName(); continue; }
+
+        QString dest = dir + "/" + si.fileName();
+        // 若目标已存在，追加序号避免覆盖
+        if (QFile::exists(dest)) {
+            QString base = si.completeBaseName();
+            QString ext = si.suffix();
+            int n = 1;
+            do {
+                dest = dir + "/" + base + QStringLiteral("(%1)").arg(n) + (ext.isEmpty() ? QString() : QStringLiteral(".") + ext);
+                ++n;
+            } while (QFile::exists(dest));
+        }
+        if (QFile::copy(src, dest)) okCount++;
+        else { skipCount++; skippedNames << si.fileName(); }
+    }
+
+    emit statusMessage(QStringLiteral("%1 %2").arg(okCount).arg(tr("documents exported")));
+    if (skipCount > 0) {
+        emit statusMessage(QStringLiteral("%1 %2：%3")
+            .arg(skipCount).arg(tr("failed to export")).arg(skippedNames.join(QStringLiteral("、"))));
+    } else {
+        ToastNotification::show(this, QStringLiteral("已导出 %1 个文件").arg(okCount), 3000, QColor(11, 124, 114));
     }
 }

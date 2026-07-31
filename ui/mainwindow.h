@@ -139,6 +139,8 @@ private slots:
     void onWorkerError(const QString& err);
     void onWorkerProgress(const QString& msg);
     void onHourglassTick();
+    /// 知识库导入进行中，驱动底部状态栏沙漏
+    void onKnowledgeBaseBusy(bool busy);
 
     // 全局热键
     void onFloatHotkey();

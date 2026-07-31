@@ -71,7 +71,7 @@ ToastNotification::ToastNotification(QWidget* parent, const QString& message, in
     int contentW = sizeHint().width();
     int w = qMin(contentW, parent->width() - 40);
     setFixedWidth(w);
-    move(parent->width() / 2 - width() / 2, 16);
+    move(parent->width() / 2 - width() / 2, 0);
 
     timer_ = new QTimer(this);
     timer_->setSingleShot(true);

@@ -2341,6 +2341,8 @@ QWidget* MainWindow::createKnowledgePanel() {
             this, [this](const QString& msg) {
         if (statusLabel_) statusLabel_->setText(msg);
     });
+    connect(knowledgePage_, &KnowledgeBasePage::busyChanged,
+            this, &MainWindow::onKnowledgeBaseBusy);
 
     return knowledgePage_;
 }
@@ -3391,6 +3393,31 @@ static void CALLBACK WaveInProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
     header->dwFlags = 0;
     waveInPrepareHeader(hwi, header, sizeof(WAVEHDR));
     waveInAddBuffer(hwi, header, sizeof(WAVEHDR));
+}
+
+// ============================================================
+// onKnowledgeBaseBusy — 知识库导入时驱动底部状态栏沙漏
+// ============================================================
+void MainWindow::onKnowledgeBaseBusy(bool busy) {
+    if (busy) {
+        busy_.storeRelaxed(1);
+        progressBar_->show();
+        if (statusLabel_) statusLabel_->setText(tr("Processing…"));
+        if (hourglassTimer_) {
+            hourglassTimer_->start();
+            onHourglassTick();  // 让沙漏立即显示
+        }
+    } else {
+        if (hourglassTimer_) hourglassTimer_->stop();
+        if (statusIcon_) {
+            statusIcon_->setText(QString());
+            statusIcon_->hide();
+        }
+        progressBar_->hide();
+        QApplication::processEvents();
+        busy_.storeRelaxed(0);
+        if (statusLabel_) statusLabel_->setText(QString());
+    }
 }
 
 void MainWindow::onWorkerFinished(const QString& result) {
