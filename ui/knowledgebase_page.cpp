@@ -608,7 +608,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     // ---- 日期 ----
     auto* dateLbl = new QLabel(date);
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
-    dateLbl->setFixedWidth(95);
+    dateLbl->setFixedWidth(80);
     dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     // ---- 日期 + 标签 + 操作（右对齐列组）----
     auto* rightCol = new QVBoxLayout;
