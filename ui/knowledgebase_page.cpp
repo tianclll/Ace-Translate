@@ -892,12 +892,98 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
                 cal->setCurrentPage(dt->date().year(), dt->date().month());
+                cal->setNavigationBarVisible(true);
+                cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
+                cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
+                cal->setFirstDayOfWeek(Qt::Monday);
+                cal->setGridVisible(false);
+                cal->setFixedSize(280, 260);
+                cal->setStyleSheet(
+                    "QCalendarWidget {"
+                    "  background: #FFFFFF;"
+                    "  border: 1px solid #E5E7EB;"
+                    "  border-radius: 8px;"
+                    "}"
+                    "QCalendarWidget QToolButton {"
+                    "  background: transparent;"
+                    "  color: #4B5563;"
+                    "  font-size: 13px;"
+                    "  padding: 4px 8px;"
+                    "  border: none;"
+                    "  border-radius: 4px;"
+                    "  margin: 2px;"
+                    "}"
+                    "QCalendarWidget QToolButton:hover {"
+                    "  background: #F3F4F6;"
+                    "}"
+                    "QCalendarWidget QToolButton::menu-indicator {"
+                    "  image: none;"
+                    "  width: 0; height: 0;"
+                    "}"
+                    "QCalendarWidget QSpinBox {"
+                    "  background: transparent;"
+                    "  border: none;"
+                    "  color: #1F2937;"
+                    "  font-size: 13px;"
+                    "  font-weight: 500;"
+                    "  padding: 2px 4px;"
+                    "}"
+                    "QCalendarWidget QSpinBox::up-button,"
+                    "QCalendarWidget QSpinBox::down-button {"
+                    "  width: 0; height: 0;"
+                    "}"
+                    "QCalendarWidget QWidget#qt_calendar_navigationbar {"
+                    "  background: #FFFFFF;"
+                    "  border: none;"
+                    "  padding: 6px 8px 4px 8px;"
+                    "  spacing: 4px;"
+                    "}"
+                    "QCalendarWidget QAbstractItemView:enabled {"
+                    "  color: #1F2937;"
+                    "  font-size: 12px;"
+                    "  selection-background-color: #3B82F6;"
+                    "  selection-color: #FFFFFF;"
+                    "  background: #FFFFFF;"
+                    "  outline: none;"
+                    "  border: none;"
+                    "}"
+                    "QCalendarWidget QAbstractItemView:disabled {"
+                    "  color: #D1D5DB;"
+                    "}"
+                    "QCalendarWidget QAbstractItemView::item {"
+                    "  padding: 6px;"
+                    "  margin: 1px;"
+                    "  border-radius: 50%;"
+                    "}"
+                    "QCalendarWidget QAbstractItemView::item:hover {"
+                    "  background: #F3F4F6;"
+                    "}"
+                    "QCalendarWidget QAbstractItemView::item:selected {"
+                    "  background: #3B82F6;"
+                    "  color: #FFFFFF;"
+                    "}"
+                    "QCalendarWidget QTableView {"
+                    "  border: none;"
+                    "  gridline-color: transparent;"
+                    "}"
+                    "QCalendarWidget QTableView QHeaderView::section {"
+                    "  background: #FFFFFF;"
+                    "  color: #9CA3AF;"
+                    "  font-size: 11px;"
+                    "  font-weight: 400;"
+                    "  border: none;"
+                    "  padding: 4px;"
+                    "}"
+                    "QCalendarWidget QTableView QTableCornerButton::section {"
+                    "  background: #FFFFFF;"
+                    "  border: none;"
+                    "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
                     dt->setDate(d);
                 });
                 cal->show();
-                return true;  // 消费事件，阻止进入行选中逻辑
+                return true;
             }
         }
     }
