@@ -12,6 +12,7 @@
 #include <QDialogButtonBox>
 #include <QCalendarWidget>
 #include <QCheckBox>
+#include <QToolButton>
 #include <QFileInfo>
 #include <QTimer>
 #include <QRegularExpression>
@@ -972,6 +973,45 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 cal->show();
+                // 自定义导航箭头：◁▷ 调月，◀▶ 调年
+                QMetaObject::invokeMethod(cal, [cal]() {
+                    auto* nav = cal->findChild<QWidget*>("qt_calendar_navigationbar");
+                    if (!nav) return;
+                    auto btns = nav->findChildren<QToolButton*>();
+                    if (btns.isEmpty()) return;
+                    // 通常顺序：prevMonth, prevYear(隐藏), nextYear(隐藏), nextMonth
+                    // 第一个按钮 = 上一个月，最后一个按钮 = 下一个月
+                    btns.first()->setText("◁");
+                    btns.first()->setToolTip(tr("Previous month"));
+                    btns.last()->setText("▷");
+                    btns.last()->setToolTip(tr("Next month"));
+                    // 如果有 4 个按钮，中间两个用于年份
+                    if (btns.size() >= 4) {
+                        btns[1]->setText("◀");
+                        btns[1]->setToolTip(tr("Previous year"));
+                        btns[1]->show();
+                        btns[2]->setText("▶");
+                        btns[2]->setToolTip(tr("Next year"));
+                        btns[2]->show();
+                    }
+                    // 样式化箭头按钮
+                    for (auto* b : btns) {
+                        b->setFixedSize(24, 24);
+                        b->setStyleSheet(
+                            "QToolButton {"
+                            "  background: transparent;"
+                            "  color: #6B7280;"
+                            "  font-size: 16px;"
+                            "  border: none;"
+                            "  border-radius: 4px;"
+                            "  padding: 0px;"
+                            "}"
+                            "QToolButton:hover {"
+                            "  background: #F3F4F6;"
+                            "  color: #0B7C72;"
+                            "}");
+                    }
+                }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
                     dt->setDate(d);
                 });
