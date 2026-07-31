@@ -1069,7 +1069,7 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         setEnabled(true);
         emit statusMessage(QStringLiteral("%1 %2").arg(importCount_).arg(tr("documents imported")));
         emit busyChanged(false);  // 结束沙漏
-        ToastNotification::show(this, QStringLiteral("已导入 %1 个文档").arg(importCount_), 4000, QColor(11, 124, 114));
+        ToastNotification::show(this, QStringLiteral("%1 %2").arg(importCount_).arg(tr("documents imported")), 4000, QColor(11, 124, 114));
         importCount_ = 0;
         processIndex_ = 0;
         isImporting_ = false;
