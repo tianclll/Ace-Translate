@@ -889,6 +889,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
             }
             if (dt) {
                 auto* cal = new QCalendarWidget;
+                cal->setLocale(QLocale(QLocale::Chinese, QLocale::China));
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
                 cal->setCurrentPage(dt->date().year(), dt->date().month());
