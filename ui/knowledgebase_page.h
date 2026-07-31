@@ -83,8 +83,6 @@ private:
                             const QString& fileType, const QStringList& tags,
                             const QString& summary, const QString& keyword = QString());
     void updateBatchBar();
-    /// 单击行：折叠/展开摘要（随延迟定时器触发，区分双击）
-    void doRowSingleClick(int docId);
     std::string extract_image_text(const std::string& image_path);
     std::string extract_pdf_text(const std::string& pdf_path, const std::string& base_dir, int dpi);
 
@@ -115,11 +113,9 @@ private:
     // 选中状态
     QSet<int> checkedDocIds_;
 
-    // 行单击/双击手势（单次释放延迟，以区分单击展开 / 双击选中）
+    // 行单击/双击手势
     QTimer* rowGestureTimer_ = nullptr;
     int rowGestureDocId_ = 0;
-    QPointer<QWidget> rowGestureSumRow_;
-    QPointer<QWidget> rowGestureSumToggle_;  // 记录待执行「单击展开」的目标行
 
     // 导入计数
     int importCount_ = 0;

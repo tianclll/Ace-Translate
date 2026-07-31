@@ -1,4 +1,4 @@
-#include "knowledgebase_page.h"
+﻿#include "knowledgebase_page.h"
 #include "knowledgebase_manager.h"
 #include "toast.h"
 #include "mainwindow.h"        // DropZoneWidget
@@ -844,10 +844,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
         refreshList();
     });
 
-    // 单击行切换摘要展开/折叠，双击行选中（打开文件仅由 View 按钮触发）
-    row->setProperty("_kb_rowClick", id);
-    row->setProperty("_kb_sumRow", QVariant::fromValue<QWidget*>(sumRow));
-    row->setProperty("_kb_sumToggle", QVariant::fromValue<QWidget*>(sumToggle));
+    // 单击选中，双击取消选中
     row->installEventFilter(this);
 
     // 行内复选框关联 rowClick（供双击选中用）
@@ -857,7 +854,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 }
 
 // ============================================================
-// eventFilter — 行单击展开摘要、双击选中
+// eventFilter — 单击选中文件，双击取消选中
 // ============================================================
 bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     auto* w = qobject_cast<QWidget*>(obj);
@@ -869,16 +866,14 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::MouseButtonDblClick) {
         auto* me = static_cast<QMouseEvent*>(event);
         if (me->button() == Qt::LeftButton) {
-            // 取消待决的单击（防止双击时又触发展开）
+            // 取消待决的单击
             if (rowGestureTimer_) {
                 rowGestureTimer_->stop();
                 rowGestureDocId_ = 0;
-                rowGestureSumRow_.clear();
-                rowGestureSumToggle_.clear();
             }
-            // 双击选中该行
+            // 双击取消选中
             if (auto* cb = w->findChild<QCheckBox*>())
-                cb->setChecked(true);
+                cb->setChecked(false);
             return true;
         }
     } else if (event->type() == QEvent::MouseButtonRelease) {
@@ -888,35 +883,22 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
             if (!rowGestureTimer_) {
                 rowGestureTimer_ = new QTimer(this);
                 rowGestureTimer_->setSingleShot(true);
-                connect(rowGestureTimer_, &QTimer::timeout, this, [this]() {
-                    doRowSingleClick(rowGestureDocId_);
+                connect(rowGestureTimer_, &QTimer::timeout, this, [this, docId]() {
+                    // 单击选中该行
+                    for (auto* child : findChildren<QCheckBox*>()) {
+                        if (child->property("_kb_rowClick").toInt() == docId)
+                            child->setChecked(true);
+                    }
                     rowGestureDocId_ = 0;
-                    rowGestureSumRow_.clear();
-                    rowGestureSumToggle_.clear();
                 });
             }
             rowGestureTimer_->stop();
-            rowGestureDocId_ = docId;
-            rowGestureSumRow_ = w->property("_kb_sumRow").value<QWidget*>();
-            rowGestureSumToggle_ = w->property("_kb_sumToggle").value<QWidget*>();
             rowGestureTimer_->start(QApplication::doubleClickInterval() + 40);
         }
     }
     return QWidget::eventFilter(obj, event);
 }
 
-// ============================================================
-// doRowSingleClick — 折叠/展开该行摘要
-// ============================================================
-void KnowledgeBasePage::doRowSingleClick(int docId) {
-    if (docId <= 0) return;
-    auto* sumRow = rowGestureSumRow_.data();
-    auto* sumToggle = qobject_cast<QPushButton*>(rowGestureSumToggle_.data());
-    if (!sumRow) return;
-    bool vis = sumRow->isVisible();
-    sumRow->setVisible(!vis);
-    if (sumToggle) sumToggle->setText(vis ? "▶" : "▼");
-}
 
 // ============================================================
 // showDocumentDetail — 双击用系统默认程序打开源文件
@@ -1604,3 +1586,4 @@ void KnowledgeBasePage::onBatchExport() {
                                 tr("Open this folder"), QUrl::fromLocalFile(dir).toString());
     }
 }
+
