@@ -113,10 +113,6 @@ private:
     // 选中状态
     QSet<int> checkedDocIds_;
 
-    // 行单击/双击手势
-    QTimer* rowGestureTimer_ = nullptr;
-    int rowGestureDocId_ = 0;
-
     // 导入计数
     int importCount_ = 0;
     int processIndex_ = 0;

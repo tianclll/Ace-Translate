@@ -845,10 +845,10 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     });
 
     // 单击选中，双击取消选中
+    row->setProperty("_kb_rowClick", id);
     row->installEventFilter(this);
-    checkBox->setProperty("_kb_rowClick", id);
 
-    // 为行内所有子控件也安装事件过滤器（子控件会拦截鼠标事件）
+    // 子控件拦截点击事件，通过父链找到行的 _kb_rowClick
     const QList<QWidget*> children = row->findChildren<QWidget*>();
     for (QWidget* child : children) {
         if (child != row)
@@ -865,48 +865,31 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     auto* w = qobject_cast<QWidget*>(obj);
     if (!w) return QWidget::eventFilter(obj, event);
 
-    int docId = w->property("_kb_rowClick").toInt();
-    if (docId <= 0) {
-        // 子控件没有 _kb_rowClick，沿父链找到行
+    // 找到带有 _kb_rowClick 的行（自身或沿父链向上）
+    int docId = 0;
+    QWidget* rowWidget = nullptr;
+    if (w->property("_kb_rowClick").isValid()) {
+        docId = w->property("_kb_rowClick").toInt();
+        rowWidget = w;
+    } else {
         for (QWidget* p = w->parentWidget(); p; p = p->parentWidget()) {
-            docId = p->property("_kb_rowClick").toInt();
-            if (docId > 0) { w = p; break; }
+            if (p->property("_kb_rowClick").isValid()) {
+                docId = p->property("_kb_rowClick").toInt();
+                rowWidget = p;
+                break;
+            }
         }
     }
-    if (docId <= 0) return QWidget::eventFilter(obj, event);
+    if (docId <= 0 || !rowWidget) return QWidget::eventFilter(obj, event);
 
-    if (event->type() == QEvent::MouseButtonDblClick) {
+    if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
         if (me->button() == Qt::LeftButton) {
-            // 取消待决的单击
-            if (rowGestureTimer_) {
-                rowGestureTimer_->stop();
-                rowGestureDocId_ = 0;
+            if (auto* cb = rowWidget->findChild<QCheckBox*>()) {
+                cb->setChecked(!cb->isChecked());
             }
-            // 双击取消选中
-            if (auto* cb = w->findChild<QCheckBox*>())
-                cb->setChecked(false);
-            return true;
         }
-    } else if (event->type() == QEvent::MouseButtonRelease) {
-        auto* me = static_cast<QMouseEvent*>(event);
-        if (me->button() == Qt::LeftButton) {
-            // 延迟到双击区间结束再执行单击动作，以区分双击
-            if (!rowGestureTimer_) {
-                rowGestureTimer_ = new QTimer(this);
-                rowGestureTimer_->setSingleShot(true);
-                connect(rowGestureTimer_, &QTimer::timeout, this, [this, docId]() {
-                    // 单击选中该行
-                    for (auto* child : findChildren<QCheckBox*>()) {
-                        if (child->property("_kb_rowClick").toInt() == docId)
-                            child->setChecked(true);
-                    }
-                    rowGestureDocId_ = 0;
-                });
-            }
-            rowGestureTimer_->stop();
-            rowGestureTimer_->start(QApplication::doubleClickInterval() + 40);
-        }
+        return true;
     }
     return QWidget::eventFilter(obj, event);
 }
