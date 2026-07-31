@@ -278,7 +278,7 @@ void KnowledgeBasePage::setupUI() {
     // 日期筛选 — 组合在同一个 group 中
     auto* dateGroup = new QFrame;
     dateGroup->setStyleSheet(
-        "QFrame { background: #F8FAFA; border: 1px solid #DDE1E5; border-radius: 8px; }");
+        "QFrame { background: #F8FAFA; border: none; }");
     auto* dateGLayout = new QHBoxLayout(dateGroup);
     dateGLayout->setContentsMargins(10, 2, 10, 2);
     dateGLayout->setSpacing(6);
@@ -298,20 +298,14 @@ void KnowledgeBasePage::setupUI() {
     dateFrom_->setSpecialValueText(tr("From"));
     dateFrom_->setDate(QDate::currentDate().addMonths(-3));
     dateFrom_->setStyleSheet(
-        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 6px;"
-        " padding: 0 6px; font-size: 12px; background: #FFFFFF; }"
-        "QDateEdit:hover { border-color: #0B7C72; }"
-        "QDateEdit:focus { border-color: #0B7C72; }"
+        "QDateEdit { padding: 0 6px; font-size: 12px; background: transparent; }"
         "QDateEdit::drop-down { border: none; width: 18px; }"
         "QDateEdit::down-arrow { image: none; width: 0; height: 0; }");
     connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateFrom_);
 
     auto dateFieldStyle =
-        "QDateEdit { border: 1px solid #DDE1E5; border-radius: 6px;"
-        " padding: 0 6px; font-size: 12px; background: #FFFFFF; }"
-        "QDateEdit:hover { border-color: #0B7C72; }"
-        "QDateEdit:focus { border-color: #0B7C72; }"
+        "QDateEdit { padding: 0 6px; font-size: 12px; background: transparent; }"
         "QDateEdit::drop-down { border: none; width: 18px; }"
         "QDateEdit::down-arrow { image: none; width: 0; height: 0; }";
 
