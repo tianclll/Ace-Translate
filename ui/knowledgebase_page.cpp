@@ -5,6 +5,7 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QFile>
+#include <QDir>
 #include <QMessageBox>
 #include <QDialog>
 #include <QInputDialog>
@@ -19,6 +20,7 @@
 #include <QCoreApplication>
 #include <QApplication>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QPainter>
 #include <QPixmap>
 #include <functional>
@@ -108,6 +110,29 @@ QLabel* makeBadge(const QString& text, const QString& bg, const QString& fg) {
         QStringLiteral("QLabel { background: %1; color: %2; border-radius: 4px;"
                        " padding: 1px 8px; font-size: 10px; }").arg(bg, fg));
     return badge;
+}
+
+/// 递归复制目录 srcDir → dstDir（目标已存在的同名文件先删除再复制，支持覆盖）
+bool copyDirectoryRecursive(const QString& srcDir, const QString& dstDir) {
+    QDir src(srcDir);
+    if (!src.exists()) return false;
+    QDir dst(dstDir);
+    if (!dst.exists())
+        if (!dst.mkpath(".")) return false;
+
+    const QStringList files = src.entryList(QDir::Files | QDir::NoSymLinks);
+    for (const QString& f : files) {
+        QString target = dst.absoluteFilePath(f);
+        if (QFile::exists(target)) QFile::remove(target);
+        if (!QFile::copy(src.absoluteFilePath(f), target))
+            return false;
+    }
+    const QStringList subDirs = src.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    for (const QString& d : subDirs) {
+        if (!copyDirectoryRecursive(src.absoluteFilePath(d), dst.absoluteFilePath(d)))
+            return false;
+    }
+    return true;
 }
 
 /// 创建无边框圆角弹窗：返回 dialog 与白色圆角容器，并绑定自适应尺寸逻辑。
@@ -241,8 +266,11 @@ void KnowledgeBasePage::setupUI() {
         " padding: 0 10px 0 30px; font-size: 12px; background: #F8FAFA; }"
         "QLineEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
     // search icon overlaid on the left
-    auto* searchIcon = new QLabel("\U0001F50D", searchInput_);
-    searchIcon->setStyleSheet("font-size: 13px; background: transparent;");
+    auto* searchIcon = new QLabel(searchInput_);
+    QPixmap searchPix(QStringLiteral(":/icons/Search.png"));
+    if (!searchPix.isNull())
+        searchIcon->setPixmap(searchPix.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    searchIcon->setStyleSheet("background: transparent;");
     searchIcon->move(9, 8);
     connect(searchInput_, &QLineEdit::returnPressed, this, &KnowledgeBasePage::refreshList);
     tbLayout->addWidget(searchInput_, 0);
@@ -255,8 +283,11 @@ void KnowledgeBasePage::setupUI() {
     dateGLayout->setContentsMargins(10, 2, 10, 2);
     dateGLayout->setSpacing(6);
 
-    auto* dateIcon = new QLabel("\U0001F4C5");
-    dateIcon->setStyleSheet("font-size: 13px; background: transparent;");
+    auto* dateIcon = new QLabel;
+    QPixmap datePix(QStringLiteral(":/icons/Calendar.png"));
+    if (!datePix.isNull())
+        dateIcon->setPixmap(datePix.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    dateIcon->setStyleSheet("background: transparent;");
     dateGLayout->addWidget(dateIcon);
 
     dateFrom_ = new QDateEdit;
@@ -1360,11 +1391,6 @@ void KnowledgeBasePage::onBatchChangeTags() {
 
     lay->addSpacing(2);
 
-    // 全选/全不选
-    auto* masterCb = new QCheckBox(tr("Select all tags"));
-    masterCb->setStyleSheet("font-size: 12px; color: #374151; background: transparent;");
-    lay->addWidget(masterCb);
-
     // 标签列表放在滚动区：过多时滚动，普通时自适应高度
     auto* scroll = new QScrollArea;
     scroll->setWidgetResizable(true);
@@ -1385,11 +1411,6 @@ void KnowledgeBasePage::onBatchChangeTags() {
     }
     scroll->setWidget(listHost);
     lay->addWidget(scroll, 1);
-
-    // 全选框的联动
-    connect(masterCb, &QCheckBox::toggled, dlg, [checks](bool on) {
-        for (auto* cb : checks) cb->setChecked(on);
-    });
 
     // 底部按钮（紧凑）
     auto* btnRow = new QHBoxLayout;
@@ -1429,8 +1450,79 @@ void KnowledgeBasePage::onBatchChangeTags() {
 void KnowledgeBasePage::onBatchExport() {
     if (checkedDocIds_.isEmpty()) return;
 
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Choose export folder"), QString());
+    // 自定义目标目录框：可直接输入/粘贴路径，或 Browse 打开目录框点选/新建。
+    // 明确由 OK 按钮确认，避免 Qt 目录框「回车即确认导出」的问题。
+    RoundedDlg rd(this);
+    auto* dlg = rd.dlg;
+    auto* lay = rd.lay;
+
+    auto* title = new QLabel(tr("Choose export folder"));
+    title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
+    lay->addWidget(title);
+
+    auto* hint = new QLabel(tr("输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。"));
+    hint->setWordWrap(true);
+    hint->setStyleSheet("font-size: 12px; color: #9CA3AF; background: transparent;");
+    lay->addWidget(hint);
+
+    auto* pathRow = new QHBoxLayout;
+    pathRow->setSpacing(6);
+    auto* pathEdit = new QLineEdit;
+    pathEdit->setPlaceholderText(QStringLiteral("例如 D:\\export"));
+    pathEdit->setFixedHeight(32);
+    pathEdit->setStyleSheet(
+        "QLineEdit { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 10px;"
+        " font-size: 13px; background: #F8FAFA; }"
+        "QLineEdit:focus { border-color: #0B7C72; background: #FFFFFF; }");
+    pathRow->addWidget(pathEdit, 1);
+
+    auto* browseBtn = new QPushButton(tr("浏览…"));
+    browseBtn->setObjectName("secondaryBtn");
+    browseBtn->setFixedHeight(32);
+    browseBtn->setCursor(Qt::PointingHandCursor);
+    connect(browseBtn, &QPushButton::clicked, dlg, [pathEdit]() {
+        QFileDialog fd;
+        fd.setFileMode(QFileDialog::Directory);
+        fd.setOption(QFileDialog::ShowDirsOnly, true);
+        fd.setOption(QFileDialog::DontUseNativeDialog, true);
+        // 若输入框里已有路径，让目录框从这里进入（不存在才用默认）
+        QString start = pathEdit->text().trimmed();
+        if (!start.isEmpty() && QDir(start).exists())
+            fd.setDirectory(start);
+        if (fd.exec() == QDialog::Accepted) {
+            QString d = fd.selectedFiles().isEmpty() ? fd.directory().absolutePath()
+                                                     : fd.selectedFiles().first();
+            if (!d.isEmpty()) pathEdit->setText(d);
+        }
+    });
+    pathRow->addWidget(browseBtn);
+    lay->addLayout(pathRow);
+
+    auto* btnRow = new QHBoxLayout;
+    btnRow->setContentsMargins(0, 4, 0, 0);
+    btnRow->setSpacing(8);
+    btnRow->addStretch();
+    auto* cancelBtn = new QPushButton(tr("Cancel"));
+    cancelBtn->setObjectName("secondaryBtn");
+    cancelBtn->setFixedHeight(30);
+    cancelBtn->setCursor(Qt::PointingHandCursor);
+    connect(cancelBtn, &QPushButton::clicked, dlg, &QDialog::reject);
+    btnRow->addWidget(cancelBtn);
+    auto* okBtn = new QPushButton(tr("OK"));
+    okBtn->setObjectName("primaryBtn");
+    okBtn->setFixedHeight(30);
+    okBtn->setCursor(Qt::PointingHandCursor);
+    connect(okBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+    btnRow->addWidget(okBtn);
+    lay->addLayout(btnRow);
+
+    rd.applyDialogSize(360);
+
+    if (dlg->exec() != QDialog::Accepted) return;
+    QString dir = pathEdit->text().trimmed();
     if (dir.isEmpty()) return;
+    // 若目录不存在则创建
+    QDir().mkpath(dir);
 
     auto& km = KnowledgeBaseManager::getInstance();
     int okCount = 0, skipCount = 0;
@@ -1442,18 +1534,33 @@ void KnowledgeBasePage::onBatchExport() {
         QFileInfo si(src);
         if (!si.exists() || !si.isFile()) { skipCount++; skippedNames << si.fileName(); continue; }
 
-        QString dest = dir + "/" + si.fileName();
-        // 若目标已存在，追加序号避免覆盖
-        if (QFile::exists(dest)) {
+        // 源文件旁可能带 assets/ 图片文件夹（markdown 以 assets/xxx 引用）。
+        // 只有当本文档的 markdown 确实引用了 assets/ 图片时才需要导出该文件夹，
+        // 避免把同目录下其它文件生成的 assets/ 一并误带过去。
+        QString assetsDir = si.absolutePath() + "/assets";
+        bool markdownRefsAssets = e.markdownContent.contains("assets/", Qt::CaseInsensitive);
+        bool hasAssets = markdownRefsAssets && QDir(assetsDir).exists();
+
+        QString destDir = dir;
+        if (hasAssets) {
+            // 带图片的导出到一个独立子文件夹，避免不同文档的 assets 冲突
             QString base = si.completeBaseName();
-            QString ext = si.suffix();
-            int n = 1;
-            do {
-                dest = dir + "/" + base + QStringLiteral("(%1)").arg(n) + (ext.isEmpty() ? QString() : QStringLiteral(".") + ext);
-                ++n;
-            } while (QFile::exists(dest));
+            destDir = dir + "/" + base;
+            int n = 2;
+            while (QDir(destDir).exists())
+                destDir = dir + "/" + base + QStringLiteral("(%1)").arg(n++);
+            QDir().mkpath(destDir);
         }
-        if (QFile::copy(src, dest)) okCount++;
+
+        QString dest = destDir + "/" + si.fileName();
+        if (QFile::exists(dest)) QFile::remove(dest);
+        bool fileOk = QFile::copy(src, dest);
+
+        // 导出源文件即算成功；assets 图片尽力复制，失败不影响导出
+        if (fileOk && hasAssets)
+            copyDirectoryRecursive(assetsDir, destDir + "/assets");
+
+        if (fileOk) okCount++;
         else { skipCount++; skippedNames << si.fileName(); }
     }
 
@@ -1462,6 +1569,8 @@ void KnowledgeBasePage::onBatchExport() {
         emit statusMessage(QStringLiteral("%1 %2：%3")
             .arg(skipCount).arg(tr("failed to export")).arg(skippedNames.join(QStringLiteral("、"))));
     } else {
-        ToastNotification::show(this, QStringLiteral("已导出 %1 个文件").arg(okCount), 3000, QColor(11, 124, 114));
+        ToastNotification::show(this, QStringLiteral("已导出 %1 个文件").arg(okCount), 4000,
+                                QColor(11, 124, 114), QString(),
+                                tr("打开此文件夹"), QUrl::fromLocalFile(dir).toString());
     }
 }

@@ -27,6 +27,8 @@
         <file alias="Lock.png">icons/Lock.png</file>
         <file alias="unLock.png">icons/unLock.png</file>
         <file alias="knowledge.png">icons/knowledge.png</file>
+        <file alias="Search.png">icons/Search.png</file>
+        <file alias="Calendar.png">icons/Calendar.png</file>
     </qresource>
     <qresource prefix="/translations">
         <file alias="zh_CN.qm">../translations/zh_CN.qm</file>
