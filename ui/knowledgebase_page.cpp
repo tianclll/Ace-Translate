@@ -920,8 +920,40 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     auto* barLay = new QHBoxLayout(bar);
                     barLay->setContentsMargins(8, 2, 8, 2);
                     barLay->setSpacing(4);
-                    auto* monthLabel = new QLabel(bar);
-                    monthLabel->setStyleSheet("QLabel { color: #1F2937; font-size: 14px; font-weight: 500; background: transparent; }");
+                    auto* monthLabel = new QToolButton(bar);
+                    monthLabel->setStyleSheet(
+                        "QToolButton { color: #1F2937; font-size: 14px; font-weight: 500;"
+                        " background: transparent; border: none; padding: 2px 8px; }"
+                        "QToolButton:hover { background: #F3F4F6; border-radius: 4px; }"
+                        "QToolButton::menu-indicator { image: none; width: 0; height: 0; }");
+                    monthLabel->setToolButtonStyle(Qt::ToolButtonTextOnly);
+                    auto* monthMenu = new QMenu(monthLabel);
+                    monthLabel->setMenu(monthMenu);
+                    monthLabel->setPopupMode(QToolButton::InstantPopup);
+                    auto updateLabel = [this, cal, monthLabel, monthMenu]() {
+                        QLocale zh(QLocale::Chinese, QLocale::China);
+                        int y = cal->yearShown();
+                        int m = cal->monthShown();
+                        monthLabel->setText(zh.monthName(m, QLocale::LongFormat) + " " + QString::number(y));
+                        monthMenu->clear();
+                        auto* yearMenu = new QMenu(monthMenu);
+                        yearMenu->setTitle(tr("Year"));
+                        int curYear = QDate::currentDate().year();
+                        for (int yr = curYear - 5; yr <= curYear + 5; ++yr) {
+                            auto* a = yearMenu->addAction(QString::number(yr));
+                            connect(a, &QAction::triggered, this, [cal, yr]() {
+                                cal->setCurrentPage(yr, cal->monthShown());
+                            });
+                        }
+                        monthMenu->addMenu(yearMenu);
+                        for (int i = 1; i <= 12; ++i) {
+                            auto* a = monthMenu->addAction(zh.monthName(i, QLocale::LongFormat));
+                            connect(a, &QAction::triggered, this, [cal, i]() {
+                                cal->setCurrentPage(cal->yearShown(), i);
+                            });
+                        }
+                    };
+                    updateLabel();
                     auto makeBtn = [](QWidget* p, const QString& sym, const QString& tip) {
                         auto* b = new QPushButton(sym, p);
                         b->setFixedSize(22, 22);
@@ -940,13 +972,6 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     barLay->addWidget(monthLabel, 1);
                     barLay->addWidget(b3);
                     barLay->addWidget(b4);
-                    auto updateLabel = [cal, monthLabel]() {
-                        QLocale zh(QLocale::Chinese, QLocale::China);
-                        int y = cal->yearShown();
-                        int m = cal->monthShown();
-                        monthLabel->setText(zh.monthName(m, QLocale::LongFormat) + " " + QString::number(y));
-                    };
-                    updateLabel();
                     connect(b0, &QPushButton::clicked, cal, &QCalendarWidget::showPreviousMonth);
                     connect(b1, &QPushButton::clicked, cal, &QCalendarWidget::showPreviousYear);
                     connect(b3, &QPushButton::clicked, cal, &QCalendarWidget::showNextYear);
