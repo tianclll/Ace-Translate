@@ -9,7 +9,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QCheckBox>
-#include <QDateEdit>
+#include <QDateTimeEdit>
 #include <QThread>
 #include <QList>
 #include <QSet>
@@ -91,8 +91,8 @@ private:
     // ---- UI 控件 ----
     DropZoneWidget* dropZone_ = nullptr;
     QLineEdit* searchInput_ = nullptr;
-    QDateEdit* dateFrom_ = nullptr;
-    QDateEdit* dateTo_ = nullptr;
+    QDateTimeEdit* dateFrom_ = nullptr;
+    QDateTimeEdit* dateTo_ = nullptr;
     QComboBox* tagFilterCombo_ = nullptr;
     QPushButton* selectAllBtn_ = nullptr;
     bool allSelected_ = false;

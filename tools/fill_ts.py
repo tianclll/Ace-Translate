@@ -236,6 +236,13 @@ EN_TO_ZH = {
     "Unknown error (DLL load failure)": "未知错误（可能是 DLL 加载失败）",
     "Translation Error": "翻译出错",
     "AceTranslatePro": "AceTranslatePro",
+
+    # === 设置页面额外 ===
+    "Knowledge Base Path": "知识库路径",
+    "Browse…": "浏览…",
+    "Select Knowledge Base Folder": "选择知识库文件夹",
+    "Storage directory for imported documents. Restart required.": "导入文档的存储目录。修改后需重启生效。",
+    "Reset": "重置",
 }
 
 EN_TO_JA = {
@@ -477,6 +484,11 @@ EN_TO_JA = {
     "Capture screen area for OCR and translation": "画面領域をキャプチャしてOCR翻訳",
     "OCR engine failed to load. Please check if model files exist.\nPath: models/ocr/[tiny/small/medium]/": "OCRエンジンの読み込みに失敗しました。モデルファイルを確認してください。\nパス: models/ocr/[tiny/small/medium]/",
     "Screenshot Unavailable": "スクリーンショット利用不可",
+    "Knowledge Base Path": "知識ベースパス",
+    "Browse…": "参照…",
+    "Select Knowledge Base Folder": "知識ベースフォルダを選択",
+    "Storage directory for imported documents. Restart required.": "インポートしたドキュメントの保存先。変更後は再起動が必要です。",
+    "Reset": "リセット",
 }
 
 def fill_ts(ts_path, trans_map):

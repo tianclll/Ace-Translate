@@ -5,6 +5,7 @@ SOURCES = \
     ui/regioncapture.cpp \
     ui/toast.cpp \
     ui/splashscreen.cpp \
+    ui/knowledgebase_page.cpp \
 
 HEADERS = \
     ui/mainwindow.h \

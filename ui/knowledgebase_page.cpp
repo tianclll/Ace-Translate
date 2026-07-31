@@ -290,38 +290,38 @@ void KnowledgeBasePage::setupUI() {
     dateIcon->setStyleSheet("background: transparent;");
     dateGLayout->addWidget(dateIcon);
 
-    dateFrom_ = new QDateEdit;
-    dateFrom_->setDisplayFormat("yyyy/MM/dd");
+    dateFrom_ = new QDateTimeEdit;
+    dateFrom_->setDisplayFormat("yyyy/MM/dd hh:mm");
     dateFrom_->setCalendarPopup(true);
     dateFrom_->setFixedHeight(30);
-    dateFrom_->setFixedWidth(106);
+    dateFrom_->setFixedWidth(150);
     dateFrom_->setSpecialValueText(tr("From"));
-    dateFrom_->setDate(QDate::currentDate().addMonths(-3));
+    dateFrom_->setDateTime(QDateTime::currentDateTime().addMonths(-3));
     dateFrom_->setStyleSheet(
-        "QDateEdit { padding: 0 6px; font-size: 12px; background: transparent; }"
-        "QDateEdit::drop-down { border: none; width: 18px; }"
-        "QDateEdit::down-arrow { image: none; width: 0; height: 0; }");
-    connect(dateFrom_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
+        "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
+        "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
+        "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }");
+    connect(dateFrom_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateFrom_);
 
     auto dateFieldStyle =
-        "QDateEdit { padding: 0 6px; font-size: 12px; background: transparent; }"
-        "QDateEdit::drop-down { border: none; width: 18px; }"
-        "QDateEdit::down-arrow { image: none; width: 0; height: 0; }";
+        "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
+        "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
+        "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }";
 
     auto* dateSep = new QLabel("–");  // en dash（不需要 To 文字，只保留分隔线）
     dateSep->setStyleSheet("color: #C0C4C8; font-size: 13px; background: transparent;");
     dateGLayout->addWidget(dateSep);
 
-    dateTo_ = new QDateEdit;
-    dateTo_->setDisplayFormat("yyyy/MM/dd");
+    dateTo_ = new QDateTimeEdit;
+    dateTo_->setDisplayFormat("yyyy/MM/dd hh:mm");
     dateTo_->setCalendarPopup(true);
     dateTo_->setFixedHeight(30);
-    dateTo_->setFixedWidth(106);
+    dateTo_->setFixedWidth(150);
     dateTo_->setSpecialValueText(tr("To"));
-    dateTo_->setDate(QDate::currentDate());
+    dateTo_->setDateTime(QDateTime::currentDateTime());
     dateTo_->setStyleSheet(dateFieldStyle);
-    connect(dateTo_, &QDateEdit::dateChanged, this, &KnowledgeBasePage::onDateFilterChanged);
+    connect(dateTo_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateTo_);
 
     auto* clearDateBtn = new QPushButton(tr("Clear"));
@@ -332,8 +332,12 @@ void KnowledgeBasePage::setupUI() {
         " background: transparent; color: #889096; font-size: 12px; }"
         "QPushButton:hover { color: #0B7C72; }");
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
-        dateFrom_->clear();
-        dateTo_->clear();
+        dateFrom_->blockSignals(true);
+        dateTo_->blockSignals(true);
+        dateFrom_->setDateTime(QDateTime::currentDateTime().addMonths(-3));
+        dateTo_->setDateTime(QDateTime::currentDateTime());
+        dateFrom_->blockSignals(false);
+        dateTo_->blockSignals(false);
         refreshList();
     });
     dateGLayout->addWidget(clearDateBtn);
@@ -562,8 +566,8 @@ void KnowledgeBasePage::refreshList() {
     QList<KnowledgeEntry> docs;
     QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
     int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
-    QString dateFrom = dateFrom_ && dateFrom_->date().isValid() ? dateFrom_->date().toString("yyyy-MM-dd") : QString();
-    QString dateTo = dateTo_ && dateTo_->date().isValid() ? dateTo_->date().toString("yyyy-MM-dd") : QString();
+    QString dateFrom = dateFrom_ && dateFrom_->dateTime().isValid() ? dateFrom_->dateTime().toString("yyyy-MM-dd hh:mm:ss") : QString();
+    QString dateTo = dateTo_ && dateTo_->dateTime().isValid() ? dateTo_->dateTime().toString("yyyy-MM-dd hh:mm:ss") : QString();
     bool hasDateFilter = !dateFrom.isEmpty() || !dateTo.isEmpty();
 
     if (!keyword.isEmpty()) {
@@ -571,7 +575,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -590,7 +594,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -604,7 +608,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -798,10 +802,42 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
-        auto reply = QMessageBox::question(this, tr("Delete"),
-            tr("Delete this document?"),
-            QMessageBox::Yes | QMessageBox::No);
-        if (reply != QMessageBox::Yes) return;
+        RoundedDlg rd(this);
+        auto* dlg = rd.dlg;
+        auto* lay = rd.lay;
+
+        auto* title = new QLabel(tr("Delete"));
+        title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
+        lay->addWidget(title);
+
+        auto* hint = new QLabel(tr("Delete this document?"));
+        hint->setWordWrap(true);
+        hint->setStyleSheet("font-size: 12px; color: #374151; background: transparent;");
+        lay->addWidget(hint);
+
+        lay->addSpacing(6);
+
+        auto* btnRow = new QHBoxLayout;
+        btnRow->setContentsMargins(0, 4, 0, 0);
+        btnRow->setSpacing(8);
+        btnRow->addStretch();
+        auto* cancelBtn = new QPushButton(tr("Cancel"));
+        cancelBtn->setObjectName("secondaryBtn");
+        cancelBtn->setFixedHeight(30);
+        cancelBtn->setCursor(Qt::PointingHandCursor);
+        connect(cancelBtn, &QPushButton::clicked, dlg, &QDialog::reject);
+        btnRow->addWidget(cancelBtn);
+        auto* delBtn2 = new QPushButton(tr("Delete"));
+        delBtn2->setObjectName("primaryBtn");
+        delBtn2->setFixedHeight(30);
+        delBtn2->setCursor(Qt::PointingHandCursor);
+        connect(delBtn2, &QPushButton::clicked, dlg, &QDialog::accept);
+        btnRow->addWidget(delBtn2);
+        lay->addLayout(btnRow);
+
+        rd.applyDialogSize(300);
+
+        if (dlg->exec() != QDialog::Accepted) return;
         KnowledgeBaseManager::getInstance().deleteEntry(id);
         row->hide();
         row->deleteLater();

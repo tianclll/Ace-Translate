@@ -346,16 +346,16 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByDate(const QString& from
     QSqlQuery q(db_);
     if (!from.isEmpty() && !to.isEmpty()) {
         q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
-                  "FROM documents WHERE date(created_at) BETWEEN :from AND :to ORDER BY id DESC");
+                  "FROM documents WHERE created_at BETWEEN :from AND :to ORDER BY id DESC");
         q.bindValue(":from", from);
         q.bindValue(":to", to);
     } else if (!from.isEmpty()) {
         q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
-                  "FROM documents WHERE date(created_at) >= :from ORDER BY id DESC");
+                  "FROM documents WHERE created_at >= :from ORDER BY id DESC");
         q.bindValue(":from", from);
     } else if (!to.isEmpty()) {
         q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
-                  "FROM documents WHERE date(created_at) <= :to ORDER BY id DESC");
+                  "FROM documents WHERE created_at <= :to ORDER BY id DESC");
         q.bindValue(":to", to);
     } else {
         return getAllEntries();
