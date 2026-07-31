@@ -10,6 +10,10 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QDateTimeEdit>
+#include <QCalendarWidget>
+#include <QHeaderView>
+#include <QStyleOptionHeader>
+#include <QPainter>
 #include <QThread>
 #include <QList>
 #include <QSet>
@@ -120,4 +124,33 @@ private:
     int importGeneration_ = 0;
     QList<ImportTask> pendingTasks_;
     QString pendingBaseDir_;
+};
+
+// ============================================================
+// 中文星期头 HeaderView（覆盖 paintSection 渲染中文星期名）
+// ============================================================
+class ZhWeekdayHeader : public QHeaderView {
+    Q_OBJECT
+public:
+    explicit ZhWeekdayHeader(QWidget* parent = nullptr)
+        : QHeaderView(Qt::Horizontal, parent) {
+        QLocale zh(QLocale::Chinese, QLocale::China);
+        for (int d = Qt::Monday; d <= Qt::Sunday; ++d)
+            days_ << zh.standaloneDayName(static_cast<Qt::DayOfWeek>(d), QLocale::ShortFormat);
+    }
+
+protected:
+    void paintSection(QPainter* p, const QRect& rect, int logicalIndex) const override {
+        QStyleOptionHeader opt;
+        initStyleOption(&opt);
+        opt.rect = rect;
+        opt.section = logicalIndex;
+        opt.text = days_.value(logicalIndex, QString());
+        opt.textAlignment = Qt::AlignCenter;
+        opt.state = QStyle::State_Enabled;
+        style()->drawControl(QStyle::CE_Header, &opt, p, this);
+    }
+
+private:
+    QStringList days_;
 };

@@ -12,6 +12,7 @@
 #include <QDialogButtonBox>
 #include <QCalendarWidget>
 #include <QCheckBox>
+#include <QTableView>
 #include <QFileInfo>
 #include <QTimer>
 #include <QRegularExpression>
@@ -894,8 +895,6 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                 cal->setCurrentPage(dt->date().year(), dt->date().month());
                 cal->setNavigationBarVisible(true);
                 cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
-                // 先设置中文 locale，再设置星期格式，才能显示中文星期名
-                cal->setLocale(QLocale(QLocale::Chinese, QLocale::China));
                 cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
                 cal->setFirstDayOfWeek(Qt::Monday);
                 cal->setGridVisible(false);
@@ -968,23 +967,22 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "  border: none;"
                     "  gridline-color: transparent;"
                     "}"
-                    "QCalendarWidget QTableView QHeaderView::section {"
-                    "  background: #FFFFFF;"
-                    "  color: #9CA3AF;"
-                    "  font-size: 11px;"
-                    "  font-weight: 400;"
-                    "  border: none;"
-                    "  padding: 4px;"
-                    "}"
                     "QCalendarWidget QTableView QTableCornerButton::section {"
                     "  background: #FFFFFF;"
                     "  border: none;"
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
+                cal->show();
+                // QCalendarWidget 懒创建内部 QTableView，show 后才能替换表头
+                QMetaObject::invokeMethod(cal, [cal]() {
+                    if (auto* tv = cal->findChild<QTableView*>()) {
+                        auto* zhHdr = new ZhWeekdayHeader(tv);
+                        tv->setHorizontalHeader(zhHdr);
+                    }
+                }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
                     dt->setDate(d);
                 });
-                cal->show();
                 return true;
             }
         }
