@@ -326,7 +326,7 @@ void KnowledgeBasePage::setupUI() {
     listHeaderLayout->addWidget(colDoc, 1);
     auto* colDate = new QLabel(tr("Date"));
     colDate->setStyleSheet("font-size: 11px; font-weight: 600; color: #889096; background: transparent; border: none;");
-    colDate->setFixedWidth(80);
+    colDate->setFixedWidth(95);
     colDate->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     listHeaderLayout->addWidget(colDate);
     auto* colTags = new QLabel(tr("Tags"));
@@ -608,7 +608,7 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     // ---- 日期 ----
     auto* dateLbl = new QLabel(date);
     dateLbl->setStyleSheet("font-size: 11px; color: #9CA3AF; background: transparent; border: none; white-space: nowrap;");
-    dateLbl->setFixedWidth(80);
+    dateLbl->setFixedWidth(95);
     dateLbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     // ---- 日期 + 标签 + 操作（右对齐列组）----
     auto* rightCol = new QVBoxLayout;
