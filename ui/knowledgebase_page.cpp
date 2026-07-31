@@ -973,22 +973,34 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 cal->show();
-                // 自定义导航箭头：◁▷ 调年，◀▶ 调月
+                // 隐藏默认箭头按钮，自定义文本按钮
                 QMetaObject::invokeMethod(cal, [cal]() {
+                    // 隐藏所有带箭头的 QToolButton（包括边侧绿色箭头）
+                    auto allBtns = cal->findChildren<QToolButton*>();
+                    for (auto* b : allBtns) {
+                        if (b->arrowType() != Qt::NoArrow || b->icon().isNull() == false)
+                            b->hide();
+                    }
+                    // 重新获取可见的 navigation bar 按钮
                     auto* nav = cal->findChild<QWidget*>("qt_calendar_navigationbar");
                     if (!nav) return;
                     auto btns = nav->findChildren<QToolButton*>();
-                    if (btns.isEmpty()) return;
-                    // 默认顺序：prevMonth(0), prevYear(1,隐藏), nextYear(2,隐藏), nextMonth(3)
-                    btns[0]->setText("◀");
-                    btns[0]->setToolTip(tr("Previous month"));
-                    btns[3]->setText("▶");
-                    btns[3]->setToolTip(tr("Next month"));
+                    // 默认 4 个：prevMonth(0), prevYear(1,隐藏), nextYear(2,隐藏), nextMonth(3)
                     if (btns.size() >= 4) {
-                        btns[1]->setText("◁");
+                        btns[0]->setArrowType(Qt::NoArrow);
+                        btns[0]->setText("◁");
+                        btns[0]->setToolTip(tr("Previous month"));
+                        btns[0]->show();
+                        btns[3]->setArrowType(Qt::NoArrow);
+                        btns[3]->setText("▷");
+                        btns[3]->setToolTip(tr("Next month"));
+                        btns[3]->show();
+                        btns[1]->setArrowType(Qt::NoArrow);
+                        btns[1]->setText("◀");
                         btns[1]->setToolTip(tr("Previous year"));
                         btns[1]->show();
-                        btns[2]->setText("▷");
+                        btns[2]->setArrowType(Qt::NoArrow);
+                        btns[2]->setText("▶");
                         btns[2]->setToolTip(tr("Next year"));
                         btns[2]->show();
                     }
