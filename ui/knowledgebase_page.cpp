@@ -930,6 +930,34 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     auto* monthMenu = new QMenu(monthLabel);
                     monthLabel->setMenu(monthMenu);
                     monthLabel->setPopupMode(QToolButton::InstantPopup);
+                    // 美化菜单样式
+                    monthMenu->setMinimumWidth(140);
+                    monthMenu->setStyleSheet(
+                        "QMenu {"
+                        "  background: #FFFFFF;"
+                        "  border: 1px solid #E5E7EB;"
+                        "  border-radius: 8px;"
+                        "  padding: 4px;"
+                        "}"
+                        "QMenu::item {"
+                        "  background: transparent;"
+                        "  color: #1F2937;"
+                        "  padding: 6px 16px;"
+                        "  border-radius: 4px;"
+                        "  font-size: 13px;"
+                        "}"
+                        "QMenu::item:selected {"
+                        "  background: #3B82F6;"
+                        "  color: #FFFFFF;"
+                        "}"
+                        "QMenu::separator {"
+                        "  height: 1px;"
+                        "  background: #E5E7EB;"
+                        "  margin: 4px 8px;"
+                        "}"
+                        "QMenu::icon {"
+                        "  padding: 0px;"
+                        "}");
                     auto updateLabel = [this, cal, monthLabel, monthMenu]() {
                         QLocale zh(QLocale::Chinese, QLocale::China);
                         int y = cal->yearShown();
