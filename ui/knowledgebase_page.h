@@ -10,6 +10,8 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QDateTimeEdit>
+#include <QCalendarWidget>
+#include <QToolButton>
 #include <QThread>
 #include <QList>
 #include <QSet>
