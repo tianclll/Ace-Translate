@@ -302,8 +302,10 @@ void KnowledgeBasePage::setupUI() {
         "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
         "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
         "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }");
-    // 箭头被隐藏后，点击输入框也要能弹出日历
+    // 箭头被隐藏后，点击输入框也要能弹出日历（行和内部 lineEdit 都要装 filter）
     dateFrom_->installEventFilter(this);
+    if (auto* le = dateFrom_->findChild<QLineEdit*>())
+        le->installEventFilter(this);
     connect(dateFrom_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateFrom_);
 
@@ -325,6 +327,8 @@ void KnowledgeBasePage::setupUI() {
     dateTo_->setDateTime(QDateTime::currentDateTime());
     dateTo_->setStyleSheet(dateFieldStyle);
     dateTo_->installEventFilter(this);
+    if (auto* le = dateTo_->findChild<QLineEdit*>())
+        le->installEventFilter(this);
     connect(dateTo_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
     dateGLayout->addWidget(dateTo_);
 
@@ -870,10 +874,19 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     if (!w) return QWidget::eventFilter(obj, event);
 
     // QDateTimeEdit 点击弹出日历（箭头被隐藏，需要手动触发）
-    if ((w == dateFrom_ || w == dateTo_) && event->type() == QEvent::MouseButtonPress) {
+    if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
         if (me->button() == Qt::LeftButton) {
-            auto* dt = qobject_cast<QDateTimeEdit*>(w);
+            QDateTimeEdit* dt = nullptr;
+            if (w == dateFrom_) dt = dateFrom_;
+            else if (w == dateTo_) dt = dateTo_;
+            else {
+                // w 可能是 dateFrom_/dateTo_ 内部的子控件，沿父链找到 QDateTimeEdit
+                for (QWidget* p = w->parentWidget(); p; p = p->parentWidget()) {
+                    if (p == dateFrom_) { dt = dateFrom_; break; }
+                    if (p == dateTo_) { dt = dateTo_; break; }
+                }
+            }
             if (dt) {
                 auto* cal = new QCalendarWidget;
                 cal->setWindowFlags(Qt::Popup);
@@ -884,6 +897,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     dt->setDate(d);
                 });
                 cal->show();
+                return true;  // 消费事件，阻止进入行选中逻辑
             }
         }
     }
