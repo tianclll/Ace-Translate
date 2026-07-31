@@ -258,8 +258,8 @@ Drop files above to get started</source>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1604" />
-        <source>打开此文件夹</source>
-        <translation type="unfinished" />
+        <source>Open this folder</source>
+        <translation type="unfinished">打开此文件夹</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="510" />
@@ -453,11 +453,6 @@ Drop files above to get started</source>
         <translation type="unfinished">个文档已删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1493" />
-        <source>输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</source>
-        <translation type="unfinished" />
-    </message>
-    <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1509" />
         <source>浏览…</source>
         <translation type="unfinished" />
@@ -481,6 +476,11 @@ Drop files above to get started</source>
         <location filename="../ui/knowledgebase_page.cpp" line="1369" />
         <source>documents to delete</source>
         <translation type="unfinished">个文档要删除</translation>
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1493" />
+        <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
+        <translation type="unfinished">输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1600" />

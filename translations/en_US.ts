@@ -476,6 +476,15 @@ Drop files above to get started</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1493" />
+        <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
+        <translation type="unfinished">Enter target folder path (auto-created if not exists), or click Browse… to select.</translation>
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
+        <source>Open this folder</source>
+        <translation type="unfinished">Open this folder</translation>
+    </message>
+    <message>
         <source>输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</source>
         <translation type="unfinished">输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
     </message>
@@ -495,7 +504,6 @@ Drop files above to get started</translation>
         <translation type="unfinished">failed to export</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
         <source>打开此文件夹</source>
         <translation type="unfinished">打开此文件夹</translation>
     </message>

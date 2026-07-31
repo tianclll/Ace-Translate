@@ -243,6 +243,8 @@ EN_TO_ZH = {
     "Select Knowledge Base Folder": "选择知识库文件夹",
     "Storage directory for imported documents. Restart required.": "导入文档的存储目录。修改后需重启生效。",
     "Reset": "重置",
+    "Enter target folder path (auto-created if not exists), or click Browse… to select.": "输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。",
+    "Open this folder": "打开此文件夹",
 }
 
 EN_TO_JA = {
@@ -489,6 +491,8 @@ EN_TO_JA = {
     "Select Knowledge Base Folder": "知識ベースフォルダを選択",
     "Storage directory for imported documents. Restart required.": "インポートしたドキュメントの保存先。変更後は再起動が必要です。",
     "Reset": "リセット",
+    "Enter target folder path (auto-created if not exists), or click Browse… to select.": "エクスポート先フォルダのパスを入力してください（存在しない場合は自動作成）、または「参照…」をクリックして選択。",
+    "Open this folder": "フォルダを開く",
 }
 
 def fill_ts(ts_path, trans_map):

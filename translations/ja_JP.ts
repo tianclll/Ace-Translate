@@ -475,8 +475,13 @@ Drop files above to get started</source>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1493" />
-        <source>输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</source>
-        <translation type="unfinished" />
+        <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
+        <translation type="unfinished">エクスポート先フォルダのパスを入力してください（存在しない場合は自動作成）、または「参照…」をクリックして選択。</translation>
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
+        <source>Open this folder</source>
+        <translation type="unfinished">フォルダを開く</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1509" />
@@ -491,11 +496,6 @@ Drop files above to get started</source>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1600" />
         <source>failed to export</source>
-        <translation type="unfinished" />
-    </message>
-    <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
-        <source>打开此文件夹</source>
         <translation type="unfinished" />
     </message>
 </context>

@@ -1490,7 +1490,7 @@ void KnowledgeBasePage::onBatchExport() {
     title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
     lay->addWidget(title);
 
-    auto* hint = new QLabel(tr("输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。"));
+    auto* hint = new QLabel(tr("Enter target folder path (auto-created if not exists), or click Browse… to select."));
     hint->setWordWrap(true);
     hint->setStyleSheet("font-size: 12px; color: #9CA3AF; background: transparent;");
     lay->addWidget(hint);
@@ -1601,6 +1601,6 @@ void KnowledgeBasePage::onBatchExport() {
     } else {
         ToastNotification::show(this, QStringLiteral("已导出 %1 个文件").arg(okCount), 4000,
                                 QColor(11, 124, 114), QString(),
-                                tr("打开此文件夹"), QUrl::fromLocalFile(dir).toString());
+                                tr("Open this folder"), QUrl::fromLocalFile(dir).toString());
     }
 }
