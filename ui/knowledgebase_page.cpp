@@ -973,38 +973,32 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "}");
                 cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
                 cal->show();
-                // 自定义导航栏：左边 ◁◀ 调月/年，中间月份年份，右边 ▶▷ 调年/月
+                // 替换导航栏箭头按钮文字为符号
                 QMetaObject::invokeMethod(cal, [this, cal, dt]() {
                     auto* nav = cal->findChild<QWidget*>("qt_calendar_navigationbar");
                     if (!nav) return;
-                    auto* lay = qobject_cast<QHBoxLayout*>(nav->layout());
-                    if (!lay) return;
-                    // 清空默认按钮
-                    while (auto* item = lay->takeAt(0)) {
-                        if (auto* w = item->widget()) w->hide();
-                        delete item;
+                    auto btns = nav->findChildren<QToolButton*>();
+                    // 默认顺序：prevMonth(0), prevYear(1,隐藏), nextYear(2,隐藏), nextMonth(3)
+                    if (btns.size() >= 4) {
+                        btns[0]->setArrowType(Qt::NoArrow);
+                        btns[0]->setText("◁");
+                        btns[0]->setToolTip(tr("Previous month"));
+                        btns[0]->show();
+                        btns[1]->setArrowType(Qt::NoArrow);
+                        btns[1]->setText("◀");
+                        btns[1]->setToolTip(tr("Previous year"));
+                        btns[1]->show();
+                        btns[2]->setArrowType(Qt::NoArrow);
+                        btns[2]->setText("▶");
+                        btns[2]->setToolTip(tr("Next year"));
+                        btns[2]->show();
+                        btns[3]->setArrowType(Qt::NoArrow);
+                        btns[3]->setText("▷");
+                        btns[3]->setToolTip(tr("Next month"));
+                        btns[3]->show();
                     }
-                    // 左边按钮
-                    auto* prevMonth = new QToolButton(nav);
-                    prevMonth->setText("◁");
-                    prevMonth->setToolTip(tr("Previous month"));
-                    auto* prevYear = new QToolButton(nav);
-                    prevYear->setText("◀");
-                    prevYear->setToolTip(tr("Previous year"));
-                    // 右边按钮
-                    auto* nextYear = new QToolButton(nav);
-                    nextYear->setText("▶");
-                    nextYear->setToolTip(tr("Next year"));
-                    auto* nextMonth = new QToolButton(nav);
-                    nextMonth->setText("▷");
-                    nextMonth->setToolTip(tr("Next month"));
-                    lay->addWidget(prevMonth);
-                    lay->addWidget(prevYear);
-                    lay->addStretch();
-                    lay->addWidget(nextYear);
-                    lay->addWidget(nextMonth);
-                    QList<QToolButton*> arrowBtns = {prevMonth, prevYear, nextYear, nextMonth};
-                    for (auto* b : arrowBtns) {
+                    // 样式
+                    for (auto* b : btns) {
                         b->setFixedSize(24, 24);
                         b->setStyleSheet(
                             "QToolButton {"
@@ -1019,12 +1013,6 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                             "  background: #F3F4F6;"
                             "  color: #0B7C72;"
                             "}");
-                        connect(b, &QToolButton::clicked, this, [=]() {
-                            if (b == prevMonth) cal->showPreviousMonth();
-                            else if (b == nextMonth) cal->showNextMonth();
-                            else if (b == prevYear) cal->showPreviousYear();
-                            else if (b == nextYear) cal->showNextYear();
-                        });
                     }
                 }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
