@@ -294,7 +294,7 @@ void KnowledgeBasePage::setupUI() {
 
     dateFrom_ = new QDateTimeEdit;
     dateFrom_->setDisplayFormat("yyyy/MM/dd hh:mm");
-    dateFrom_->setCalendarPopup(true);
+    dateFrom_->setCalendarPopup(false);  // 禁用原生弹出，只用自定义日历
     dateFrom_->setFixedHeight(30);
     dateFrom_->setFixedWidth(150);
     dateFrom_->setSpecialValueText(tr("From"));
