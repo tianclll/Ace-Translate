@@ -172,16 +172,17 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
     out << entry.markdownContent;
     file.close();
 
-    // 更新真实数据
+    // 更新真实数据（包括 created_at）
     QSqlQuery update(db_);
     update.prepare("UPDATE documents SET title=:t, file_type=:ft, source_path=:sp, "
-                   "md_path=:mp, lang=:l, file_size=:fs WHERE id=:id");
+                   "md_path=:mp, lang=:l, file_size=:fs, created_at=:ca WHERE id=:id");
     update.bindValue(":t",   entry.title);
     update.bindValue(":ft",  entry.fileType);
     update.bindValue(":sp",  entry.sourcePath);
     update.bindValue(":mp",  QString("md/%1.md").arg(safeName));
     update.bindValue(":l",   entry.translatedLang);
     update.bindValue(":fs",  entry.fileSize);
+    update.bindValue(":ca",  QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
     update.bindValue(":id",  newId);
 
     if (!update.exec()) {
