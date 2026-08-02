@@ -291,7 +291,8 @@
         <location filename="../ui/knowledgebase_page.cpp" line="485" />
         <source>No documents yet
 Drop files above to get started</source>
-        <translation type="unfinished" />
+        <translation type="unfinished">ドキュメントはまだありません
+上記にファイルをドロップして開始</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="510" />
