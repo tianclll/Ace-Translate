@@ -301,7 +301,7 @@ void KnowledgeBasePage::setupUI() {
     dateFromEdit_->setPlaceholderText(tr("From"));
     dateFromEdit_->setFixedHeight(30);
     dateFromEdit_->setFixedWidth(150);
-    dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy/MM/dd hh:mm"));
+    dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd hh:mm:ss"));
     dateFromEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateFromEdit_->installEventFilter(this);
@@ -329,7 +329,7 @@ void KnowledgeBasePage::setupUI() {
     dateToEdit_->setPlaceholderText(tr("To"));
     dateToEdit_->setFixedHeight(30);
     dateToEdit_->setFixedWidth(150);
-    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm"));
+    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     dateToEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateToEdit_->installEventFilter(this);
@@ -355,8 +355,8 @@ void KnowledgeBasePage::setupUI() {
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
         dateFromEdit_->blockSignals(true);
         dateToEdit_->blockSignals(true);
-        dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy/MM/dd hh:mm"));
-        dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm"));
+        dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd hh:mm:ss"));
+        dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
         dateFromEdit_->blockSignals(false);
         dateToEdit_->blockSignals(false);
         refreshList();
@@ -908,7 +908,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                 auto* cal = new QCalendarWidget;
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
-                QDateTime curDt = QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm");
+                QDateTime curDt = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss");
                 cal->setCurrentPage(curDt.date().year(), curDt.date().month());
                 cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
                 cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
@@ -977,7 +977,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         "}");
                     auto updateLabel = [this, cal, targetEdit, monthLabel, monthMenu]() {
                         QLocale zh(QLocale::Chinese, QLocale::China);
-                        QDateTime curDt2 = QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm");
+                        QDateTime curDt2 = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss");
                         int y = cal->yearShown();
                         int m = cal->monthShown();
                         monthLabel->setText(zh.monthName(m, QLocale::LongFormat) + " " + QString::number(y));
@@ -1030,7 +1030,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     connect(cal, &QCalendarWidget::destroyed, bar, &QObject::deleteLater);
                 }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [targetEdit](const QDate& d) {
-                    targetEdit->setText(QDateTime(QDate(d), QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm").time()).toString("yyyy/MM/dd hh:mm"));
+                    targetEdit->setText(QDateTime(QDate(d), QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss").time()).toString("yyyy-MM-dd hh:mm:ss"));
                 });
                 return true;
             }
