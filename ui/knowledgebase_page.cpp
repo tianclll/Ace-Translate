@@ -1030,7 +1030,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     connect(cal, &QCalendarWidget::destroyed, bar, &QObject::deleteLater);
                 }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [targetEdit](const QDate& d) {
-                    targetEdit->setText(QDateTime(QDate(d), QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss").time()).toString("yyyy-MM-dd hh:mm:ss"));
+                    targetEdit->setText(QDateTime(QDate(d), QDateTime::currentDateTime().time()).toString("yyyy-MM-dd hh:mm:ss"));
                 });
                 return true;
             }
