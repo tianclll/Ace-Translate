@@ -331,7 +331,6 @@ void KnowledgeBasePage::setupUI() {
     dateToEdit_->setPlaceholderText(tr("To"));
     dateToEdit_->setFixedHeight(30);
     dateToEdit_->setFixedWidth(150);
-    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
     dateToEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateToEdit_->installEventFilter(this);
@@ -590,7 +589,11 @@ void KnowledgeBasePage::refreshList() {
     QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
     int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
     QString dateFrom = !dateFromEdit_->text().isEmpty() ? dateFromEdit_->text() : QString();
-    QString dateTo = !dateToEdit_->text().isEmpty() ? dateToEdit_->text() : QString();
+    // dateTo 动态更新为当前时间，防止新文档时间超过启动时的 dateTo 被过滤
+    dateToEdit_->blockSignals(true);
+    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
+    dateToEdit_->blockSignals(false);
+    QString dateTo = dateToEdit_->text();
     bool hasDateFilter = !dateFrom.isEmpty() || !dateTo.isEmpty();
 
     if (!keyword.isEmpty()) {

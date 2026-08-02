@@ -98,6 +98,7 @@ private:
     QComboBox* tagFilterCombo_ = nullptr;
     QPushButton* selectAllBtn_ = nullptr;
     bool allSelected_ = false;
+    bool dateFilterUserModified_ = false;  // 用户是否手动修改过日期
 
     // 文档列表
     QWidget* listCard_ = nullptr;
