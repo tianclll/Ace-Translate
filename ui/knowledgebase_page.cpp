@@ -292,46 +292,58 @@ void KnowledgeBasePage::setupUI() {
     dateIcon->setStyleSheet("background: transparent;");
     dateGLayout->addWidget(dateIcon);
 
-    dateFrom_ = new QDateTimeEdit;
-    dateFrom_->setDisplayFormat("yyyy/MM/dd hh:mm");
-    dateFrom_->setCalendarPopup(false);  // 禁用原生弹出，只用自定义日历
-    dateFrom_->setFixedHeight(30);
-    dateFrom_->setFixedWidth(150);
-    dateFrom_->setSpecialValueText(tr("From"));
-    dateFrom_->setDateTime(QDateTime::currentDateTime().addMonths(-3));
-    dateFrom_->setStyleSheet(
-        "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
-        "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
-        "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }");
-    // 箭头被隐藏后，点击输入框也要能弹出日历（行和内部 lineEdit 都要装 filter）
-    dateFrom_->installEventFilter(this);
-    if (auto* le = dateFrom_->findChild<QLineEdit*>())
-        le->installEventFilter(this);
-    connect(dateFrom_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    dateGLayout->addWidget(dateFrom_);
-
-    auto dateFieldStyle =
-        "QDateTimeEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }"
-        "QDateTimeEdit::drop-down { border: none; width: 0px; height: 0px; margin: 0px; padding: 0px; }"
-        "QDateTimeEdit::down-arrow { image: none; width: 0; height: 0; }";
+    // 日期输入框 + 日历图标按钮（替代 QDateTimeEdit，避免原生弹窗）
+    auto* dateFromWrap = new QWidget;
+    auto* dateFromHLay = new QHBoxLayout(dateFromWrap);
+    dateFromHLay->setContentsMargins(0, 0, 0, 0);
+    dateFromHLay->setSpacing(0);
+    dateFromEdit_ = new QLineEdit;
+    dateFromEdit_->setPlaceholderText(tr("From"));
+    dateFromEdit_->setFixedHeight(30);
+    dateFromEdit_->setFixedWidth(150);
+    dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy/MM/dd hh:mm"));
+    dateFromEdit_->setStyleSheet(
+        "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
+    dateFromEdit_->installEventFilter(this);
+    connect(dateFromEdit_, &QLineEdit::editingFinished, this, &KnowledgeBasePage::onDateFilterChanged);
+    fromCalBtn_ = new QPushButton(dateFromWrap);
+    fromCalBtn_->setFixedSize(24, 30);
+    fromCalBtn_->setCursor(Qt::PointingHandCursor);
+    fromCalBtn_->setFlat(true);
+    fromCalBtn_->setStyleSheet(
+        "QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; }"
+        "QPushButton:hover { background: #F3F4F6; border-radius: 0 4px 4px 0; }");
+    dateFromHLay->addWidget(dateFromEdit_);
+    dateFromHLay->addWidget(fromCalBtn_);
+    dateGLayout->addWidget(dateFromWrap);
 
     auto* dateSep = new QLabel("–");  // en dash（不需要 To 文字，只保留分隔线）
     dateSep->setStyleSheet("color: #C0C4C8; font-size: 13px; background: transparent;");
     dateGLayout->addWidget(dateSep);
 
-    dateTo_ = new QDateTimeEdit;
-    dateTo_->setDisplayFormat("yyyy/MM/dd hh:mm");
-    dateTo_->setCalendarPopup(false);  // 禁用原生弹出，只用自定义日历
-    dateTo_->setFixedHeight(30);
-    dateTo_->setFixedWidth(150);
-    dateTo_->setSpecialValueText(tr("To"));
-    dateTo_->setDateTime(QDateTime::currentDateTime());
-    dateTo_->setStyleSheet(dateFieldStyle);
-    dateTo_->installEventFilter(this);
-    if (auto* le = dateTo_->findChild<QLineEdit*>())
-        le->installEventFilter(this);
-    connect(dateTo_, &QDateTimeEdit::dateTimeChanged, this, &KnowledgeBasePage::onDateFilterChanged);
-    dateGLayout->addWidget(dateTo_);
+    auto* dateToWrap = new QWidget;
+    auto* dateToHLay = new QHBoxLayout(dateToWrap);
+    dateToHLay->setContentsMargins(0, 0, 0, 0);
+    dateToHLay->setSpacing(0);
+    dateToEdit_ = new QLineEdit;
+    dateToEdit_->setPlaceholderText(tr("To"));
+    dateToEdit_->setFixedHeight(30);
+    dateToEdit_->setFixedWidth(150);
+    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm"));
+    dateToEdit_->setStyleSheet(
+        "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
+    dateToEdit_->installEventFilter(this);
+    connect(dateToEdit_, &QLineEdit::editingFinished, this, &KnowledgeBasePage::onDateFilterChanged);
+    toCalBtn_ = new QPushButton(dateToWrap);
+    toCalBtn_->setFixedSize(24, 30);
+    toCalBtn_->setCursor(Qt::PointingHandCursor);
+    toCalBtn_->setFlat(true);
+    toCalBtn_->setStyleSheet(
+        "QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; }"
+        "QPushButton:hover { background: #F3F4F6; border-radius: 0 4px 4px 0; }");
+    dateToHLay->addWidget(dateToEdit_);
+    dateToHLay->addWidget(toCalBtn_);
+    dateGLayout->addWidget(dateToWrap);
 
     auto* clearDateBtn = new QPushButton(tr("Clear"));
     clearDateBtn->setFixedHeight(30);
@@ -341,12 +353,12 @@ void KnowledgeBasePage::setupUI() {
         " background: transparent; color: #889096; font-size: 12px; }"
         "QPushButton:hover { color: #0B7C72; }");
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
-        dateFrom_->blockSignals(true);
-        dateTo_->blockSignals(true);
-        dateFrom_->setDateTime(QDateTime::currentDateTime().addMonths(-3));
-        dateTo_->setDateTime(QDateTime::currentDateTime());
-        dateFrom_->blockSignals(false);
-        dateTo_->blockSignals(false);
+        dateFromEdit_->blockSignals(true);
+        dateToEdit_->blockSignals(true);
+        dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy/MM/dd hh:mm"));
+        dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm"));
+        dateFromEdit_->blockSignals(false);
+        dateToEdit_->blockSignals(false);
         refreshList();
     });
     dateGLayout->addWidget(clearDateBtn);
@@ -575,8 +587,8 @@ void KnowledgeBasePage::refreshList() {
     QList<KnowledgeEntry> docs;
     QString keyword = searchInput_ ? searchInput_->text().trimmed() : QString();
     int tagFilter = tagFilterCombo_ ? tagFilterCombo_->currentData().toInt() : -1;
-    QString dateFrom = dateFrom_ && dateFrom_->dateTime().isValid() ? dateFrom_->dateTime().toString("yyyy-MM-dd hh:mm:ss") : QString();
-    QString dateTo = dateTo_ && dateTo_->dateTime().isValid() ? dateTo_->dateTime().toString("yyyy-MM-dd hh:mm:ss") : QString();
+    QString dateFrom = !dateFromEdit_->text().isEmpty() ? dateFromEdit_->text() : QString();
+    QString dateTo = !dateToEdit_->text().isEmpty() ? dateToEdit_->text() : QString();
     bool hasDateFilter = !dateFrom.isEmpty() || !dateTo.isEmpty();
 
     if (!keyword.isEmpty()) {
@@ -874,25 +886,30 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     auto* w = qobject_cast<QWidget*>(obj);
     if (!w) return QWidget::eventFilter(obj, event);
 
-    // QDateTimeEdit 点击弹出日历（箭头被隐藏，需要手动触发）
+    // QLineEdit 点击弹出日历（完全自定义，无原生弹窗）
     if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
         if (me->button() == Qt::LeftButton) {
-            QDateTimeEdit* dt = nullptr;
-            if (w == dateFrom_) dt = dateFrom_;
-            else if (w == dateTo_) dt = dateTo_;
+            QLineEdit* targetEdit = nullptr;
+            QPushButton* targetBtn = nullptr;
+            if (w == dateFromEdit_) { targetEdit = dateFromEdit_; }
+            else if (w == dateToEdit_) { targetEdit = dateToEdit_; }
+            else if (w == fromCalBtn_) { targetEdit = dateFromEdit_; }
+            else if (w == toCalBtn_) { targetEdit = dateToEdit_; }
             else {
-                // w 可能是 dateFrom_/dateTo_ 内部的子控件，沿父链找到 QDateTimeEdit
                 for (QWidget* p = w->parentWidget(); p; p = p->parentWidget()) {
-                    if (p == dateFrom_) { dt = dateFrom_; break; }
-                    if (p == dateTo_) { dt = dateTo_; break; }
+                    if (p == dateFromEdit_) { targetEdit = dateFromEdit_; break; }
+                    if (p == dateToEdit_) { targetEdit = dateToEdit_; break; }
+                    if (p == fromCalBtn_) { targetEdit = dateFromEdit_; break; }
+                    if (p == toCalBtn_) { targetEdit = dateToEdit_; break; }
                 }
             }
-            if (dt) {
+            if (targetEdit) {
                 auto* cal = new QCalendarWidget;
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
-                cal->setCurrentPage(dt->date().year(), dt->date().month());
+                QDateTime curDt = QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm");
+                cal->setCurrentPage(curDt.date().year(), curDt.date().month());
                 cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
                 cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
                 cal->setFirstDayOfWeek(Qt::Monday);
@@ -907,10 +924,10 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     "QCalendarWidget QAbstractItemView::item:selected { background: #3B82F6; color: #FFFFFF; }"
                     "QCalendarWidget QTableView { border: none; gridline-color: transparent; }"
                     "QCalendarWidget QTableView QTableCornerButton::section { background: #FFFFFF; border: none; }");
-                cal->move(dt->mapToGlobal(QPoint(0, dt->height())));
+                cal->move(targetEdit->mapToGlobal(QPoint(0, targetEdit->height())));
                 cal->show();
                 // 完全自定义导航栏（隐藏默认）
-                QMetaObject::invokeMethod(cal, [this, cal, dt]() {
+                QMetaObject::invokeMethod(cal, [this, cal, targetEdit]() {
                     if (auto* nav = cal->findChild<QWidget*>("qt_calendar_navigationbar"))
                         nav->hide();
                     auto* bar = new QWidget(cal);
@@ -958,8 +975,9 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         "QMenu::icon {"
                         "  padding: 0px;"
                         "}");
-                    auto updateLabel = [this, cal, monthLabel, monthMenu]() {
+                    auto updateLabel = [this, cal, targetEdit, monthLabel, monthMenu]() {
                         QLocale zh(QLocale::Chinese, QLocale::China);
+                        QDateTime curDt2 = QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm");
                         int y = cal->yearShown();
                         int m = cal->monthShown();
                         monthLabel->setText(zh.monthName(m, QLocale::LongFormat) + " " + QString::number(y));
@@ -969,15 +987,15 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         int curYear = QDate::currentDate().year();
                         for (int yr = curYear - 5; yr <= curYear + 5; ++yr) {
                             auto* a = yearMenu->addAction(QString::number(yr));
-                            connect(a, &QAction::triggered, this, [cal, yr]() {
-                                cal->setCurrentPage(yr, cal->monthShown());
+                            connect(a, &QAction::triggered, this, [cal, targetEdit, yr]() {
+                                cal->setCurrentPage(yr, QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm").date().month());
                             });
                         }
                         monthMenu->addMenu(yearMenu);
                         for (int i = 1; i <= 12; ++i) {
                             auto* a = monthMenu->addAction(zh.monthName(i, QLocale::LongFormat));
-                            connect(a, &QAction::triggered, this, [cal, i]() {
-                                cal->setCurrentPage(cal->yearShown(), i);
+                            connect(a, &QAction::triggered, this, [cal, targetEdit, i]() {
+                                cal->setCurrentPage(QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm").date().year(), i);
                             });
                         }
                     };
@@ -1011,8 +1029,8 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     bar->show();
                     connect(cal, &QCalendarWidget::destroyed, bar, &QObject::deleteLater);
                 }, Qt::QueuedConnection);
-                connect(cal, &QCalendarWidget::clicked, this, [dt](const QDate& d) {
-                    dt->setDate(d);
+                connect(cal, &QCalendarWidget::clicked, this, [targetEdit](const QDate& d) {
+                    targetEdit->setText(QDateTime(QDate(d), QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm").time()).toString("yyyy/MM/dd hh:mm"));
                 });
                 return true;
             }

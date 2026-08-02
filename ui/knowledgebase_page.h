@@ -92,7 +92,9 @@ private:
     DropZoneWidget* dropZone_ = nullptr;
     QLineEdit* searchInput_ = nullptr;
     QLineEdit* dateFromEdit_ = nullptr;
+    QPushButton* fromCalBtn_ = nullptr;
     QLineEdit* dateToEdit_ = nullptr;
+    QPushButton* toCalBtn_ = nullptr;
     QComboBox* tagFilterCombo_ = nullptr;
     QPushButton* selectAllBtn_ = nullptr;
     bool allSelected_ = false;
