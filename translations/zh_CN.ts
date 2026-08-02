@@ -229,12 +229,12 @@
         <location filename="../ui/knowledgebase_page.cpp" line="485" />
         <source>No documents yet
 Drop files above to get started</source>
-        <translation type="unfinished" />
+        <translation type="unfinished">暂无文档\n拖放文件到这里开始</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="796" />
         <source>View</source>
-        <translation type="unfinished" />
+        <translation type="unfinished">查看</translation>
     </message>
     <message>
         <location filename="../ui/knowledgebase_page.cpp" line="1217" />
