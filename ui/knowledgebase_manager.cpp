@@ -281,7 +281,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getAllEntries(int limit, int offset)
         e.translatedLang = query.value(5).toString();
         e.fileSize       = query.value(6).toLongLong();
         e.summary        = query.value(7).toString();
-        e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+        e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
         list.append(e);
     }
     return list;
@@ -305,7 +305,7 @@ KnowledgeEntry KnowledgeBaseManager::getEntry(int id) {
     e.translatedLang = query.value(5).toString();
     e.fileSize       = query.value(6).toLongLong();
     e.summary        = query.value(7).toString();
-    e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+    e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
 
     // 读取 .md 文件内容
     QString fullPath = storagePath() + e.mdFilePath;
@@ -371,7 +371,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByDate(const QString& from
         e.translatedLang = q.value(5).toString();
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
-        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
         list.append(e);
     }
     return list;
@@ -471,7 +471,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::searchEntries(const QString& keyword
         e.translatedLang = q.value(5).toString();
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
-        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
         list.append(e);
     }
     return list;
@@ -497,7 +497,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByTag(int tagId) {
         e.translatedLang = q.value(5).toString();
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
-        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd hh:mm:ss");
+        e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
         list.append(e);
     }
     return list;

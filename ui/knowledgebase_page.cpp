@@ -301,7 +301,7 @@ void KnowledgeBasePage::setupUI() {
     dateFromEdit_->setPlaceholderText(tr("From"));
     dateFromEdit_->setFixedHeight(30);
     dateFromEdit_->setFixedWidth(150);
-    dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd hh:mm:ss"));
+    dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd HH:mm:ss"));
     dateFromEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateFromEdit_->installEventFilter(this);
@@ -329,7 +329,7 @@ void KnowledgeBasePage::setupUI() {
     dateToEdit_->setPlaceholderText(tr("To"));
     dateToEdit_->setFixedHeight(30);
     dateToEdit_->setFixedWidth(150);
-    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
     dateToEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateToEdit_->installEventFilter(this);
@@ -355,8 +355,8 @@ void KnowledgeBasePage::setupUI() {
     connect(clearDateBtn, &QPushButton::clicked, this, [this]() {
         dateFromEdit_->blockSignals(true);
         dateToEdit_->blockSignals(true);
-        dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd hh:mm:ss"));
-        dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+        dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd HH:mm:ss"));
+        dateToEdit_->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
         dateFromEdit_->blockSignals(false);
         dateToEdit_->blockSignals(false);
         refreshList();
@@ -596,7 +596,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd HH:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -615,7 +615,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd HH:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -629,7 +629,7 @@ void KnowledgeBasePage::refreshList() {
         if (hasDateFilter) {
             QList<KnowledgeEntry> filtered;
             for (const auto& d : docs) {
-                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd hh:mm:ss") : QString();
+                QString dStr = d.createdAt.isValid() ? d.createdAt.toString("yyyy-MM-dd HH:mm:ss") : QString();
                 if (!dStr.isEmpty()) {
                     if (!dateFrom.isEmpty() && dStr < dateFrom) continue;
                     if (!dateTo.isEmpty() && dStr > dateTo) continue;
@@ -908,7 +908,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                 auto* cal = new QCalendarWidget;
                 cal->setWindowFlags(Qt::Popup);
                 cal->setAttribute(Qt::WA_DeleteOnClose);
-                QDateTime curDt = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss");
+                QDateTime curDt = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd HH:mm:ss");
                 cal->setCurrentPage(curDt.date().year(), curDt.date().month());
                 cal->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
                 cal->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
@@ -977,7 +977,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         "}");
                     auto updateLabel = [this, cal, targetEdit, monthLabel, monthMenu]() {
                         QLocale zh(QLocale::Chinese, QLocale::China);
-                        QDateTime curDt2 = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd hh:mm:ss");
+                        QDateTime curDt2 = QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd HH:mm:ss");
                         int y = cal->yearShown();
                         int m = cal->monthShown();
                         monthLabel->setText(zh.monthName(m, QLocale::LongFormat) + " " + QString::number(y));
@@ -988,7 +988,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         for (int yr = curYear - 5; yr <= curYear + 5; ++yr) {
                             auto* a = yearMenu->addAction(QString::number(yr));
                             connect(a, &QAction::triggered, this, [cal, targetEdit, yr]() {
-                                cal->setCurrentPage(yr, QDateTime::fromString(targetEdit->text(), "yyyy/MM/dd hh:mm").date().month());
+                                cal->setCurrentPage(yr, QDateTime::fromString(targetEdit->text(), "yyyy-MM-dd HH:mm:ss").date().month());
                             });
                         }
                         monthMenu->addMenu(yearMenu);
@@ -1030,7 +1030,7 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                     connect(cal, &QCalendarWidget::destroyed, bar, &QObject::deleteLater);
                 }, Qt::QueuedConnection);
                 connect(cal, &QCalendarWidget::clicked, this, [targetEdit](const QDate& d) {
-                    targetEdit->setText(QDateTime(QDate(d), QDateTime::currentDateTime().time()).toString("yyyy-MM-dd hh:mm:ss"));
+                    targetEdit->setText(QDateTime(QDate(d), QDateTime::currentDateTime().time()).toString("yyyy-MM-dd HH:mm:ss"));
                 });
                 return true;
             }
