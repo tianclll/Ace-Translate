@@ -88,12 +88,13 @@ ORDER BY length(term) DESC
 **注入格式**：
 
 ```
-[术语表: transformer=变换器, self-attention=自注意力机制, embedding=嵌入]
-请将以下文本翻译成 Chinese：
-{original_text}
+{source_term} 翻译成 {target_term}
+
+将以下文本翻译为{target_language}，注意只需要输出翻译后的结果，不要额外解释：
+{source_text}
 ```
 
-如果无匹配术语，不注入任何内容。
+多条术语逐行列出，无匹配术语时不注入。
 
 ### 3.2 修改点
 
@@ -132,12 +133,10 @@ std::string TranslatorEngine::translate(const std::string& text,
     // 如果有术语，拼到 prompt 前缀
     std::string prompt;
     if (!glossary_.empty()) {
-        prompt = "[术语表: ";
-        for (size_t i = 0; i < glossary_.size(); ++i) {
-            if (i > 0) prompt += ", ";
-            prompt += glossary_[i].first + "=" + glossary_[i].second;
+        for (const auto& [term, trans] : glossary_) {
+            prompt += term + " 翻译成 " + trans + "\n";
         }
-        prompt += "]\n请将以下文本翻译成" + target_language + "：\n";
+        prompt += "将以下文本翻译为" + target_language + "，注意只需要输出翻译后的结果，不要额外解释：\n";
     }
 
     std::string full_text = prompt + text;
