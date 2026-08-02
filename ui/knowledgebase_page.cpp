@@ -321,7 +321,7 @@ void KnowledgeBasePage::setupUI() {
 
     dateTo_ = new QDateTimeEdit;
     dateTo_->setDisplayFormat("yyyy/MM/dd hh:mm");
-    dateTo_->setCalendarPopup(true);
+    dateTo_->setCalendarPopup(false);  // 禁用原生弹出，只用自定义日历
     dateTo_->setFixedHeight(30);
     dateTo_->setFixedWidth(150);
     dateTo_->setSpecialValueText(tr("To"));

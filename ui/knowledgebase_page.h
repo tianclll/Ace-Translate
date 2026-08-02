@@ -91,8 +91,8 @@ private:
     // ---- UI 控件 ----
     DropZoneWidget* dropZone_ = nullptr;
     QLineEdit* searchInput_ = nullptr;
-    QDateTimeEdit* dateFrom_ = nullptr;
-    QDateTimeEdit* dateTo_ = nullptr;
+    QLineEdit* dateFromEdit_ = nullptr;
+    QLineEdit* dateToEdit_ = nullptr;
     QComboBox* tagFilterCombo_ = nullptr;
     QPushButton* selectAllBtn_ = nullptr;
     bool allSelected_ = false;
