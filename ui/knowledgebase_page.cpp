@@ -301,7 +301,9 @@ void KnowledgeBasePage::setupUI() {
     dateFromEdit_->setPlaceholderText(tr("From"));
     dateFromEdit_->setFixedHeight(30);
     dateFromEdit_->setFixedWidth(150);
+    dateFromEdit_->blockSignals(true);
     dateFromEdit_->setText(QDateTime::currentDateTime().addMonths(-3).toString("yyyy-MM-dd HH:mm:ss"));
+    dateFromEdit_->blockSignals(false);
     dateFromEdit_->setStyleSheet(
         "QLineEdit { padding: 0 6px 0 10px; font-size: 12px; background: transparent; }");
     dateFromEdit_->installEventFilter(this);
