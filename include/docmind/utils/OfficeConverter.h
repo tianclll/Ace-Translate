@@ -20,7 +20,8 @@ public:
 
     // 转换文件，返回 ConversionResult
     ConversionResult convert(const std::string& input_file,
-                             const std::string& output_file = "");
+                             const std::string& output_file,
+                             const std::string& images_dir = "");
 
 private:
     std::string exe_path_;

@@ -69,7 +69,11 @@ namespace docmind {
         std::string filename = prefix + "_" + std::to_string(++counter) + ".jpg";
         std::string full_path = assets_dir + "/" + filename;
         cv::imwrite(full_path, image);
-        return "assets/"+filename;
+        size_t last_slash = assets_dir.find_last_of("\\/");
+        if (last_slash != std::string::npos) {
+            return assets_dir.substr(last_slash + 1) + "/" + filename;
+        }
+        return filename;
     }
 
     bool ImageUtils::overlapY(const cv::Rect& a, const cv::Rect& b, float threshold) {

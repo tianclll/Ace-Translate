@@ -2271,7 +2271,7 @@ void MainWindow::addFileToList(const QString& filePath) {
     connect(downloadBtn, &QPushButton::clicked, this, [this, downloadBtn]() {
         QString outPath = downloadBtn->property("outputPath").toString();
         if (outPath.isEmpty()) return;
-        // 标记已下载，不再被 cleanupTempFiles 清理
+        // 标记已下载
         int idx = fileTempOutputPaths_.indexOf(outPath);
         if (idx >= 0) fileTempOutputPaths_[idx].clear();
         QString randName = QStringLiteral("AceTranslate_%1%2")
@@ -2283,16 +2283,21 @@ void MainWindow::addFileToList(const QString& filePath) {
         if (savePath.isEmpty()) return;
         if (QFile::exists(outPath)) {
             if (QFile::copy(outPath, savePath)) {
-                // 同时复制 assets 目录（如果存在）
+                // 复制同目录下的 assets_* 目录（如果存在）
                 {
-                    QString srcAssets = QFileInfo(outPath).absolutePath() + "/assets";
-                    QString dstAssets = QFileInfo(savePath).absolutePath() + "/assets";
-                    if (QDir(srcAssets).exists()) {
-                        copyDirectory(srcAssets, dstAssets);
-                        QDir(srcAssets).removeRecursively();
+                    QString outDir = QFileInfo(outPath).absolutePath();
+                    QDir dir(outDir);
+                    QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
+                    for (const QString& ad : assetDirs) {
+                        QString srcAssets = outDir + "/" + ad;
+                        QString dstAssets = QFileInfo(savePath).absolutePath() + "/" + ad;
+                        if (QDir(srcAssets).exists()) {
+                            copyDirectory(srcAssets, dstAssets);
+                            QDir(srcAssets).removeRecursively();
+                        }
                     }
                 }
-                // 删除源目录的 .md 和 assets
+                // 删除临时文件
                 QFile::remove(outPath);
                 // 清除"翻译完成"状态
                 if (statusLabel_) statusLabel_->setText(QString());
@@ -2330,13 +2335,15 @@ void MainWindow::addFileToList(const QString& filePath) {
         "QPushButton { border: none; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; }");
     connect(removeBtn, &QPushButton::clicked, this, [this, fileItem, filePath]() {
-        // 清理该文件对应的临时文件和 assets
+        // 清理该文件对应的临时文件和 assets_* 目录
         int pathIdx = filePendingPaths_.indexOf(filePath);
         if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
             QFile::remove(fileTempOutputPaths_[pathIdx]);
-            QString assetsDir = QFileInfo(fileTempOutputPaths_[pathIdx]).absolutePath() + "/assets";
-            if (QDir(assetsDir).exists())
-                QDir(assetsDir).removeRecursively();
+            QString outDir = QFileInfo(fileTempOutputPaths_[pathIdx]).absolutePath();
+            QDir dir(outDir);
+            QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
+            for (const QString& ad : assetDirs)
+                QDir(outDir + "/" + ad).removeRecursively();
             fileTempOutputPaths_[pathIdx].clear();
         }
         fileListLayout_->removeWidget(fileItem);
@@ -3204,10 +3211,13 @@ void MainWindow::cleanupTempFiles() {
         const QString& tempPath = fileTempOutputPaths_[i];
         if (tempPath.isEmpty()) continue;  // 已下载的不清理
         QFile::remove(tempPath);
-        // 删除同目录下的 assets 文件夹
-        QString assetsDir = QFileInfo(tempPath).absolutePath() + "/assets";
-        if (QDir(assetsDir).exists())
-            QDir(assetsDir).removeRecursively();
+        // 删除同目录下的 assets_* 目录
+        QString outDir = QFileInfo(tempPath).absolutePath();
+        QDir dir(outDir);
+        QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
+        for (const QString& ad : assetDirs) {
+            QDir(outDir + "/" + ad).removeRecursively();
+        }
     }
     fileTempOutputPaths_.clear();
 }

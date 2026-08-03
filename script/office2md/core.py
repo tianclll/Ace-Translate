@@ -58,13 +58,34 @@ def convert(
     if output:
         output_path = Path(output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(result.markdown, encoding="utf-8")
-        if result.images:
-            images_dir = output_path.parent / "assets"
-            images_dir.mkdir(exist_ok=True)
-            for rel_path, img_bytes in result.images.items():
-                img_file = output_path.parent / rel_path
-                img_file.write_bytes(img_bytes)
+
+        images_dir = kwargs.get("images_dir")
+
+        # Determine images directory (default: <output_dir>/assets)
+        if images_dir:
+            img_dir = Path(images_dir)
+        else:
+            img_dir = output_path.parent / "assets"
+        img_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write images
+        for rel_path, img_bytes in result.images.items():
+            img_name = Path(rel_path).name
+            img_file = img_dir / img_name
+            img_file.write_bytes(img_bytes)
+
+        # Rewrite all image paths from hardcoded "assets/" prefix to the actual images dir
+        md = result.markdown
+        try:
+            rel_to_img = img_dir.relative_to(output_path.parent)
+            img_prefix = str(rel_to_img) + "/"
+            # Replace all occurrences of assets/xxx with the correct relative path
+            md = md.replace("assets/", img_prefix)
+            md = md.replace("assets\\", str(rel_to_img).replace("/", "\\") + "\\")
+        except ValueError:
+            pass  # img_dir not under output_dir, skip rewrite
+
+        output_path.write_text(md, encoding="utf-8")
 
     return result
 

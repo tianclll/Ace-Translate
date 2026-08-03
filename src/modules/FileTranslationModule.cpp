@@ -351,17 +351,18 @@ namespace docmind {
 
 // ---------- 处理 Office 文档 ----------
     static std::string process_office(const std::string& path, const std::string& target_lang,
-                                      const std::string& base_dir, const std::string& output_dir) {
+                                      const std::string& base_dir, const std::string& output_dir,
+                                      const std::string& assets_dir) {
         std::string converter_exe = base_dir + "\\office2md.exe";
         if (GetFileAttributesA(converter_exe.c_str()) == INVALID_FILE_ATTRIBUTES)
             throw std::runtime_error("office2md.exe not found at: " + converter_exe);
 
         // 在输出目录生成临时 .md 文件（不通过 .tmp）
         std::string temp_dir = output_dir.empty() ? "." : output_dir;
-        // 创建目录（若不存在），同时确保 assets 子目录存在（office2md 会往 assets/ 写图片）
+        // 创建目录（若不存在），同时确保独立 assets 子目录存在
         std::error_code ec;
         std::filesystem::create_directories(temp_dir, ec);
-        std::filesystem::create_directories(temp_dir + "/assets", ec);
+        std::filesystem::create_directories(assets_dir, ec);
 
         // 使用随机数生成唯一文件名（与 get_temp_md_path 一致）
         static std::mt19937 rng(static_cast<unsigned>(std::time(nullptr) + GetCurrentProcessId()));
@@ -372,7 +373,7 @@ namespace docmind {
         std::remove(temp_md.c_str());
 
         OfficeConverter converter(converter_exe);
-        ConversionResult result = converter.convert(path, temp_md);
+        ConversionResult result = converter.convert(path, temp_md, assets_dir);
         if (!result.success) {
             std::remove(temp_md.c_str());
             throw std::runtime_error("Office conversion failed: " + result.error_message);
@@ -546,9 +547,9 @@ namespace docmind {
             std::string output_dir;
             size_t slash = final_output.find_last_of("\\/");
             if (slash != std::string::npos) {
-                output_dir = final_output.substr(0, slash);
+                output_dir = final_output.substr(0, slash + 1);  // 包含末尾分隔符
             }
-            result_content = process_office(input_path, target_language_, base, output_dir);
+            result_content = process_office(input_path, target_language_, base, output_dir, unique_assets_dir);
         }
         else {
             throw std::runtime_error("Unsupported file type: " + ext);

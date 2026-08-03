@@ -64,7 +64,8 @@ std::string OfficeConverter::executeCommand(const std::string& cmd_line) {
 }
 
 ConversionResult OfficeConverter::convert(const std::string& input_file,
-                                          const std::string& output_file) {
+                                          const std::string& output_file,
+                                          const std::string& images_dir) {
     ConversionResult res;
     res.success = false;
 
@@ -72,6 +73,9 @@ ConversionResult OfficeConverter::convert(const std::string& input_file,
     std::string cmd = "\"" + exe_path_ + "\" --input \"" + input_file + "\"";
     if (!output_file.empty()) {
         cmd += " --output \"" + output_file + "\"";
+    }
+    if (!images_dir.empty()) {
+        cmd += " --images-dir \"" + images_dir + "\"";
     }
 
     std::string output = executeCommand(cmd);
