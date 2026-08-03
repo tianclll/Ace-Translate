@@ -1101,7 +1101,8 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     QStringList files = paths;
     if (files.isEmpty()) {
         files = QFileDialog::getOpenFileNames(this, tr("Select Files"), QString(),
-            tr("Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)"));
+            tr("Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)"),
+            nullptr, QFileDialog::DontUseNativeDialog);
     }
     if (files.isEmpty()) { processing = false; return; }
     files.removeDuplicates();
@@ -1668,6 +1669,7 @@ void KnowledgeBasePage::onBatchExport() {
         QFileDialog fd;
         fd.setFileMode(QFileDialog::Directory);
         fd.setOption(QFileDialog::ShowDirsOnly, true);
+        fd.setOption(QFileDialog::DontUseNativeDialog, true);
         // 若输入框里已有路径，让目录框从这里进入（不存在才用默认）
         QString start = pathEdit->text().trimmed();
         if (!start.isEmpty() && QDir(start).exists())
