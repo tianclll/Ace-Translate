@@ -451,6 +451,19 @@ QFileDialog QTreeView::item {
 QFileDialog QTreeView::item:hover {
     background: #F0F7F6;
 }
+QFileDialog QTreeView QHeaderView::section {
+    background: #F0F7F6;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    border-bottom: 1px solid #E8ECEF;
+    padding: 8px 10px;
+}
+QFileDialog QTreeView QHeaderView::section:hover {
+    background: #E8F0EF;
+    color: #0B7C72;
+}
 QFileDialog QLineEdit {
     border: 1px solid #DDE1E5;
     border-radius: 6px;
@@ -493,7 +506,7 @@ QFileDialog QPushButton:hover {
 QFileDialog QPushButton[text="Open"],
 QFileDialog QPushButton[text="Save"],
 QFileDialog QPushButton[text="Choose"],
-QFileDialog QPushButton[text="Select"],
+QFileDialog QPushButton[text="Select Folder"],
 QFileDialog QPushButton[text="确定"],
 QFileDialog QPushButton[text="打开"] {
     background: #0B7C72;
@@ -504,7 +517,7 @@ QFileDialog QPushButton[text="打开"] {
 QFileDialog QPushButton[text="Open"]:hover,
 QFileDialog QPushButton[text="Save"]:hover,
 QFileDialog QPushButton[text="Choose"]:hover,
-QFileDialog QPushButton[text="Select"]:hover,
+QFileDialog QPushButton[text="Select Folder"]:hover,
 QFileDialog QPushButton[text="确定"]:hover,
 QFileDialog QPushButton[text="打开"]:hover {
     background: #09685F;
@@ -513,6 +526,7 @@ QFileDialog QToolBar {
     background: #FFFFFF;
     border: none;
     spacing: 4px;
+    padding: 4px;
 }
 QFileDialog QToolBar QToolButton {
     border: none;
@@ -532,3 +546,15 @@ QFileDialog QSplitter::handle {
 QFileDialog QSplitter::handle:hover {
     background: #0B7C72;
 }
+QFileDialog QAbstractScrollArea {
+    background: #FFFFFF;
+    border: none;
+}
+QFileDialog QScrollBar:vertical {
+    background: transparent; width: 6px; margin: 0;
+}
+QFileDialog QScrollBar::handle:vertical {
+    background: #D0D4D8; border-radius: 3px; min-height: 30px;
+}
+QFileDialog QScrollBar::handle:vertical:hover { background: #0B7C72; }
+QFileDialog QScrollBar::add-line:vertical, QFileDialog QScrollBar::sub-line:vertical { height: 0; border: none; }
