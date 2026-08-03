@@ -2028,11 +2028,12 @@ QWidget* MainWindow::createFilePanel() {
     connect(fileDropZone_, &DropZoneWidget::fileDropped, this, [this](const QStringList& paths) {
         auto addFile = [this](const QString& p) { addFileToList(p); filePendingPaths_.append(p); };
         if (paths.isEmpty()) {
-            // 点击上传：支持多选
+            // 点击上传：支持多选（DontUseNativeDialog 避免 Windows shell COM 崩溃）
             QStringList files = QFileDialog::getOpenFileNames(
                 this, tr("Select File"), QString(),
                 QStringLiteral("支持的文件 (*.png *.jpg *.jpeg *.bmp *.tiff *.pdf *.docx *.xlsx *.pptx *.md *.txt);;"
-                               "所有文件 (*)"));
+                               "所有文件 (*)"),
+                nullptr, QFileDialog::DontUseNativeDialog);
             for (const QString& path : files) addFile(path);
         } else {
             for (const QString& p : paths) addFile(p);
@@ -2330,6 +2331,7 @@ void MainWindow::addFileToList(const QString& filePath) {
         fileListLayout_->removeWidget(fileItem);
         fileItem->deleteLater();
         filePendingPaths_.removeAll(filePath);
+        fileCurrentIdx_ = 0;  // 重置索引，确保新文件可被翻译
     });
     itemLayout->addWidget(removeBtn);
 
