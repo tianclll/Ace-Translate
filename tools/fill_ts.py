@@ -245,6 +245,31 @@ EN_TO_ZH = {
     "Reset": "重置",
     "Enter target folder path (auto-created if not exists), or click Browse… to select.": "输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。",
     "Open this folder": "打开此文件夹",
+
+    # === 专有词管理 ===
+    "Terminology Management": "专有词管理",
+    "Term": "术语",
+    "Translation": "译文",
+    "Source Language": "源语言",
+    "Target Language": "目标语言",
+    "Add": "添加",
+    "Import": "导入",
+    "Import Terminology": "导入专有词",
+    "Save": "保存",
+    "Delete": "删除",
+    "Clear All": "清空全部",
+    "Total %1 terms": "共 %1 条术语",
+    "Term added": "已添加",
+    "Term updated": "已更新",
+    "Term deleted": "已删除",
+    "All terms cleared": "已清空全部",
+    "Imported %1 terms": "已导入 %1 条术语",
+    "Term and translation cannot be empty": "术语和译文不能为空",
+    "Failed to add term": "添加失败",
+    "Failed to update term": "更新失败",
+    "Failed to delete term": "删除失败",
+    "Cannot open file": "无法打开文件",
+    "Terminology": "专有词",
 }
 
 EN_TO_JA = {
@@ -493,6 +518,31 @@ EN_TO_JA = {
     "Reset": "リセット",
     "Enter target folder path (auto-created if not exists), or click Browse… to select.": "エクスポート先フォルダのパスを入力してください（存在しない場合は自動作成）、または「参照…」をクリックして選択。",
     "Open this folder": "フォルダを開く",
+
+    # === 专有词管理 ===
+    "Terminology Management": "用語集管理",
+    "Term": "用語",
+    "Translation": "訳文",
+    "Source Language": "原語",
+    "Target Language": "目標言語",
+    "Add": "追加",
+    "Import": "インポート",
+    "Import Terminology": "用語集インポート",
+    "Save": "保存",
+    "Delete": "削除",
+    "Clear All": "全てクリア",
+    "Total %1 terms": "合計%1件",
+    "Term added": "追加しました",
+    "Term updated": "更新しました",
+    "Term deleted": "削除しました",
+    "All terms cleared": "全てクリアしました",
+    "Imported %1 terms": "%1件インポートしました",
+    "Term and translation cannot be empty": "用語と訳文は必須です",
+    "Failed to add term": "追加失敗",
+    "Failed to update term": "更新失敗",
+    "Failed to delete term": "削除失敗",
+    "Cannot open file": "ファイルを開けません",
+    "Terminology": "用語集",
 }
 
 def fill_ts(ts_path, trans_map):

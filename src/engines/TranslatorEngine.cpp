@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <thread>
 #include <chrono>
+#include <sstream>
 
 namespace docmind {
 
@@ -71,9 +72,32 @@ namespace docmind {
         if (!initialized_ || text.empty() || target_language.empty()) {
             return text;
         }
+
+        // 如果有术语，拼到 prompt 前缀
+        std::string full_text = text;
+        if (!glossary_.empty()) {
+            std::string prompt;
+            prompt += "参考下面的翻译：\n";
+            for (const auto& [term, trans] : glossary_) {
+                prompt += term + " 翻译成 " + trans + "\n";
+            }
+            prompt += "\n将以下文本翻译为" + target_language + "。\n\n";
+            prompt += "要求：\n";
+            prompt += "1. 只输出翻译结果，不输出任何其他内容\n";
+            prompt += "2. 上面列出的术语必须使用对应译文翻译\n";
+            prompt += "3. 禁止添加任何解释、备注、拼音、英文原文或序号\n\n";
+            full_text = prompt + text;
+        }
+
+        // 限制 prompt 总长度（防止术语过多导致 DLL 崩溃）
+        constexpr size_t MAX_PROMPT_BYTES = 4096;
+        if (full_text.length() > MAX_PROMPT_BYTES) {
+            full_text = full_text.substr(0, MAX_PROMPT_BYTES);
+        }
+
         const char* result = dll_.translator_translate(
                 handle_,
-                text.c_str(),
+                full_text.c_str(),
                 target_language.c_str(),
                 max_tokens
         );
@@ -82,10 +106,81 @@ namespace docmind {
             translated = result;
             dll_.translator_free_string(result);
         } else {
-            std::cerr << "Translation failed for: " << text << std::endl;
+            std::cerr << "Translation failed for: " << text.substr(0, 60) << std::endl;
             translated = text;
         }
+
+        // 后处理：过滤掉 LLM 可能添加的备注/解释/编号等噪音行
+        if (!translated.empty() && !glossary_.empty()) {
+            std::string cleaned;
+            std::istringstream stream(translated);
+            std::string line;
+            while (std::getline(stream, line)) {
+                std::string trimmed;
+                // 去掉首尾空白
+                size_t s = line.find_first_not_of(" \t\r\n");
+                size_t e = line.find_last_not_of(" \t\r\n");
+                if (s == std::string::npos) { cleaned += "\n"; continue; }
+                trimmed = line.substr(s, e - s + 1);
+                if (trimmed.empty()) { cleaned += "\n"; continue; }
+
+                bool skip = false;
+
+                // 跳过常见备注关键词（中文 UTF-8 编码）
+                if (!skip) {
+                    static const std::string note_cn[] = {
+                        "\xe5\xa4\x87\xe6\xb3\xa8",    // 备注
+                        "\xe6\xb3\xa8\xe6\x84\x8f",    // 注意
+                        "\xe6\xb3\xa8\xe9\x87\x8a",    // 注释
+                    };
+                    static const std::string note_en[] = {
+                        "Note:", "NOTE:", "note:"
+                    };
+                    for (const auto& n : note_cn) {
+                        if (trimmed.size() >= n.size() && trimmed.substr(0, n.size()) == n) { skip = true; break; }
+                    }
+                    if (!skip) {
+                        for (const auto& n : note_en) {
+                            if (trimmed.size() >= n.size() && trimmed.substr(0, n.size()) == n) { skip = true; break; }
+                        }
+                    }
+                }
+
+                // 跳过编号行（如 "1. ", "2."）
+                if (!skip && !trimmed.empty() && trimmed[0] >= '1' && trimmed[0] <= '9') {
+                    if (trimmed.size() >= 2 && trimmed[1] == '.') skip = true;
+                }
+
+                // 跳过包含原始术语但无翻译的噪音行（如 "Attention（英语词汇..."）
+                if (!skip) {
+                    for (const auto& [term, trans] : glossary_) {
+                        if (!term.empty() && !trans.empty()) {
+                            std::string marker = term + "\xef\xbc\x88";  // term + "（"
+                            if (trimmed.find(marker) != std::string::npos) {
+                                skip = true; break;
+                            }
+                        }
+                    }
+                }
+
+                if (!skip) cleaned += line + "\n";
+            }
+            // 去掉末尾多余空行
+            while (!cleaned.empty() && (cleaned.back() == '\n' || cleaned.back() == '\r'))
+                cleaned.pop_back();
+            if (!cleaned.empty()) translated = cleaned;
+        }
+
         return translated;
+    }
+
+    void TranslatorEngine::setGlossaryTerms(const std::vector<std::pair<std::string, std::string>>& terms) {
+        clearGlossary();
+        glossary_ = terms;
+    }
+
+    void TranslatorEngine::clearGlossary() {
+        glossary_.clear();
     }
 
     std::string TranslatorEngine::summarize(const std::string& text, int max_tokens) {

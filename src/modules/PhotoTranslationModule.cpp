@@ -1,6 +1,7 @@
 #include "docmind/modules/PhotoTranslationModule.hpp"
 #include "docmind/utils/ImageUtils.hpp"
 #include "docmind/core/ConfigManager.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 #include <vector>
 #include <iostream>
 
@@ -41,13 +42,24 @@ namespace docmind {
             return input.clone();
         }
 
-        // 2. 翻译并准备块
+        // 2. 收集所有文本，准备术语注入
         struct Block {
             std::vector<cv::Point2f> box;
             std::string translated_text;
         };
         std::vector<Block> blocks;
         blocks.reserve(ocr_results.size());
+
+        std::string combined_text;
+        for (const auto& res : ocr_results) {
+            if (res.text.empty()) continue;
+            if (!combined_text.empty()) combined_text += " ";
+            combined_text += res.text;
+        }
+
+        if (!combined_text.empty() && translator) {
+            GlossaryInjector::prepareGlossary(translator, target_language_, "", combined_text);
+        }
 
         for (const auto& res : ocr_results) {
             if (res.text.empty()) continue;
@@ -67,6 +79,8 @@ namespace docmind {
         }
 
         if (blocks.empty()) {
+            // 清除术语注入
+            if (translator) GlossaryInjector::clearGlossary(translator);
             return input.clone();
         }
 
@@ -85,6 +99,9 @@ namespace docmind {
             renderer_->eraseRect(output, drawRect);
             renderer_->drawText(output, block.translated_text, font_info);
         }
+
+        // 清除术语注入
+        if (translator) GlossaryInjector::clearGlossary(translator);
 
         return output;
     }

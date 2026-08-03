@@ -2,6 +2,7 @@
 #include "docmind/core/ConfigManager.hpp"
 #include "docmind/modules/FileTranslationModule.hpp"
 #include "docmind/core/GlobalEngineContext.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 #include "docmind/processors/DocumentProcessor.hpp"
 #include "docmind/utils/ImageUtils.hpp"
 #include "docmind/utils/MarkdownGenerator.hpp"
@@ -322,7 +323,11 @@ namespace docmind {
             GlobalEngineContext::getInstance().ensureTranslatorEngine();
             auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
             if (!translator) throw std::runtime_error("Translator not available");
-            return translate_markdown_content(content, *translator, target_lang);
+            // 准备术语注入（通用术语）
+            GlossaryInjector::prepareGlossary(translator, target_lang, "", content);
+            std::string result = translate_markdown_content(content, *translator, target_lang);
+            GlossaryInjector::clearGlossary(translator);
+            return result;
         } else {
             // TXT 按行翻译
             std::istringstream stream(content);
@@ -464,6 +469,13 @@ namespace docmind {
 
         std::string result_content;
 
+        // 先收集完整原文，准备术语注入
+        GlobalEngineContext::getInstance().ensureTranslatorEngine();
+        auto* translator = GlobalEngineContext::getInstance().getTranslatorEngine();
+        if (translator && enable_translate_) {
+            GlossaryInjector::prepareGlossary(translator, target_language_, "", "");
+        }
+
         // 根据类型处理
         if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "bmp" || ext == "tiff") {
             // 文档图片流程
@@ -513,6 +525,9 @@ namespace docmind {
         if (!out) throw std::runtime_error("Failed to write output file: " + final_output);
         out << result_content;
         out.close();
+
+        // 清除术语注入
+        if (translator) GlossaryInjector::clearGlossary(translator);
 
         return final_output;
     }

@@ -1,6 +1,7 @@
 #include "docmind/modules/ScreenshotTranslationModule.hpp"
 #include "docmind/core/GlobalEngineContext.hpp"
 #include "docmind/core/ConfigManager.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 #include <stdexcept>
 
 namespace docmind {
@@ -37,8 +38,13 @@ namespace docmind {
         }
 
         if (combined_text.empty()) return "";
+        // 准备术语注入（通用术语）
+        GlossaryInjector::prepareGlossary(translator, target_language_, "", combined_text);
         // 翻译
-        return translator->translate(combined_text, target_language_, max_tokens);
+        std::string result = translator->translate(combined_text, target_language_, max_tokens);
+        // 清除术语注入
+        GlossaryInjector::clearGlossary(translator);
+        return result;
     }
 
 } // namespace docmind

@@ -126,6 +126,19 @@ bool KnowledgeBaseManager::createTables() {
     query.exec("ALTER TABLE documents ADD COLUMN summary TEXT DEFAULT ''");
     query.exec("ALTER TABLE documents ADD COLUMN parse_status TEXT DEFAULT 'pending'");
 
+    // 术语库表
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS glossary_terms (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            term        TEXT NOT NULL,
+            translation TEXT NOT NULL,
+            source_lang TEXT DEFAULT '',
+            target_lang TEXT DEFAULT '',
+            created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+        )
+    )");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_glossary_lang ON glossary_terms(source_lang, target_lang)");
+
     return true;
 }
 
@@ -523,4 +536,70 @@ bool KnowledgeBaseManager::updateParseStatus(int docId, const QString& status) {
     q.bindValue(":s", status);
     q.bindValue(":id", docId);
     return q.exec();
+}
+
+// ============================================================
+// 术语库 CRUD
+// ============================================================
+bool KnowledgeBaseManager::addGlossaryTerm(const QString& term, const QString& translation,
+                                           const QString& sourceLang, const QString& targetLang) {
+    if (!ensureDb()) return false;
+    QSqlQuery q(db_);
+    q.prepare("INSERT INTO glossary_terms (term, translation, source_lang, target_lang) "
+              "VALUES (:term, :trans, :src, :tgt)");
+    q.bindValue(":term", term);
+    q.bindValue(":trans", translation);
+    q.bindValue(":src", sourceLang);
+    q.bindValue(":tgt", targetLang);
+    return q.exec();
+}
+
+bool KnowledgeBaseManager::deleteGlossaryTerm(int termId) {
+    if (!ensureDb()) return false;
+    QSqlQuery q(db_);
+    q.prepare("DELETE FROM glossary_terms WHERE id = :id");
+    q.bindValue(":id", termId);
+    return q.exec();
+}
+
+QList<QPair<int,QString>> KnowledgeBaseManager::getAllGlossaryTerms() {
+    QList<QPair<int,QString>> list;
+    if (!initialized_) return list;
+    QSqlQuery q(db_);
+    q.exec("SELECT id, term, translation FROM glossary_terms ORDER BY id DESC");
+    while (q.next()) {
+        int id = q.value(0).toInt();
+        QString term = q.value(1).toString();
+        QString trans = q.value(2).toString();
+        list.append({id, term + " → " + trans});
+    }
+    return list;
+}
+
+QList<QPair<QString,QString>> KnowledgeBaseManager::getGlossaryForLang(const QString& sourceLang, const QString& targetLang) {
+    QList<QPair<QString,QString>> list;
+    if (!initialized_) return list;
+    QSqlQuery q(db_);
+    // 匹配指定语言对 + 通用术语（不限语言），按原文长度降序
+    // 条件：目标语言匹配 且 (源语言匹配 OR 通用术语)
+    q.prepare("SELECT term, translation FROM glossary_terms "
+              "WHERE target_lang = :tgt "
+              "  AND (source_lang = :src OR source_lang = '') "
+              "ORDER BY length(term) DESC");
+    q.bindValue(":src", sourceLang);
+    q.bindValue(":tgt", targetLang);
+    if (!q.exec()) return list;
+    while (q.next()) {
+        QString term = q.value(0).toString();
+        QString trans = q.value(1).toString();
+        list.append({term, trans});
+    }
+    return list;
+}
+
+int KnowledgeBaseManager::glossaryCount() const {
+    if (!initialized_) return 0;
+    QSqlQuery q(db_);
+    q.exec("SELECT COUNT(*) FROM glossary_terms");
+    return q.next() ? q.value(0).toInt() : 0;
 }

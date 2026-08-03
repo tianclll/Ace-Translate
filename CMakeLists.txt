@@ -44,6 +44,7 @@ set(SOURCES
         ui/splashscreen.cpp
         ui/knowledgebase_page.cpp
         ui/knowledgebase_manager.cpp
+        ui/glossary_dialog.cpp
         ui/resources.qrc
         ui/app_icon.rc
 
@@ -64,6 +65,7 @@ set(SOURCES
 
         src/core/ConfigManager.cpp
         src/core/GlobalEngineContext.cpp
+        src/core/GlossaryInjector.cpp
 
         src/modules/FileTranslationModule.cpp
         src/modules/PhotoTranslationModule.cpp

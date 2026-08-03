@@ -1,6 +1,7 @@
 #include "docmind/modules/TextTranslationModule.hpp"
 #include "docmind/core/GlobalEngineContext.hpp"
 #include "docmind/core/ConfigManager.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 #include <stdexcept>
 #include <sstream>
 
@@ -22,6 +23,9 @@ namespace docmind {
         if (!translator) {
             throw std::runtime_error("Translator engine not available");
         }
+
+        // 准备术语注入（通用术语，不限源语言）
+        GlossaryInjector::prepareGlossary(translator, target_language_, "", text);
 
         // 按空行分段，逐段翻译后拼接（避免引擎内的 \n\n 截断逻辑）
         std::vector<std::string> paragraphs;
@@ -47,6 +51,7 @@ namespace docmind {
             result += translator->translate(paragraphs[i], target_language_, max_tokens);
         }
 
+        GlossaryInjector::clearGlossary(translator);
         return result;
     }
 

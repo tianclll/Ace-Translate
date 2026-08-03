@@ -55,6 +55,15 @@ public:
     bool updateSummary(int docId, const QString& summary);
     bool updateParseStatus(int docId, const QString& status);
 
+    // ---- 术语库 CRUD ----
+    bool addGlossaryTerm(const QString& term, const QString& translation,
+                         const QString& sourceLang, const QString& targetLang);
+    bool deleteGlossaryTerm(int termId);
+    QList<QPair<int, QString>> getAllGlossaryTerms();  // (id, "term → translation")
+    QList<QPair<QString, QString>> getGlossaryForLang(const QString& sourceLang, const QString& targetLang);
+    // 返回 (term, translation)，按原文长度降序
+    int glossaryCount() const;
+
     // 导出 .md 文件到指定路径
     bool exportEntry(int id, const QString& outputPath);
 

@@ -6,6 +6,7 @@ SOURCES = \
     ui/toast.cpp \
     ui/splashscreen.cpp \
     ui/knowledgebase_page.cpp \
+    ui/glossary_dialog.cpp \
 
 HEADERS = \
     ui/mainwindow.h \
@@ -13,6 +14,7 @@ HEADERS = \
     ui/regioncapture.h \
     ui/toast.h \
     ui/splashscreen.h \
+    ui/glossary_dialog.h \
 
 TRANSLATIONS = \
     translations/zh_CN.ts \

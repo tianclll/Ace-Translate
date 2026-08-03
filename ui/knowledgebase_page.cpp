@@ -2,6 +2,7 @@
 #include "knowledgebase_manager.h"
 #include "toast.h"
 #include "mainwindow.h"        // DropZoneWidget
+#include "glossary_dialog.h"
 #include <QFrame>
 #include <QFileDialog>
 #include <QFile>
@@ -403,6 +404,24 @@ void KnowledgeBasePage::setupUI() {
         "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
     connect(addTagBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onAddNewTag);
     tbLayout->addWidget(addTagBtn);
+
+    // 分隔符
+    auto* sep1 = new QFrame;
+    sep1->setFixedWidth(1);
+    sep1->setFixedHeight(18);
+    sep1->setStyleSheet("background: #E8ECEF; border: none;");
+    tbLayout->addWidget(sep1);
+
+    // 专有词按钮
+    auto* glossaryBtn = new QPushButton(tr("Terminology"));
+    glossaryBtn->setFixedHeight(30);
+    glossaryBtn->setCursor(Qt::PointingHandCursor);
+    glossaryBtn->setStyleSheet(
+        "QPushButton { border: 1px solid #DDE1E5; border-radius: 8px; padding: 0 12px;"
+        " background: transparent; color: #374151; font-size: 12px; }"
+        "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+    connect(glossaryBtn, &QPushButton::clicked, this, &KnowledgeBasePage::onOpenGlossaryDialog);
+    tbLayout->addWidget(glossaryBtn);
 
     tbLayout->addStretch();
 
@@ -1759,3 +1778,12 @@ void KnowledgeBasePage::onBatchExport() {
     }
 }
 
+
+// ============================================================
+// 专有词管理对话框
+// ============================================================
+void KnowledgeBasePage::onOpenGlossaryDialog() {
+    auto* dlg = new GlossaryDialog(this);
+    dlg->exec();
+    dlg->deleteLater();
+}

@@ -219,145 +219,280 @@
     </message>
 </context>
 <context>
+    <name>GlossaryDialog</name>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="69" />
+        <source>Terminology Management</source>
+        <translation type="unfinished">专有词管理</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="125" />
+        <source>Add</source>
+        <translation type="unfinished">添加</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="133" />
+        <source>Import</source>
+        <translation type="unfinished">导入</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="173" />
+        <location filename="../ui/glossary_dialog.cpp" line="178" />
+        <source>Term</source>
+        <translation type="unfinished">术语</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="186" />
+        <location filename="../ui/glossary_dialog.cpp" line="191" />
+        <source>Translation</source>
+        <translation type="unfinished">译文</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="202" />
+        <source>Save</source>
+        <translation type="unfinished">保存</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="209" />
+        <source>Delete</source>
+        <translation type="unfinished">删除</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="230" />
+        <source>Clear All</source>
+        <translation type="unfinished">清空全部</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="290" />
+        <source>Total %1 terms</source>
+        <translation type="unfinished">共 %1 条术语</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="315" />
+        <source>Term and translation cannot be empty</source>
+        <translation type="unfinished">术语和译文不能为空</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="326" />
+        <source>Failed to add term</source>
+        <translation type="unfinished">添加失败</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="335" />
+        <source>Failed to update term</source>
+        <translation type="unfinished">更新失败</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="342" />
+        <source>Term added</source>
+        <translation type="unfinished">已添加</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="342" />
+        <source>Term updated</source>
+        <translation type="unfinished">已更新</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="362" />
+        <source>Failed to delete term</source>
+        <translation type="unfinished">删除失败</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="367" />
+        <source>Term deleted</source>
+        <translation type="unfinished">已删除</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="382" />
+        <source>All terms cleared</source>
+        <translation type="unfinished">已清空全部</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="388" />
+        <source>Import Terminology</source>
+        <translation type="unfinished">导入专有词</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="390" />
+        <source>Text/CSV Files (*.txt *.csv);;All Files (*)</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="396" />
+        <source>Cannot open file</source>
+        <translation type="unfinished">无法打开文件</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="457" />
+        <source>Imported %1 terms</source>
+        <translation type="unfinished">已导入 %1 条术语</translation>
+    </message>
+</context>
+<context>
     <name>KnowledgeBasePage</name>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="470" />
+        <location filename="../ui/knowledgebase_page.cpp" line="511" />
         <source>Actions</source>
         <translation type="unfinished">操作</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="485" />
+        <location filename="../ui/knowledgebase_page.cpp" line="526" />
         <source>No documents yet
 Drop files above to get started</source>
         <translation type="unfinished">暂无文档
 拖放文件到这里开始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="796" />
+        <location filename="../ui/knowledgebase_page.cpp" line="841" />
         <source>View</source>
         <translation type="unfinished">查看</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1217" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1010" />
+        <source>Year</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1036" />
+        <source>Previous year</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1037" />
+        <source>Previous month</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1038" />
+        <source>Next month</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1039" />
+        <source>Next year</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1390" />
         <source>Add</source>
         <translation type="unfinished">添加</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1318" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1491" />
         <source>All Documents</source>
         <translation type="unfinished">全部文档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1365" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1538" />
         <source>Batch Delete</source>
         <translation type="unfinished">批量删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1418" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1591" />
         <source>Batch Modify Tags</source>
         <translation type="unfinished">批量修改标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1777" />
         <source>Open this folder</source>
         <translation type="unfinished">打开此文件夹</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="510" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1409" />
+        <location filename="../ui/knowledgebase_page.cpp" line="551" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1582" />
         <source>Batch Tag</source>
         <translation type="unfinished">批量标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="824" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1380" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1450" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1535" />
+        <location filename="../ui/knowledgebase_page.cpp" line="869" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1553" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1623" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1708" />
         <source>Cancel</source>
         <translation type="unfinished">取消</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1489" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1662" />
         <source>Choose export folder</source>
         <translation type="unfinished">选择导出文件夹</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="327" />
+        <location filename="../ui/knowledgebase_page.cpp" line="350" />
         <source>Clear</source>
         <translation type="unfinished">清空</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1201" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1374" />
         <source>Create or remove tags.</source>
         <translation type="unfinished">创建或删除标签。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="458" />
+        <location filename="../ui/knowledgebase_page.cpp" line="499" />
         <source>Date</source>
         <translation type="unfinished">日期</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="529" />
-        <location filename="../ui/knowledgebase_page.cpp" line="797" />
-        <location filename="../ui/knowledgebase_page.cpp" line="809" />
-        <location filename="../ui/knowledgebase_page.cpp" line="830" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1274" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1386" />
+        <location filename="../ui/knowledgebase_page.cpp" line="570" />
+        <location filename="../ui/knowledgebase_page.cpp" line="842" />
+        <location filename="../ui/knowledgebase_page.cpp" line="854" />
+        <location filename="../ui/knowledgebase_page.cpp" line="875" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1447" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1559" />
         <source>Delete</source>
         <translation type="unfinished">删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="813" />
+        <location filename="../ui/knowledgebase_page.cpp" line="858" />
         <source>Delete this document?</source>
         <translation type="unfinished">删除此文档？</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1346" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1519" />
         <source>Deselect All</source>
         <translation type="unfinished">取消全选</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="454" />
+        <location filename="../ui/knowledgebase_page.cpp" line="495" />
         <source>Document</source>
         <translation type="unfinished">文档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1301" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1474" />
         <source>Done</source>
         <translation type="unfinished">完成</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="226" />
+        <location filename="../ui/knowledgebase_page.cpp" line="229" />
         <source>Drop files here to archive</source>
         <translation type="unfinished">拖放文件到这里归档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="519" />
+        <location filename="../ui/knowledgebase_page.cpp" line="560" />
         <source>Export</source>
         <translation type="unfinished">导出</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="931" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1104" />
         <source>File not found: %1</source>
         <translation type="unfinished">文件不存在: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="298" />
+        <location filename="../ui/knowledgebase_page.cpp" line="302" />
         <source>From</source>
         <translation type="unfinished">起始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="940" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1113" />
         <source>Import in progress, please wait</source>
         <translation type="unfinished">导入中，请稍候</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1197" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1370" />
         <source>Manage Tags</source>
         <translation type="unfinished">管理标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1210" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1383" />
         <source>New tag name…</source>
         <translation type="unfinished">新标签名…</translation>
     </message>
@@ -366,140 +501,146 @@ Drop files above to get started</source>
         <translation type="obsolete">暂无文档\n拖放文件到这里开始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1319" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1492" />
         <source>No tag</source>
         <translation type="unfinished">无标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1258" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1431" />
         <source>No tags yet.</source>
         <translation type="unfinished">暂无标签。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1410" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1583" />
         <source>No tags yet. Create one first with the +Tag button.</source>
         <translation type="unfinished">暂无标签。请先点击 +标签 按钮创建。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1456" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1541" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1629" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1714" />
         <source>OK</source>
         <translation type="unfinished">确定</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="796" />
+        <location filename="../ui/knowledgebase_page.cpp" line="841" />
         <source>Open source file</source>
         <translation type="unfinished">打开源文件</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="348" />
+        <location filename="../ui/knowledgebase_page.cpp" line="371" />
         <source>Search</source>
         <translation type="unfinished">搜索</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="261" />
+        <location filename="../ui/knowledgebase_page.cpp" line="264" />
         <source>Search titles, content…</source>
         <translation type="unfinished">搜索标题、内容…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="387" />
-        <location filename="../ui/knowledgebase_page.cpp" line="562" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1349" />
+        <location filename="../ui/knowledgebase_page.cpp" line="428" />
+        <location filename="../ui/knowledgebase_page.cpp" line="603" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1522" />
         <source>Select All</source>
         <translation type="unfinished">全选</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="949" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1122" />
         <source>Select Files</source>
         <translation type="unfinished">选择文件</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="929" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1102" />
         <source>Source path is empty</source>
         <translation type="unfinished">源文件路径为空</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="229" />
+        <location filename="../ui/knowledgebase_page.cpp" line="232" />
         <source>Supports PDF / DOCX / XLSX / PPTX / MD / TXT / Images</source>
         <translation type="unfinished">支持 PDF / DOCX / XLSX / PPTX / MD / TXT / 图片</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="950" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1123" />
         <source>Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)</source>
         <translation type="unfinished">支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="375" />
+        <location filename="../ui/knowledgebase_page.cpp" line="398" />
         <source>Tag</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1231" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1404" />
         <source>Tag already exists: %1</source>
         <translation type="unfinished">标签已存在: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="464" />
+        <location filename="../ui/knowledgebase_page.cpp" line="505" />
         <source>Tags</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="321" />
+        <location filename="../ui/knowledgebase_page.cpp" line="332" />
         <source>To</source>
         <translation type="unfinished">结束</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1400" />
+        <location filename="../ui/knowledgebase_page.cpp" line="416" />
+        <source>Terminology</source>
+        <translation type="unfinished">专有词</translation>
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="1573" />
         <source>documents deleted</source>
         <translation type="unfinished">个文档已删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1509" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1682" />
         <source>浏览…</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1597" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1770" />
         <source>documents exported</source>
         <translation type="unfinished">个文档已导出</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1070" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1243" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1245" />
         <source>documents imported</source>
         <translation type="unfinished">个文档已导入</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1472" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1645" />
         <source>documents tagged</source>
         <translation type="unfinished">个文档已标记</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1369" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1542" />
         <source>documents to delete</source>
         <translation type="unfinished">个文档要删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1493" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1666" />
         <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
         <translation type="unfinished">输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1600" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1773" />
         <source>failed to export</source>
         <translation type="unfinished">导出失败</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="971" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1144" />
         <source>files parsing…</source>
         <translation type="unfinished">文件解析中…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1080" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1253" />
         <source>parsing</source>
         <translation type="unfinished">解析中</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1331" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1504" />
         <source>selected</source>
         <translation type="unfinished">已选择</translation>
     </message>
