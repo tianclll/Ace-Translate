@@ -414,3 +414,121 @@ QFrame#toast {
     background: #1A1A2E; border-radius: 8px;
     color: #FFFFFF; font-size: 13px; padding: 12px 20px;
 }
+
+/* ---------- QFileDialog (DontUseNativeDialog) ---------- */
+QFileDialog {
+    background-color: #F8FAFA;
+    font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+QFileDialog QListView {
+    background: #FFFFFF;
+    border: 1px solid #E8ECEF;
+    border-radius: 6px;
+    selection-background-color: #E8F0EF;
+    selection-color: #0B7C72;
+    outline: none;
+}
+QFileDialog QListView::item {
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+QFileDialog QListView::item:hover {
+    background: #F0F7F6;
+}
+QFileDialog QTreeView {
+    background: #FFFFFF;
+    border: 1px solid #E8ECEF;
+    border-radius: 6px;
+    selection-background-color: #E8F0EF;
+    selection-color: #0B7C72;
+    outline: none;
+}
+QFileDialog QTreeView::item {
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+QFileDialog QTreeView::item:hover {
+    background: #F0F7F6;
+}
+QFileDialog QLineEdit {
+    border: 1px solid #DDE1E5;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #FFFFFF;
+    color: #1A1A2E;
+    font-size: 13px;
+}
+QFileDialog QLineEdit:focus {
+    border-color: #0B7C72;
+}
+QFileDialog QComboBox {
+    border: 1px solid #DDE1E5;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #FFFFFF;
+    color: #1A1A2E;
+    font-size: 13px;
+}
+QFileDialog QComboBox:focus {
+    border-color: #0B7C72;
+}
+QFileDialog QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+QFileDialog QPushButton {
+    border: 1px solid #DDE1E5;
+    border-radius: 6px;
+    padding: 6px 16px;
+    background: #FFFFFF;
+    color: #374151;
+    font-size: 13px;
+}
+QFileDialog QPushButton:hover {
+    border-color: #0B7C72;
+    color: #0B7C72;
+    background: #F0F7F6;
+}
+QFileDialog QPushButton[text="Open"],
+QFileDialog QPushButton[text="Save"],
+QFileDialog QPushButton[text="Choose"],
+QFileDialog QPushButton[text="Select"],
+QFileDialog QPushButton[text="确定"],
+QFileDialog QPushButton[text="打开"] {
+    background: #0B7C72;
+    color: #FFFFFF;
+    border: none;
+    font-weight: 600;
+}
+QFileDialog QPushButton[text="Open"]:hover,
+QFileDialog QPushButton[text="Save"]:hover,
+QFileDialog QPushButton[text="Choose"]:hover,
+QFileDialog QPushButton[text="Select"]:hover,
+QFileDialog QPushButton[text="确定"]:hover,
+QFileDialog QPushButton[text="打开"]:hover {
+    background: #09685F;
+}
+QFileDialog QToolBar {
+    background: #FFFFFF;
+    border: none;
+    spacing: 4px;
+}
+QFileDialog QToolBar QToolButton {
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    background: transparent;
+}
+QFileDialog QToolBar QToolButton:hover {
+    background: #F0F7F6;
+}
+QFileDialog QToolBar QToolButton:pressed {
+    background: #E8F0EF;
+}
+QFileDialog QSplitter::handle {
+    background: #E8ECEF;
+}
+QFileDialog QSplitter::handle:hover {
+    background: #0B7C72;
+}
