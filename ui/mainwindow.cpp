@@ -2330,10 +2330,13 @@ void MainWindow::addFileToList(const QString& filePath) {
         "QPushButton { border: none; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; }");
     connect(removeBtn, &QPushButton::clicked, this, [this, fileItem, filePath]() {
-        // 清理该文件对应的临时文件
+        // 清理该文件对应的临时文件和 assets
         int pathIdx = filePendingPaths_.indexOf(filePath);
         if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
             QFile::remove(fileTempOutputPaths_[pathIdx]);
+            QString assetsDir = QFileInfo(fileTempOutputPaths_[pathIdx]).absolutePath() + "/assets";
+            if (QDir(assetsDir).exists())
+                QDir(assetsDir).removeRecursively();
             fileTempOutputPaths_[pathIdx].clear();
         }
         fileListLayout_->removeWidget(fileItem);
@@ -3201,6 +3204,10 @@ void MainWindow::cleanupTempFiles() {
         const QString& tempPath = fileTempOutputPaths_[i];
         if (tempPath.isEmpty()) continue;  // 已下载的不清理
         QFile::remove(tempPath);
+        // 删除同目录下的 assets 文件夹
+        QString assetsDir = QFileInfo(tempPath).absolutePath() + "/assets";
+        if (QDir(assetsDir).exists())
+            QDir(assetsDir).removeRecursively();
     }
     fileTempOutputPaths_.clear();
 }
