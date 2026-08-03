@@ -221,109 +221,134 @@
 <context>
     <name>GlossaryDialog</name>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="69" />
+        <location filename="../ui/glossary_dialog.cpp" line="99" />
         <source>Terminology Management</source>
         <translation type="unfinished">Terminology Management</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="125" />
+        <location filename="../ui/glossary_dialog.cpp" line="155" />
         <source>Add</source>
         <translation type="unfinished">Add</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="133" />
+        <location filename="../ui/glossary_dialog.cpp" line="163" />
+        <location filename="../ui/glossary_dialog.cpp" line="170" />
+        <location filename="../ui/glossary_dialog.cpp" line="287" />
+        <location filename="../ui/glossary_dialog.cpp" line="303" />
+        <location filename="../ui/glossary_dialog.cpp" line="476" />
+        <location filename="../ui/glossary_dialog.cpp" line="525" />
         <source>Import</source>
         <translation type="unfinished">Import</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="173" />
-        <location filename="../ui/glossary_dialog.cpp" line="178" />
+        <location filename="../ui/glossary_dialog.cpp" line="175" />
+        <location filename="../ui/glossary_dialog.cpp" line="294" />
+        <location filename="../ui/glossary_dialog.cpp" line="481" />
+        <source>Cancel</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="212" />
+        <location filename="../ui/glossary_dialog.cpp" line="217" />
         <source>Term</source>
         <translation type="unfinished">Term</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="186" />
-        <location filename="../ui/glossary_dialog.cpp" line="191" />
+        <location filename="../ui/glossary_dialog.cpp" line="225" />
+        <location filename="../ui/glossary_dialog.cpp" line="230" />
         <source>Translation</source>
         <translation type="unfinished">Translation</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="202" />
+        <location filename="../ui/glossary_dialog.cpp" line="240" />
         <source>Save</source>
         <translation type="unfinished">Save</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="209" />
+        <location filename="../ui/glossary_dialog.cpp" line="247" />
         <source>Delete</source>
         <translation type="unfinished">Delete</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="230" />
+        <location filename="../ui/glossary_dialog.cpp" line="266" />
+        <source>Paste terminology text below, one term per line:</source>
+        <translation type="unfinished">Paste terminology text below, one term per line:</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="272" />
+        <source>term translation
+transformer 变换器
+self-attention 自注意力机制
+BERT BERT</source>
+        <translation type="unfinished">term translation
+transformer 变换器
+self-attention 自注意力机制
+BERT BERT</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="319" />
         <source>Clear All</source>
         <translation type="unfinished">Clear All</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="290" />
+        <location filename="../ui/glossary_dialog.cpp" line="381" />
         <source>Total %1 terms</source>
         <translation type="unfinished">Total %1 terms</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="315" />
+        <location filename="../ui/glossary_dialog.cpp" line="404" />
         <source>Term and translation cannot be empty</source>
         <translation type="unfinished">Term and translation cannot be empty</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="326" />
+        <location filename="../ui/glossary_dialog.cpp" line="414" />
         <source>Failed to add term</source>
         <translation type="unfinished">Failed to add term</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="335" />
+        <location filename="../ui/glossary_dialog.cpp" line="422" />
         <source>Failed to update term</source>
         <translation type="unfinished">Failed to update term</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="342" />
+        <location filename="../ui/glossary_dialog.cpp" line="429" />
         <source>Term added</source>
         <translation type="unfinished">Term added</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="342" />
+        <location filename="../ui/glossary_dialog.cpp" line="429" />
         <source>Term updated</source>
         <translation type="unfinished">Term updated</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="362" />
+        <location filename="../ui/glossary_dialog.cpp" line="448" />
         <source>Failed to delete term</source>
         <translation type="unfinished">Failed to delete term</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="367" />
+        <location filename="../ui/glossary_dialog.cpp" line="454" />
         <source>Term deleted</source>
         <translation type="unfinished">Term deleted</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="382" />
+        <location filename="../ui/glossary_dialog.cpp" line="469" />
         <source>All terms cleared</source>
         <translation type="unfinished">All terms cleared</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="388" />
         <source>Import Terminology</source>
         <translation type="unfinished">Import Terminology</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="390" />
         <source>Text/CSV Files (*.txt *.csv);;All Files (*)</source>
         <translation type="unfinished">Text/CSV Files (*.txt *.csv);;All Files (*)</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="396" />
         <source>Cannot open file</source>
         <translation type="unfinished">Cannot open file</translation>
     </message>
     <message>
-        <location filename="../ui/glossary_dialog.cpp" line="457" />
+        <location filename="../ui/glossary_dialog.cpp" line="529" />
         <source>Imported %1 terms</source>
         <translation type="unfinished">Imported %1 terms</translation>
     </message>
@@ -331,297 +356,296 @@
 <context>
     <name>KnowledgeBasePage</name>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="229" />
+        <location filename="../ui/knowledgebase_page.cpp" line="228" />
         <source>Drop files here to archive</source>
         <translation type="unfinished">Drop files here to archive</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="232" />
+        <location filename="../ui/knowledgebase_page.cpp" line="231" />
         <source>Supports PDF / DOCX / XLSX / PPTX / MD / TXT / Images</source>
         <translation type="unfinished">Supports PDF / DOCX / XLSX / PPTX / MD / TXT / Images</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="264" />
+        <location filename="../ui/knowledgebase_page.cpp" line="263" />
         <source>Search titles, content…</source>
         <translation type="unfinished">Search titles, content…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="302" />
+        <location filename="../ui/knowledgebase_page.cpp" line="301" />
         <source>From</source>
         <translation type="unfinished">From</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="332" />
+        <location filename="../ui/knowledgebase_page.cpp" line="331" />
         <source>To</source>
         <translation type="unfinished">To</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="350" />
+        <location filename="../ui/knowledgebase_page.cpp" line="349" />
         <source>Clear</source>
         <translation type="unfinished">Clear</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="371" />
+        <location filename="../ui/knowledgebase_page.cpp" line="370" />
         <source>Search</source>
         <translation type="unfinished">Search</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="398" />
+        <location filename="../ui/knowledgebase_page.cpp" line="397" />
         <source>Tag</source>
         <translation type="unfinished">Tag</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="416" />
         <source>Terminology</source>
         <translation type="unfinished">Terminology</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="428" />
-        <location filename="../ui/knowledgebase_page.cpp" line="603" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1522" />
+        <location filename="../ui/knowledgebase_page.cpp" line="407" />
+        <location filename="../ui/knowledgebase_page.cpp" line="584" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1503" />
         <source>Select All</source>
         <translation type="unfinished">Select All</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="495" />
+        <location filename="../ui/knowledgebase_page.cpp" line="476" />
         <source>Document</source>
         <translation type="unfinished">Document</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="499" />
+        <location filename="../ui/knowledgebase_page.cpp" line="480" />
         <source>Date</source>
         <translation type="unfinished">Date</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="505" />
+        <location filename="../ui/knowledgebase_page.cpp" line="486" />
         <source>Tags</source>
         <translation type="unfinished">Tags</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="511" />
+        <location filename="../ui/knowledgebase_page.cpp" line="492" />
         <source>Actions</source>
         <translation type="unfinished">Actions</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="526" />
+        <location filename="../ui/knowledgebase_page.cpp" line="507" />
         <source>No documents yet
 Drop files above to get started</source>
         <translation type="unfinished">No documents yet
 Drop files above to get started</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="551" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1582" />
+        <location filename="../ui/knowledgebase_page.cpp" line="532" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1563" />
         <source>Batch Tag</source>
         <translation type="unfinished">Batch Tag</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="560" />
+        <location filename="../ui/knowledgebase_page.cpp" line="541" />
         <source>Export</source>
         <translation type="unfinished">Export</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="570" />
-        <location filename="../ui/knowledgebase_page.cpp" line="842" />
-        <location filename="../ui/knowledgebase_page.cpp" line="854" />
-        <location filename="../ui/knowledgebase_page.cpp" line="875" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1447" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1559" />
+        <location filename="../ui/knowledgebase_page.cpp" line="551" />
+        <location filename="../ui/knowledgebase_page.cpp" line="823" />
+        <location filename="../ui/knowledgebase_page.cpp" line="835" />
+        <location filename="../ui/knowledgebase_page.cpp" line="856" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1428" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1540" />
         <source>Delete</source>
         <translation type="unfinished">Delete</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="841" />
+        <location filename="../ui/knowledgebase_page.cpp" line="822" />
         <source>View</source>
         <translation type="unfinished">View</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="841" />
+        <location filename="../ui/knowledgebase_page.cpp" line="822" />
         <source>Open source file</source>
         <translation type="unfinished">Open source file</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="858" />
+        <location filename="../ui/knowledgebase_page.cpp" line="839" />
         <source>Delete this document?</source>
         <translation type="unfinished">Delete this document?</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="869" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1553" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1623" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1708" />
+        <location filename="../ui/knowledgebase_page.cpp" line="850" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1534" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1689" />
         <source>Cancel</source>
         <translation type="unfinished">Cancel</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1010" />
+        <location filename="../ui/knowledgebase_page.cpp" line="991" />
         <source>Year</source>
         <translation type="unfinished">Year</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1036" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1017" />
         <source>Previous year</source>
         <translation type="unfinished">Previous year</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1037" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1018" />
         <source>Previous month</source>
         <translation type="unfinished">Previous month</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1038" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1019" />
         <source>Next month</source>
         <translation type="unfinished">Next month</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1039" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1020" />
         <source>Next year</source>
         <translation type="unfinished">Next year</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1102" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1083" />
         <source>Source path is empty</source>
         <translation type="unfinished">Source path is empty</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1104" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1085" />
         <source>File not found: %1</source>
         <translation type="unfinished">File not found: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1113" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1094" />
         <source>Import in progress, please wait</source>
         <translation type="unfinished">Import in progress, please wait</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1122" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1103" />
         <source>Select Files</source>
         <translation type="unfinished">Select Files</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1123" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1104" />
         <source>Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)</source>
         <translation type="unfinished">Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1144" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1125" />
         <source>files parsing…</source>
         <translation type="unfinished">files parsing…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1243" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1245" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1224" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1226" />
         <source>documents imported</source>
         <translation type="unfinished">documents imported</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1253" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1234" />
         <source>parsing</source>
         <translation type="unfinished">parsing</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1370" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1351" />
         <source>Manage Tags</source>
         <translation type="unfinished">Manage Tags</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1374" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1355" />
         <source>Create or remove tags.</source>
         <translation type="unfinished">Create or remove tags.</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1383" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1364" />
         <source>New tag name…</source>
         <translation type="unfinished">New tag name…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1390" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1371" />
         <source>Add</source>
         <translation type="unfinished">Add</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1404" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1385" />
         <source>Tag already exists: %1</source>
         <translation type="unfinished">Tag already exists: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1431" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1412" />
         <source>No tags yet.</source>
         <translation type="unfinished">No tags yet.</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1474" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1455" />
         <source>Done</source>
         <translation type="unfinished">Done</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1491" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1472" />
         <source>All Documents</source>
         <translation type="unfinished">All Documents</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1492" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1473" />
         <source>No tag</source>
         <translation type="unfinished">No tag</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1504" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1485" />
         <source>selected</source>
         <translation type="unfinished">selected</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1519" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1500" />
         <source>Deselect All</source>
         <translation type="unfinished">Deselect All</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1538" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1519" />
         <source>Batch Delete</source>
         <translation type="unfinished">Batch Delete</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1542" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1523" />
         <source>documents to delete</source>
         <translation type="unfinished">documents to delete</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1573" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1554" />
         <source>documents deleted</source>
         <translation type="unfinished">documents deleted</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1583" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1564" />
         <source>No tags yet. Create one first with the +Tag button.</source>
         <translation type="unfinished">No tags yet. Create one first with the +Tag button.</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1591" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1572" />
         <source>Batch Modify Tags</source>
         <translation type="unfinished">Batch Modify Tags</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1629" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1714" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1610" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1695" />
         <source>OK</source>
         <translation type="unfinished">OK</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1645" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1626" />
         <source>documents tagged</source>
         <translation type="unfinished">documents tagged</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1662" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1643" />
         <source>Choose export folder</source>
         <translation type="unfinished">Choose export folder</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1666" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1647" />
         <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
         <translation type="unfinished">Enter target folder path (auto-created if not exists), or click Browse… to select.</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1777" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1758" />
         <source>Open this folder</source>
         <translation type="unfinished">Open this folder</translation>
     </message>
@@ -630,17 +654,17 @@ Drop files above to get started</translation>
         <translation type="unfinished">输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1682" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1663" />
         <source>浏览…</source>
         <translation type="unfinished">浏览…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1770" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1751" />
         <source>documents exported</source>
         <translation type="unfinished">documents exported</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1773" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1754" />
         <source>failed to export</source>
         <translation type="unfinished">failed to export</translation>
     </message>
@@ -652,672 +676,749 @@ Drop files above to get started</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="700" />
-        <location filename="../ui/mainwindow.cpp" line="2364" />
+        <location filename="../ui/mainwindow.cpp" line="706" />
+        <location filename="../ui/mainwindow.cpp" line="2370" />
         <source>Settings</source>
         <translation type="unfinished">Settings</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="750" />
-        <location filename="../ui/mainwindow.cpp" line="3648" />
+        <location filename="../ui/mainwindow.cpp" line="756" />
+        <location filename="../ui/mainwindow.cpp" line="3704" />
         <source>Ready</source>
         <translation type="unfinished">Ready</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="675" />
-        <location filename="../ui/mainwindow.cpp" line="851" />
+        <location filename="../ui/mainwindow.cpp" line="681" />
+        <location filename="../ui/mainwindow.cpp" line="857" />
         <source>Text Translation</source>
         <translation type="unfinished">Text Translation</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="855" />
+        <location filename="../ui/mainwindow.cpp" line="861" />
         <source>Enter or paste text to translate</source>
         <translation type="unfinished">Enter or paste text to translate</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="866" />
+        <location filename="../ui/mainwindow.cpp" line="872" />
         <source>Source Language:</source>
         <translation type="unfinished">Source Language:</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="870" />
+        <location filename="../ui/mainwindow.cpp" line="876" />
         <source>Auto Detect</source>
         <translation type="unfinished">Auto Detect</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="883" />
-        <location filename="../ui/mainwindow.cpp" line="1708" />
-        <location filename="../ui/mainwindow.cpp" line="1946" />
-        <location filename="../ui/mainwindow.cpp" line="2091" />
+        <location filename="../ui/mainwindow.cpp" line="889" />
+        <location filename="../ui/mainwindow.cpp" line="1714" />
+        <location filename="../ui/mainwindow.cpp" line="1952" />
+        <location filename="../ui/mainwindow.cpp" line="2097" />
         <source>Target Language:</source>
         <translation type="unfinished">Target Language:</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="926" />
+        <location filename="../ui/mainwindow.cpp" line="932" />
         <source>Source Text</source>
         <translation type="unfinished">Source Text</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="931" />
+        <location filename="../ui/mainwindow.cpp" line="937" />
         <source>Paste</source>
         <translation type="unfinished">Paste</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="941" />
-        <location filename="../ui/mainwindow.cpp" line="1357" />
-        <location filename="../ui/mainwindow.cpp" line="1577" />
-        <location filename="../ui/mainwindow.cpp" line="1823" />
+        <location filename="../ui/mainwindow.cpp" line="947" />
+        <location filename="../ui/mainwindow.cpp" line="1363" />
+        <location filename="../ui/mainwindow.cpp" line="1583" />
+        <location filename="../ui/mainwindow.cpp" line="1829" />
         <source>Clear</source>
         <translation type="unfinished">Clear</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="960" />
+        <location filename="../ui/mainwindow.cpp" line="966" />
         <source>Enter text to translate…</source>
         <translation type="unfinished">Enter text to translate…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="972" />
+        <location filename="../ui/mainwindow.cpp" line="978" />
         <source>0 characters</source>
         <translation type="unfinished">0 characters</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1003" />
+        <location filename="../ui/mainwindow.cpp" line="1009" />
         <source>%1 characters</source>
         <translation type="unfinished">%1 characters</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1029" />
-        <location filename="../ui/mainwindow.cpp" line="1656" />
-        <location filename="../ui/mainwindow.cpp" line="1878" />
+        <location filename="../ui/mainwindow.cpp" line="1035" />
+        <location filename="../ui/mainwindow.cpp" line="1662" />
+        <location filename="../ui/mainwindow.cpp" line="1884" />
         <source>Translation Result</source>
         <translation type="unfinished">Translation Result</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1034" />
-        <location filename="../ui/mainwindow.cpp" line="1681" />
-        <location filename="../ui/mainwindow.cpp" line="1884" />
+        <location filename="../ui/mainwindow.cpp" line="1040" />
+        <location filename="../ui/mainwindow.cpp" line="1687" />
+        <location filename="../ui/mainwindow.cpp" line="1890" />
         <source>Copy</source>
         <translation type="unfinished">Copy</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1042" />
-        <location filename="../ui/mainwindow.cpp" line="1689" />
+        <location filename="../ui/mainwindow.cpp" line="1048" />
+        <location filename="../ui/mainwindow.cpp" line="1695" />
         <source>Copied</source>
         <translation type="unfinished">Copied</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1047" />
-        <location filename="../ui/mainwindow.cpp" line="1693" />
+        <location filename="../ui/mainwindow.cpp" line="1053" />
+        <location filename="../ui/mainwindow.cpp" line="1699" />
         <source>Read Aloud</source>
         <translation type="unfinished">Read Aloud</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1068" />
-        <location filename="../ui/mainwindow.cpp" line="1672" />
+        <location filename="../ui/mainwindow.cpp" line="1074" />
+        <location filename="../ui/mainwindow.cpp" line="1678" />
         <source>Translation Result…</source>
         <translation type="unfinished">Translation Result…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1094" />
+        <location filename="../ui/mainwindow.cpp" line="1100" />
         <source>Upload File</source>
         <translation type="unfinished">Upload File</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="678" />
-        <location filename="../ui/mainwindow.cpp" line="1099" />
+        <location filename="../ui/mainwindow.cpp" line="684" />
+        <location filename="../ui/mainwindow.cpp" line="1105" />
         <source>Image Translation</source>
         <translation type="unfinished">Image Translation</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1106" />
-        <location filename="../ui/mainwindow.cpp" line="2156" />
+        <location filename="../ui/mainwindow.cpp" line="1112" />
+        <location filename="../ui/mainwindow.cpp" line="2162" />
         <source>Translate</source>
         <translation type="unfinished">Translate</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="676" />
-        <location filename="../ui/mainwindow.cpp" line="1124" />
+        <location filename="../ui/mainwindow.cpp" line="682" />
+        <location filename="../ui/mainwindow.cpp" line="1130" />
         <source>Selection Translation</source>
         <translation type="unfinished">Selection Translation</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1128" />
+        <location filename="../ui/mainwindow.cpp" line="1134" />
         <source>Select text in any app, press hotkey to translate</source>
         <translation type="unfinished">Select text in any app, press hotkey to translate</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1142" />
-        <location filename="../ui/mainwindow.cpp" line="1261" />
+        <location filename="../ui/mainwindow.cpp" line="1148" />
+        <location filename="../ui/mainwindow.cpp" line="1267" />
         <source>Hotkey</source>
         <translation type="unfinished">Hotkey</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1159" />
-        <location filename="../ui/mainwindow.cpp" line="1177" />
+        <location filename="../ui/mainwindow.cpp" line="1165" />
+        <location filename="../ui/mainwindow.cpp" line="1183" />
         <source>Set Selection Hotkey</source>
         <translation type="unfinished">Set Selection Hotkey</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1186" />
-        <location filename="../ui/mainwindow.cpp" line="1440" />
+        <location filename="../ui/mainwindow.cpp" line="1192" />
+        <location filename="../ui/mainwindow.cpp" line="1446" />
         <source>Press new hotkey (Ctrl or Alt required)</source>
         <translation type="unfinished">Press new hotkey (Ctrl or Alt required)</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1213" />
-        <location filename="../ui/mainwindow.cpp" line="1463" />
+        <location filename="../ui/mainwindow.cpp" line="1219" />
+        <location filename="../ui/mainwindow.cpp" line="1469" />
         <source>Cancel</source>
         <translation type="unfinished">Cancel</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1222" />
-        <location filename="../ui/mainwindow.cpp" line="1472" />
+        <location filename="../ui/mainwindow.cpp" line="1228" />
+        <location filename="../ui/mainwindow.cpp" line="1478" />
         <source>OK</source>
         <translation type="unfinished">OK</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1268" />
-        <location filename="../ui/mainwindow.cpp" line="1511" />
+        <location filename="../ui/mainwindow.cpp" line="1274" />
+        <location filename="../ui/mainwindow.cpp" line="1517" />
         <source>Hotkey Conflict</source>
         <translation type="unfinished">Hotkey Conflict</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1269" />
+        <location filename="../ui/mainwindow.cpp" line="1275" />
         <source>This hotkey is used by Screenshot Translation.</source>
         <translation type="unfinished">This hotkey is used by Screenshot Translation.</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1290" />
-        <location filename="../ui/mainwindow.cpp" line="1532" />
+        <location filename="../ui/mainwindow.cpp" line="1296" />
+        <location filename="../ui/mainwindow.cpp" line="1538" />
         <source>Hotkey Registration Failed</source>
         <translation type="unfinished">Hotkey Registration Failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1319" />
-        <location filename="../ui/mainwindow.cpp" line="2387" />
+        <location filename="../ui/mainwindow.cpp" line="1325" />
+        <location filename="../ui/mainwindow.cpp" line="2393" />
         <source>Default Language</source>
         <translation type="unfinished">Default Language</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1330" />
+        <location filename="../ui/mainwindow.cpp" line="1336" />
         <source>Auto Copy</source>
         <translation type="unfinished">Auto Copy</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1335" />
+        <location filename="../ui/mainwindow.cpp" line="1341" />
         <source>Stay on Top</source>
         <translation type="unfinished">Stay on Top</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1351" />
+        <location filename="../ui/mainwindow.cpp" line="1357" />
         <source>Translation History</source>
         <translation type="unfinished">Translation History</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1370" />
+        <location filename="../ui/mainwindow.cpp" line="1376" />
         <source>Translation history will appear here…</source>
         <translation type="unfinished">Translation history will appear here…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="677" />
-        <location filename="../ui/mainwindow.cpp" line="1389" />
-        <location filename="../ui/mainwindow.cpp" line="1400" />
+        <location filename="../ui/mainwindow.cpp" line="683" />
+        <location filename="../ui/mainwindow.cpp" line="1395" />
+        <location filename="../ui/mainwindow.cpp" line="1406" />
         <source>Screenshot Translation</source>
         <translation type="unfinished">Screenshot Translation</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1393" />
+        <location filename="../ui/mainwindow.cpp" line="1399" />
         <source>Capture screen area for OCR and translation</source>
         <translation type="unfinished">Capture screen area for OCR and translation</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1420" />
-        <location filename="../ui/mainwindow.cpp" line="1433" />
+        <location filename="../ui/mainwindow.cpp" line="1426" />
+        <location filename="../ui/mainwindow.cpp" line="1439" />
         <source>Set Screenshot Hotkey</source>
         <translation type="unfinished">Set Screenshot Hotkey</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1512" />
+        <location filename="../ui/mainwindow.cpp" line="1518" />
         <source>This hotkey is used by Selection Translation.</source>
         <translation type="unfinished">This hotkey is used by Selection Translation.</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1570" />
+        <location filename="../ui/mainwindow.cpp" line="1576" />
         <source>Screenshot Preview</source>
         <translation type="unfinished">Screenshot Preview</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1585" />
-        <location filename="../ui/mainwindow.cpp" line="1601" />
+        <location filename="../ui/mainwindow.cpp" line="1591" />
+        <location filename="../ui/mainwindow.cpp" line="1607" />
         <source>Waiting for screenshot…</source>
         <translation type="unfinished">Waiting for screenshot…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1635" />
+        <location filename="../ui/mainwindow.cpp" line="1641" />
         <source>Recognition Result</source>
         <translation type="unfinished">Recognition Result</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1642" />
+        <location filename="../ui/mainwindow.cpp" line="1648" />
         <source>OCR Text…</source>
         <translation type="unfinished">OCR Text…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1741" />
+        <location filename="../ui/mainwindow.cpp" line="1747" />
         <source>Drag image here or click to upload</source>
         <translation type="unfinished">Drag image here or click to upload</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1755" />
-        <location filename="../ui/mainwindow.cpp" line="3073" />
+        <location filename="../ui/mainwindow.cpp" line="1761" />
+        <location filename="../ui/mainwindow.cpp" line="3123" />
         <source>Select Image</source>
         <translation type="unfinished">Select Image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1756" />
-        <location filename="../ui/mainwindow.cpp" line="3075" />
+        <location filename="../ui/mainwindow.cpp" line="1762" />
+        <location filename="../ui/mainwindow.cpp" line="3125" />
         <source>Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)</source>
         <translation type="unfinished">Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1784" />
-        <location filename="../ui/mainwindow.cpp" line="1787" />
+        <location filename="../ui/mainwindow.cpp" line="1790" />
+        <location filename="../ui/mainwindow.cpp" line="1793" />
         <source>Cannot load image</source>
         <translation type="unfinished">Cannot load image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1817" />
+        <location filename="../ui/mainwindow.cpp" line="1823" />
         <source>Original</source>
         <translation type="unfinished">Original</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1831" />
-        <location filename="../ui/mainwindow.cpp" line="1849" />
+        <location filename="../ui/mainwindow.cpp" line="1837" />
+        <location filename="../ui/mainwindow.cpp" line="1855" />
         <source>Image preview…</source>
         <translation type="unfinished">Image preview…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1836" />
-        <location filename="../ui/mainwindow.cpp" line="1924" />
+        <location filename="../ui/mainwindow.cpp" line="1842" />
+        <location filename="../ui/mainwindow.cpp" line="1930" />
         <source>Result shows after translation…</source>
         <translation type="unfinished">Result shows after translation…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1893" />
+        <location filename="../ui/mainwindow.cpp" line="1899" />
         <source>Image copied</source>
         <translation type="unfinished">Image copied</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1899" />
-        <location filename="../ui/mainwindow.cpp" line="2256" />
-        <location filename="../ui/mainwindow.cpp" line="3509" />
-        <location filename="../ui/mainwindow.cpp" line="3604" />
+        <location filename="../ui/mainwindow.cpp" line="1905" />
+        <location filename="../ui/mainwindow.cpp" line="2262" />
+        <location filename="../ui/mainwindow.cpp" line="3565" />
+        <location filename="../ui/mainwindow.cpp" line="3660" />
         <source>Download</source>
         <translation type="unfinished">Download</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1907" />
+        <location filename="../ui/mainwindow.cpp" line="1913" />
         <source>Save Image</source>
         <translation type="unfinished">Save Image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1908" />
+        <location filename="../ui/mainwindow.cpp" line="1914" />
         <source>PNG Images (*.png)</source>
         <translation type="unfinished">PNG Images (*.png)</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1913" />
+        <location filename="../ui/mainwindow.cpp" line="1919" />
         <source>Save Image Failed</source>
         <translation type="unfinished">Save Image Failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1911" />
+        <location filename="../ui/mainwindow.cpp" line="1917" />
         <source>Image saved: </source>
         <translation type="unfinished">Image saved: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1960" />
+        <location filename="../ui/mainwindow.cpp" line="1966" />
         <source>Translate Image</source>
         <translation type="unfinished">Translate Image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="1997" />
+        <location filename="../ui/mainwindow.cpp" line="2003" />
         <source>Drag files here or click to upload</source>
         <translation type="unfinished">Drag files here or click to upload</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2002" />
+        <location filename="../ui/mainwindow.cpp" line="2008" />
         <source>Supports PDF / Word / Excel / PPT / MD / TXT / Images</source>
         <translation type="unfinished">Supports PDF / Word / Excel / PPT / MD / TXT / Images</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2027" />
-        <location filename="../ui/mainwindow.cpp" line="3011" />
+        <location filename="../ui/mainwindow.cpp" line="2033" />
+        <location filename="../ui/mainwindow.cpp" line="3061" />
         <source>Select File</source>
         <translation type="unfinished">Select File</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2049" />
+        <location filename="../ui/mainwindow.cpp" line="2055" />
         <source>File List</source>
         <translation type="unfinished">File List</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2109" />
+        <location filename="../ui/mainwindow.cpp" line="2115" />
         <source>Layout Threshold:</source>
         <translation type="unfinished">Layout Threshold:</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2121" />
+        <location filename="../ui/mainwindow.cpp" line="2127" />
         <source>DPI:</source>
         <translation type="unfinished">DPI:</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2139" />
+        <location filename="../ui/mainwindow.cpp" line="2145" />
         <source>Deskew</source>
         <translation type="unfinished">Deskew</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2146" />
+        <location filename="../ui/mainwindow.cpp" line="2152" />
         <source>Enhance</source>
         <translation type="unfinished">Enhance</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2250" />
+        <location filename="../ui/mainwindow.cpp" line="2256" />
         <source>Queued</source>
         <translation type="unfinished">Queued</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2272" />
+        <location filename="../ui/mainwindow.cpp" line="2278" />
         <source>Save File</source>
         <translation type="unfinished">Save File</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2273" />
+        <location filename="../ui/mainwindow.cpp" line="2279" />
         <source>All Files (*)</source>
         <translation type="unfinished">All Files (*)</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2293" />
+        <location filename="../ui/mainwindow.cpp" line="2299" />
         <source>Downloaded to: </source>
         <translation type="unfinished">Downloaded to: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2295" />
+        <location filename="../ui/mainwindow.cpp" line="2301" />
         <source>📂 Open in Folder</source>
         <translation type="unfinished">📂 Open in Folder</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2311" />
+        <location filename="../ui/mainwindow.cpp" line="2317" />
         <source>Save Failed</source>
         <translation type="unfinished">Save Failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2368" />
+        <location filename="../ui/mainwindow.cpp" line="2374" />
         <source>Requires restart</source>
         <translation type="unfinished">Requires restart</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="71" />
-        <location filename="../ui/mainwindow.cpp" line="2396" />
-        <location filename="../ui/mainwindow.cpp" line="2957" />
+        <location filename="../ui/glossary_dialog.cpp" line="37" />
+        <location filename="../ui/glossary_dialog.cpp" line="145" />
+        <location filename="../ui/mainwindow.cpp" line="74" />
+        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/mainwindow.cpp" line="3007" />
         <source>Chinese</source>
         <translation type="unfinished">Chinese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="72" />
-        <location filename="../ui/mainwindow.cpp" line="2396" />
+        <location filename="../ui/glossary_dialog.cpp" line="38" />
+        <location filename="../ui/mainwindow.cpp" line="75" />
+        <location filename="../ui/mainwindow.cpp" line="2402" />
         <source>English</source>
         <translation type="unfinished">English</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="73" />
-        <location filename="../ui/mainwindow.cpp" line="2396" />
+        <location filename="../ui/glossary_dialog.cpp" line="41" />
+        <location filename="../ui/mainwindow.cpp" line="76" />
+        <location filename="../ui/mainwindow.cpp" line="2402" />
         <source>French</source>
         <translation type="unfinished">French</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="74" />
-        <location filename="../ui/mainwindow.cpp" line="2397" />
+        <location filename="../ui/glossary_dialog.cpp" line="44" />
+        <location filename="../ui/mainwindow.cpp" line="77" />
+        <location filename="../ui/mainwindow.cpp" line="2403" />
         <source>Portuguese</source>
         <translation type="unfinished">Portuguese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="75" />
-        <location filename="../ui/mainwindow.cpp" line="2397" />
+        <location filename="../ui/glossary_dialog.cpp" line="43" />
+        <location filename="../ui/mainwindow.cpp" line="78" />
+        <location filename="../ui/mainwindow.cpp" line="2403" />
         <source>Spanish</source>
         <translation type="unfinished">Spanish</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="76" />
-        <location filename="../ui/mainwindow.cpp" line="2397" />
-        <location filename="../ui/mainwindow.cpp" line="3810" />
+        <location filename="../ui/glossary_dialog.cpp" line="39" />
+        <location filename="../ui/mainwindow.cpp" line="79" />
+        <location filename="../ui/mainwindow.cpp" line="2403" />
+        <location filename="../ui/mainwindow.cpp" line="3866" />
         <source>Japanese</source>
         <translation type="unfinished">Japanese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="77" />
-        <location filename="../ui/mainwindow.cpp" line="2398" />
+        <location filename="../ui/glossary_dialog.cpp" line="52" />
+        <location filename="../ui/mainwindow.cpp" line="80" />
+        <location filename="../ui/mainwindow.cpp" line="2404" />
         <source>Turkish</source>
         <translation type="unfinished">Turkish</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="78" />
-        <location filename="../ui/mainwindow.cpp" line="2398" />
-        <location filename="../ui/mainwindow.cpp" line="3827" />
+        <location filename="../ui/glossary_dialog.cpp" line="45" />
+        <location filename="../ui/mainwindow.cpp" line="81" />
+        <location filename="../ui/mainwindow.cpp" line="2404" />
+        <location filename="../ui/mainwindow.cpp" line="3883" />
         <source>Russian</source>
         <translation type="unfinished">Russian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="79" />
-        <location filename="../ui/mainwindow.cpp" line="2398" />
-        <location filename="../ui/mainwindow.cpp" line="3821" />
+        <location filename="../ui/glossary_dialog.cpp" line="46" />
+        <location filename="../ui/mainwindow.cpp" line="82" />
+        <location filename="../ui/mainwindow.cpp" line="2404" />
+        <location filename="../ui/mainwindow.cpp" line="3877" />
         <source>Arabic</source>
         <translation type="unfinished">Arabic</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="80" />
-        <location filename="../ui/mainwindow.cpp" line="2399" />
-        <location filename="../ui/mainwindow.cpp" line="3809" />
+        <location filename="../ui/glossary_dialog.cpp" line="40" />
+        <location filename="../ui/mainwindow.cpp" line="83" />
+        <location filename="../ui/mainwindow.cpp" line="2405" />
+        <location filename="../ui/mainwindow.cpp" line="3865" />
         <source>Korean</source>
         <translation type="unfinished">Korean</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="81" />
-        <location filename="../ui/mainwindow.cpp" line="2399" />
-        <location filename="../ui/mainwindow.cpp" line="3820" />
+        <location filename="../ui/glossary_dialog.cpp" line="47" />
+        <location filename="../ui/mainwindow.cpp" line="84" />
+        <location filename="../ui/mainwindow.cpp" line="2405" />
+        <location filename="../ui/mainwindow.cpp" line="3876" />
         <source>Thai</source>
         <translation type="unfinished">Thai</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="82" />
-        <location filename="../ui/mainwindow.cpp" line="2399" />
+        <location filename="../ui/glossary_dialog.cpp" line="49" />
+        <location filename="../ui/mainwindow.cpp" line="85" />
+        <location filename="../ui/mainwindow.cpp" line="2405" />
         <source>Italian</source>
         <translation type="unfinished">Italian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="83" />
-        <location filename="../ui/mainwindow.cpp" line="2400" />
+        <location filename="../ui/glossary_dialog.cpp" line="42" />
+        <location filename="../ui/mainwindow.cpp" line="86" />
+        <location filename="../ui/mainwindow.cpp" line="2406" />
         <source>German</source>
         <translation type="unfinished">German</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="84" />
-        <location filename="../ui/mainwindow.cpp" line="2400" />
+        <location filename="../ui/glossary_dialog.cpp" line="48" />
+        <location filename="../ui/mainwindow.cpp" line="87" />
+        <location filename="../ui/mainwindow.cpp" line="2406" />
         <source>Vietnamese</source>
         <translation type="unfinished">Vietnamese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="85" />
-        <location filename="../ui/mainwindow.cpp" line="2400" />
+        <location filename="../ui/glossary_dialog.cpp" line="55" />
+        <location filename="../ui/mainwindow.cpp" line="88" />
+        <location filename="../ui/mainwindow.cpp" line="2406" />
         <source>Malay</source>
         <translation type="unfinished">Malay</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="86" />
-        <location filename="../ui/mainwindow.cpp" line="2401" />
+        <location filename="../ui/glossary_dialog.cpp" line="54" />
+        <location filename="../ui/mainwindow.cpp" line="89" />
+        <location filename="../ui/mainwindow.cpp" line="2407" />
         <source>Indonesian</source>
         <translation type="unfinished">Indonesian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="87" />
-        <location filename="../ui/mainwindow.cpp" line="2401" />
+        <location filename="../ui/glossary_dialog.cpp" line="56" />
+        <source>Swedish</source>
+        <translation type="unfinished">Swedish</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="58" />
+        <source>Greek</source>
+        <translation type="unfinished">Greek</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="59" />
+        <source>Romanian</source>
+        <translation type="unfinished">Romanian</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="60" />
+        <source>Danish</source>
+        <translation type="unfinished">Danish</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="61" />
+        <source>Finnish</source>
+        <translation type="unfinished">Finnish</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="62" />
+        <source>Norwegian</source>
+        <translation type="unfinished">Norwegian</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="63" />
+        <source>Hungarian</source>
+        <translation type="unfinished">Hungarian</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="66" />
+        <location filename="../ui/mainwindow.cpp" line="90" />
+        <location filename="../ui/mainwindow.cpp" line="2407" />
         <source>Filipino</source>
         <translation type="unfinished">Filipino</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="88" />
-        <location filename="../ui/mainwindow.cpp" line="2401" />
-        <location filename="../ui/mainwindow.cpp" line="3812" />
+        <location filename="../ui/glossary_dialog.cpp" line="72" />
+        <source>Swahili</source>
+        <translation type="unfinished">Swahili</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="53" />
+        <location filename="../ui/mainwindow.cpp" line="91" />
+        <location filename="../ui/mainwindow.cpp" line="2407" />
+        <location filename="../ui/mainwindow.cpp" line="3868" />
         <source>Hindi</source>
         <translation type="unfinished">Hindi</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="89" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/mainwindow.cpp" line="92" />
+        <location filename="../ui/mainwindow.cpp" line="2408" />
         <source>Traditional Chinese</source>
         <translation type="unfinished">Traditional Chinese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="90" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/glossary_dialog.cpp" line="51" />
+        <location filename="../ui/mainwindow.cpp" line="93" />
+        <location filename="../ui/mainwindow.cpp" line="2408" />
         <source>Polish</source>
         <translation type="unfinished">Polish</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="91" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/glossary_dialog.cpp" line="57" />
+        <location filename="../ui/mainwindow.cpp" line="94" />
+        <location filename="../ui/mainwindow.cpp" line="2408" />
         <source>Czech</source>
         <translation type="unfinished">Czech</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="92" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
+        <location filename="../ui/glossary_dialog.cpp" line="50" />
+        <location filename="../ui/mainwindow.cpp" line="95" />
+        <location filename="../ui/mainwindow.cpp" line="2409" />
         <source>Dutch</source>
         <translation type="unfinished">Dutch</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="93" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
-        <location filename="../ui/mainwindow.cpp" line="3823" />
+        <location filename="../ui/glossary_dialog.cpp" line="68" />
+        <location filename="../ui/mainwindow.cpp" line="96" />
+        <location filename="../ui/mainwindow.cpp" line="2409" />
+        <location filename="../ui/mainwindow.cpp" line="3879" />
         <source>Khmer</source>
         <translation type="unfinished">Khmer</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="94" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
-        <location filename="../ui/mainwindow.cpp" line="3824" />
+        <location filename="../ui/glossary_dialog.cpp" line="67" />
+        <location filename="../ui/mainwindow.cpp" line="97" />
+        <location filename="../ui/mainwindow.cpp" line="2409" />
+        <location filename="../ui/mainwindow.cpp" line="3880" />
         <source>Burmese</source>
         <translation type="unfinished">Burmese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="95" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
+        <location filename="../ui/glossary_dialog.cpp" line="69" />
+        <source>Lao</source>
+        <translation type="unfinished">Lao</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="70" />
+        <source>Nepali</source>
+        <translation type="unfinished">Nepali</translation>
+    </message>
+    <message>
+        <location filename="../ui/glossary_dialog.cpp" line="71" />
+        <location filename="../ui/mainwindow.cpp" line="98" />
+        <location filename="../ui/mainwindow.cpp" line="2410" />
         <source>Persian</source>
         <translation type="unfinished">Persian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="96" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
-        <location filename="../ui/mainwindow.cpp" line="3816" />
+        <location filename="../ui/mainwindow.cpp" line="99" />
+        <location filename="../ui/mainwindow.cpp" line="2410" />
+        <location filename="../ui/mainwindow.cpp" line="3872" />
         <source>Gujarati</source>
         <translation type="unfinished">Gujarati</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="97" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
+        <location filename="../ui/mainwindow.cpp" line="100" />
+        <location filename="../ui/mainwindow.cpp" line="2410" />
         <source>Urdu</source>
         <translation type="unfinished">Urdu</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="98" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
-        <location filename="../ui/mainwindow.cpp" line="3814" />
+        <location filename="../ui/mainwindow.cpp" line="101" />
+        <location filename="../ui/mainwindow.cpp" line="2411" />
+        <location filename="../ui/mainwindow.cpp" line="3870" />
         <source>Telugu</source>
         <translation type="unfinished">Telugu</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="99" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
-        <location filename="../ui/mainwindow.cpp" line="3815" />
+        <location filename="../ui/mainwindow.cpp" line="102" />
+        <location filename="../ui/mainwindow.cpp" line="2411" />
+        <location filename="../ui/mainwindow.cpp" line="3871" />
         <source>Marathi</source>
         <translation type="unfinished">Marathi</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="100" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
-        <location filename="../ui/mainwindow.cpp" line="3822" />
+        <location filename="../ui/mainwindow.cpp" line="103" />
+        <location filename="../ui/mainwindow.cpp" line="2411" />
+        <location filename="../ui/mainwindow.cpp" line="3878" />
         <source>Hebrew</source>
         <translation type="unfinished">Hebrew</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="101" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
-        <location filename="../ui/mainwindow.cpp" line="3813" />
+        <location filename="../ui/glossary_dialog.cpp" line="65" />
+        <location filename="../ui/mainwindow.cpp" line="104" />
+        <location filename="../ui/mainwindow.cpp" line="2412" />
+        <location filename="../ui/mainwindow.cpp" line="3869" />
         <source>Bengali</source>
         <translation type="unfinished">Bengali</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="102" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
-        <location filename="../ui/mainwindow.cpp" line="3811" />
+        <location filename="../ui/mainwindow.cpp" line="105" />
+        <location filename="../ui/mainwindow.cpp" line="2412" />
+        <location filename="../ui/mainwindow.cpp" line="3867" />
         <source>Tamil</source>
         <translation type="unfinished">Tamil</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="103" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
+        <location filename="../ui/glossary_dialog.cpp" line="64" />
+        <location filename="../ui/mainwindow.cpp" line="106" />
+        <location filename="../ui/mainwindow.cpp" line="2412" />
         <source>Ukrainian</source>
         <translation type="unfinished">Ukrainian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="104" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
-        <location filename="../ui/mainwindow.cpp" line="3825" />
+        <location filename="../ui/mainwindow.cpp" line="107" />
+        <location filename="../ui/mainwindow.cpp" line="2413" />
+        <location filename="../ui/mainwindow.cpp" line="3881" />
         <source>Tibetan</source>
         <translation type="unfinished">Tibetan</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="105" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
+        <location filename="../ui/mainwindow.cpp" line="108" />
+        <location filename="../ui/mainwindow.cpp" line="2413" />
         <source>Kazakh</source>
         <translation type="unfinished">Kazakh</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="106" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
-        <location filename="../ui/mainwindow.cpp" line="3826" />
+        <location filename="../ui/mainwindow.cpp" line="109" />
+        <location filename="../ui/mainwindow.cpp" line="2413" />
+        <location filename="../ui/mainwindow.cpp" line="3882" />
         <source>Mongolian</source>
         <translation type="unfinished">Mongolian</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="107" />
-        <location filename="../ui/mainwindow.cpp" line="2408" />
+        <location filename="../ui/mainwindow.cpp" line="110" />
+        <location filename="../ui/mainwindow.cpp" line="2414" />
         <source>Uyghur</source>
         <translation type="unfinished">Uyghur</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="108" />
-        <location filename="../ui/mainwindow.cpp" line="2408" />
+        <location filename="../ui/mainwindow.cpp" line="111" />
+        <location filename="../ui/mainwindow.cpp" line="2414" />
         <source>Cantonese</source>
         <translation type="unfinished">Cantonese</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="680" />
+        <location filename="../ui/mainwindow.cpp" line="686" />
         <source>Knowledge Base</source>
         <translation type="unfinished">Knowledge Base</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2421" />
+        <location filename="../ui/mainwindow.cpp" line="2427" />
         <source>Language</source>
         <translation type="unfinished">Language</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2442" />
+        <location filename="../ui/mainwindow.cpp" line="2448" />
         <source>Language change takes effect after restart</source>
         <translation type="unfinished">Language change takes effect after restart</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2450" />
+        <location filename="../ui/mainwindow.cpp" line="2456" />
         <source>OCR Model Size</source>
         <translation type="unfinished">OCR Model Size</translation>
     </message>
@@ -1334,152 +1435,172 @@ Drop files above to get started</translation>
         <translation type="unfinished">Large</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2473" />
+        <location filename="../ui/mainwindow.cpp" line="2479" />
         <source>Translation Model</source>
         <translation type="unfinished">Translation Model</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2510" />
+        <location filename="../ui/mainwindow.cpp" line="2516" />
         <source>Load Engines on Startup</source>
         <translation type="unfinished">Load Engines on Startup</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2515" />
+        <location filename="../ui/mainwindow.cpp" line="2521" />
         <source>Disable to reduce startup time. Engines load on demand.</source>
         <translation type="unfinished">Disable to reduce startup time. Engines load on demand.</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2531" />
+        <location filename="../ui/mainwindow.cpp" line="2537" />
         <source>OCR Engine</source>
         <translation type="unfinished">OCR Engine</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2532" />
+        <location filename="../ui/mainwindow.cpp" line="2538" />
         <source>Translator</source>
         <translation type="unfinished">Translator</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2533" />
+        <location filename="../ui/mainwindow.cpp" line="2539" />
         <source>Formula Recognition</source>
         <translation type="unfinished">Formula Recognition</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2534" />
+        <location filename="../ui/mainwindow.cpp" line="2540" />
         <source>Layout Analysis</source>
         <translation type="unfinished">Layout Analysis</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2535" />
+        <location filename="../ui/mainwindow.cpp" line="2541" />
         <source>Image Correction</source>
         <translation type="unfinished">Image Correction</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2536" />
+        <location filename="../ui/mainwindow.cpp" line="2542" />
         <source>Speech Recognition</source>
         <translation type="unfinished">Speech Recognition</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2537" />
+        <location filename="../ui/mainwindow.cpp" line="2543" />
         <source>Summarization Engine</source>
         <translation type="unfinished">Summarization Engine</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2544" />
+        <location filename="../ui/mainwindow.cpp" line="2550" />
         <source>GPU Settings</source>
         <translation type="unfinished">GPU Settings</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2549" />
+        <location filename="../ui/mainwindow.cpp" line="2555" />
         <source>Disable GPU to reduce VRAM. Restart required.</source>
         <translation type="unfinished">Disable GPU to reduce VRAM. Restart required.</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2554" />
+        <location filename="../ui/mainwindow.cpp" line="2560" />
         <source>Enable All GPU Acceleration</source>
         <translation type="unfinished">Enable All GPU Acceleration</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2589" />
+        <location filename="../ui/mainwindow.cpp" line="2595" />
         <source>Layout GPU</source>
         <translation type="unfinished">Layout GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2590" />
+        <location filename="../ui/mainwindow.cpp" line="2596" />
         <source>OCR GPU</source>
         <translation type="unfinished">OCR GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2591" />
+        <location filename="../ui/mainwindow.cpp" line="2597" />
         <source>VLM GPU</source>
         <translation type="unfinished">VLM GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2592" />
+        <location filename="../ui/mainwindow.cpp" line="2598" />
         <source>Image Correction GPU</source>
         <translation type="unfinished">Image Correction GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2593" />
+        <location filename="../ui/mainwindow.cpp" line="2599" />
         <source>Translator GPU</source>
         <translation type="unfinished">Translator GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2594" />
+        <location filename="../ui/mainwindow.cpp" line="2600" />
         <source>ASR GPU</source>
         <translation type="unfinished">ASR GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2595" />
+        <location filename="../ui/mainwindow.cpp" line="2601" />
         <source>Summarizer GPU</source>
         <translation type="unfinished">Summarizer GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2622" />
+        <location filename="../ui/mainwindow.cpp" line="2628" />
         <source>Knowledge Base Path</source>
         <translation type="unfinished">Knowledge Base Path</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2627" />
+        <location filename="../ui/mainwindow.cpp" line="2633" />
         <source>Storage directory for imported documents. Restart required.</source>
         <translation type="unfinished">Storage directory for imported documents. Restart required.</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2643" />
+        <location filename="../ui/mainwindow.cpp" line="2649" />
         <source>Browse…</source>
         <translation type="unfinished">Browse…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2651" />
+        <location filename="../ui/mainwindow.cpp" line="2657" />
         <source>Select Knowledge Base Folder</source>
         <translation type="unfinished">Select Knowledge Base Folder</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2659" />
+        <location filename="../ui/mainwindow.cpp" line="2665" />
         <source>Reset</source>
         <translation type="unfinished">Reset</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2750" />
+        <location filename="../ui/mainwindow.cpp" line="2692" />
+        <source>Terminology</source>
+        <translation type="unfinished">Terminology</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2697" />
+        <source>Inject terminology into translation to enforce consistent term usage.</source>
+        <translation type="unfinished">Inject terminology into translation to enforce consistent term usage.</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2705" />
+        <source>Enable Terminology</source>
+        <translation type="unfinished">Enable Terminology</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2718" />
+        <source>Manage…</source>
+        <translation type="unfinished">Manage…</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2800" />
         <source>Show Main Window</source>
         <translation type="unfinished">Show Main Window</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2755" />
+        <location filename="../ui/mainwindow.cpp" line="2805" />
         <source>Exit</source>
         <translation type="unfinished">Exit</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2943" />
-        <location filename="../ui/mainwindow.cpp" line="3028" />
-        <location filename="../ui/mainwindow.cpp" line="3098" />
+        <location filename="../ui/mainwindow.cpp" line="2993" />
+        <location filename="../ui/mainwindow.cpp" line="3078" />
+        <location filename="../ui/mainwindow.cpp" line="3148" />
         <source>Processing, please wait…</source>
         <translation type="unfinished">Processing, please wait…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2441" />
-        <location filename="../ui/mainwindow.cpp" line="2949" />
-        <location filename="../ui/mainwindow.cpp" line="3033" />
-        <location filename="../ui/mainwindow.cpp" line="3104" />
+        <location filename="../ui/mainwindow.cpp" line="2447" />
+        <location filename="../ui/mainwindow.cpp" line="2999" />
+        <location filename="../ui/mainwindow.cpp" line="3083" />
+        <location filename="../ui/mainwindow.cpp" line="3154" />
         <source>Prompt</source>
         <translation type="unfinished">Prompt</translation>
     </message>
@@ -1488,238 +1609,238 @@ Drop files above to get started</translation>
         <translation type="unfinished">AceTranslatePro is already running.</translation>
     </message>
     <message>
-        <location filename="../ui/main.cpp" line="129" />
+        <location filename="../ui/main.cpp" line="130" />
         <source>Loading config…</source>
         <translation type="unfinished">Loading config…</translation>
     </message>
     <message>
-        <location filename="../ui/main.cpp" line="134" />
+        <location filename="../ui/main.cpp" line="135" />
         <source>Loading engines…</source>
         <translation type="unfinished">Loading engines…</translation>
     </message>
     <message>
-        <location filename="../ui/main.cpp" line="137" />
+        <location filename="../ui/main.cpp" line="142" />
         <source>Engines loaded</source>
         <translation type="unfinished">Engines loaded</translation>
     </message>
     <message>
-        <location filename="../ui/main.cpp" line="147" />
+        <location filename="../ui/main.cpp" line="152" />
         <source>Initializing UI…</source>
         <translation type="unfinished">Initializing UI…</translation>
     </message>
     <message>
-        <location filename="../ui/main.cpp" line="151" />
+        <location filename="../ui/main.cpp" line="156" />
         <source>Startup complete</source>
         <translation type="unfinished">Startup complete</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2949" />
+        <location filename="../ui/mainwindow.cpp" line="2999" />
         <source>Enter text to translate</source>
         <translation type="unfinished">Enter text to translate</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2973" />
+        <location filename="../ui/mainwindow.cpp" line="3023" />
         <source>Screenshot cancelled</source>
         <translation type="unfinished">Screenshot cancelled</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2979" />
+        <location filename="../ui/mainwindow.cpp" line="3029" />
         <source>Screenshot Unavailable</source>
         <translation type="unfinished">Screenshot Unavailable</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2980" />
+        <location filename="../ui/mainwindow.cpp" line="3030" />
         <source>OCR engine failed to load. Please check if model files exist.
 Path: models/ocr/[tiny/small/medium]/</source>
         <translation type="unfinished">OCR engine failed to load. Please check if model files exist.
 Path: models/ocr/[tiny/small/medium]/</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3033" />
+        <location filename="../ui/mainwindow.cpp" line="3083" />
         <source>Drag or select input file</source>
         <translation type="unfinished">Drag or select input file</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3059" />
+        <location filename="../ui/mainwindow.cpp" line="3109" />
         <source>Translating…</source>
         <translation type="unfinished">Translating…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3091" />
+        <location filename="../ui/mainwindow.cpp" line="3141" />
         <source>Cannot load preview</source>
         <translation type="unfinished">Cannot load preview</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3104" />
+        <location filename="../ui/mainwindow.cpp" line="3154" />
         <source>Select input image</source>
         <translation type="unfinished">Select input image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3119" />
+        <location filename="../ui/mainwindow.cpp" line="3175" />
         <source>Select Model/DLL Directory</source>
         <translation type="unfinished">Select Model/DLL Directory</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3154" />
-        <location filename="../ui/mainwindow.cpp" line="3405" />
+        <location filename="../ui/mainwindow.cpp" line="3210" />
+        <location filename="../ui/mainwindow.cpp" line="3461" />
         <source>Processing…</source>
         <translation type="unfinished">Processing…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3185" />
+        <location filename="../ui/mainwindow.cpp" line="3241" />
         <source>Click to stop recording</source>
         <translation type="unfinished">Click to stop recording</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3186" />
+        <location filename="../ui/mainwindow.cpp" line="3242" />
         <source>Test mode: reading test.wav…</source>
         <translation type="unfinished">Test mode: reading test.wav…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3186" />
+        <location filename="../ui/mainwindow.cpp" line="3242" />
         <source>Recording… click to stop</source>
         <translation type="unfinished">Recording… click to stop</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3199" />
+        <location filename="../ui/mainwindow.cpp" line="3255" />
         <source>ASR Engine Not Loaded</source>
         <translation type="unfinished">ASR Engine Not Loaded</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3211" />
+        <location filename="../ui/mainwindow.cpp" line="3267" />
         <source>ASR DLL Interface Error</source>
         <translation type="unfinished">ASR DLL Interface Error</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3225" />
+        <location filename="../ui/mainwindow.cpp" line="3281" />
         <source>ASR Model Load Failed</source>
         <translation type="unfinished">ASR Model Load Failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3241" />
+        <location filename="../ui/mainwindow.cpp" line="3297" />
         <source>Test mode: test.wav not found</source>
         <translation type="unfinished">Test mode: test.wav not found</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3273" />
+        <location filename="../ui/mainwindow.cpp" line="3329" />
         <source>Test mode: loaded, recognizing</source>
         <translation type="unfinished">Test mode: loaded, recognizing</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3301" />
+        <location filename="../ui/mainwindow.cpp" line="3357" />
         <source>Microphone open failed</source>
         <translation type="unfinished">Microphone open failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3343" />
+        <location filename="../ui/mainwindow.cpp" line="3399" />
         <source>Speech complete</source>
         <translation type="unfinished">Speech complete</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3359" />
+        <location filename="../ui/mainwindow.cpp" line="3415" />
         <source>Speech recognition…</source>
         <translation type="unfinished">Speech recognition…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3370" />
+        <location filename="../ui/mainwindow.cpp" line="3426" />
         <source>Voice Input</source>
         <translation type="unfinished">Voice Input</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3442" />
-        <location filename="../ui/mainwindow.cpp" line="3451" />
-        <location filename="../ui/mainwindow.cpp" line="3454" />
+        <location filename="../ui/mainwindow.cpp" line="3498" />
+        <location filename="../ui/mainwindow.cpp" line="3507" />
+        <location filename="../ui/mainwindow.cpp" line="3510" />
         <source> Translation Complete</source>
         <translation type="unfinished"> Translation Complete</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2174" />
-        <location filename="../ui/mainwindow.cpp" line="3501" />
+        <location filename="../ui/mainwindow.cpp" line="2180" />
+        <location filename="../ui/mainwindow.cpp" line="3557" />
         <source>Completed</source>
         <translation type="unfinished">Completed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3518" />
+        <location filename="../ui/mainwindow.cpp" line="3574" />
         <source>Archive to KB</source>
         <translation type="unfinished">Archive to KB</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3532" />
+        <location filename="../ui/mainwindow.cpp" line="3588" />
         <source>Failed to init Knowledge Base</source>
         <translation type="unfinished">Failed to init Knowledge Base</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3551" />
+        <location filename="../ui/mainwindow.cpp" line="3607" />
         <source>Archived</source>
         <translation type="unfinished">Archived</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3556" />
+        <location filename="../ui/mainwindow.cpp" line="3612" />
         <source>Archived to Knowledge Base</source>
         <translation type="unfinished">Archived to Knowledge Base</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3560" />
+        <location filename="../ui/mainwindow.cpp" line="3616" />
         <source>Document archived: %1</source>
         <translation type="unfinished">Document archived: %1</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3594" />
+        <location filename="../ui/mainwindow.cpp" line="3650" />
         <source>Archive failed</source>
         <translation type="unfinished">Archive failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3625" />
+        <location filename="../ui/mainwindow.cpp" line="3681" />
         <source> Translation Complete: %1</source>
         <translation type="unfinished"> Translation Complete: %1</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3634" />
+        <location filename="../ui/mainwindow.cpp" line="3690" />
         <source>All %1 files translated</source>
         <translation type="unfinished">All %1 files translated</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3647" />
+        <location filename="../ui/mainwindow.cpp" line="3703" />
         <source>Translation Complete</source>
         <translation type="unfinished">Translation Complete</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3657" />
+        <location filename="../ui/mainwindow.cpp" line="3713" />
         <source>Error</source>
         <translation type="unfinished">Error</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3658" />
+        <location filename="../ui/mainwindow.cpp" line="3714" />
         <source>Translation Error</source>
         <translation type="unfinished">Translation Error</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3817" />
+        <location filename="../ui/mainwindow.cpp" line="3873" />
         <source>Malayalam</source>
         <translation type="unfinished">Malayalam</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3818" />
+        <location filename="../ui/mainwindow.cpp" line="3874" />
         <source>Kannada</source>
         <translation type="unfinished">Kannada</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3819" />
+        <location filename="../ui/mainwindow.cpp" line="3875" />
         <source>Punjabi</source>
         <translation type="unfinished">Punjabi</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3831" />
+        <location filename="../ui/mainwindow.cpp" line="3887" />
         <source>Voice %1 not found</source>
         <translation type="unfinished">Voice %1 not found</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3833" />
+        <location filename="../ui/mainwindow.cpp" line="3889" />
         <source>Open Settings</source>
         <translation type="unfinished">Open Settings</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="679" />
+        <location filename="../ui/mainwindow.cpp" line="685" />
         <source>File Translation</source>
         <translation type="unfinished">File Translation</translation>
     </message>
@@ -1727,68 +1848,68 @@ Path: models/ocr/[tiny/small/medium]/</translation>
 <context>
     <name>TranslateWorker</name>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="170" />
-        <location filename="../ui/mainwindow.cpp" line="226" />
+        <location filename="../ui/mainwindow.cpp" line="173" />
+        <location filename="../ui/mainwindow.cpp" line="229" />
         <source>Translating…</source>
         <translation type="unfinished">Translating…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="178" />
+        <location filename="../ui/mainwindow.cpp" line="181" />
         <source>Translation engine error: </source>
         <translation type="unfinished">Translation engine error: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="183" />
+        <location filename="../ui/mainwindow.cpp" line="186" />
         <source>Processing: </source>
         <translation type="unfinished">Processing: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="196" />
+        <location filename="../ui/mainwindow.cpp" line="199" />
         <source>File translation error: </source>
         <translation type="unfinished">File translation error: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="201" />
+        <location filename="../ui/mainwindow.cpp" line="204" />
         <source>Recognizing…</source>
         <translation type="unfinished">Recognizing…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="205" />
+        <location filename="../ui/mainwindow.cpp" line="208" />
         <source>Screenshot is empty</source>
         <translation type="unfinished">Screenshot is empty</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="235" />
+        <location filename="../ui/mainwindow.cpp" line="241" />
         <source>Screenshot translation error: </source>
         <translation type="unfinished">Screenshot translation error: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="240" />
+        <location filename="../ui/mainwindow.cpp" line="246" />
         <source>Translating image…</source>
         <translation type="unfinished">Translating image…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="244" />
+        <location filename="../ui/mainwindow.cpp" line="250" />
         <source>Cannot load image</source>
         <translation type="unfinished">Cannot load image</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="250" />
+        <location filename="../ui/mainwindow.cpp" line="256" />
         <source>Image translation failed</source>
         <translation type="unfinished">Image translation failed</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="259" />
+        <location filename="../ui/mainwindow.cpp" line="265" />
         <source>Image translation error: </source>
         <translation type="unfinished">Image translation error: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="265" />
+        <location filename="../ui/mainwindow.cpp" line="271" />
         <source>Translation error: </source>
         <translation type="unfinished">Translation error: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="267" />
+        <location filename="../ui/mainwindow.cpp" line="273" />
         <source>Unknown error (DLL load failure)</source>
         <translation type="unfinished">Unknown error (DLL load failure)</translation>
     </message>

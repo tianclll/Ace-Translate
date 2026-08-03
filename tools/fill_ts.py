@@ -270,6 +270,11 @@ EN_TO_ZH = {
     "Failed to delete term": "删除失败",
     "Cannot open file": "无法打开文件",
     "Terminology": "专有词",
+    "Inject terminology into translation to enforce consistent term usage.": "在翻译中注入术语，确保术语使用一致。",
+    "Enable Terminology": "启用术语库",
+    "Manage…": "管理…",
+    "Paste terminology text below, one term per line:": "在下方粘贴术语文本，每行一条：",
+    "term translation\\ntransformer 变换器\\nself-attention 自注意力机制\\nBERT BERT": "term translation\\ntransformer 变换器\\nself-attention 自注意力机制\\nBERT BERT",
 }
 
 EN_TO_JA = {
@@ -543,6 +548,9 @@ EN_TO_JA = {
     "Failed to delete term": "削除失敗",
     "Cannot open file": "ファイルを開けません",
     "Terminology": "用語集",
+    "Inject terminology into translation to enforce consistent term usage.": "翻訳に用語を注入し、用語の使用を統一します。",
+    "Enable Terminology": "用語集を有効化",
+    "Manage…": "管理…",
 }
 
 def fill_ts(ts_path, trans_map):

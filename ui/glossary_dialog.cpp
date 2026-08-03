@@ -105,11 +105,12 @@ void GlossaryDialog::setupUI() {
     closeBtn_->setFixedSize(28, 28);
     closeBtn_->setCursor(Qt::PointingHandCursor);
     closeBtn_->setFlat(true);
+    closeBtn_->setIcon(QIcon(":/icons/close.png"));
+    closeBtn_->setIconSize(QSize(16, 16));
     closeBtn_->setStyleSheet(
         "QPushButton { background: transparent; border: none; border-radius: 6px;"
-        " font-size: 16px; color: #6B7280; }"
-        "QPushButton:hover { background: #F3F4F6; color: #1C1C1E; }");
-    closeBtn_->setText("✕");
+        " }"
+        "QPushButton:hover { background: #F3F4F6; }");
     connect(closeBtn_, &QPushButton::clicked, this, &QDialog::reject);
     titleBar->addWidget(closeBtn_);
 
