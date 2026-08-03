@@ -1714,22 +1714,20 @@ void KnowledgeBasePage::onBatchExport() {
     QStringList skippedNames;
     for (int id : checkedDocIds_) {
         auto e = km.getEntry(id);
-        QString src = e.sourcePath;
-        if (src.isEmpty()) { skipCount++; skippedNames << (e.title.isEmpty() ? QString::number(id) : e.title); continue; }
-        QFileInfo si(src);
-        if (!si.exists() || !si.isFile()) { skipCount++; skippedNames << si.fileName(); continue; }
+        bool fromTranslation = !e.assetsDir.isEmpty();
+        QString exportFileName;
+        if (fromTranslation) {
+            exportFileName = e.title + ".md";
+        } else {
+            if (e.sourcePath.isEmpty()) { skipCount++; skippedNames << (e.title.isEmpty() ? QString::number(id) : e.title); continue; }
+            exportFileName = QFileInfo(e.sourcePath).fileName();
+        }
 
-        // 源文件旁可能带 assets/ 图片文件夹（markdown 以 assets/xxx 引用）。
-        // 只有当本文档的 markdown 确实引用了 assets/ 图片时才需要导出该文件夹，
-        // 避免把同目录下其它文件生成的 assets/ 一并误带过去。
-        QString assetsDir = si.absolutePath() + "/assets";
-        bool markdownRefsAssets = e.markdownContent.contains("assets/", Qt::CaseInsensitive);
-        bool hasAssets = markdownRefsAssets && QDir(assetsDir).exists();
+        bool hasAssets = fromTranslation && !e.assetsDir.isEmpty() && QDir(e.assetsDir).exists();
 
         QString destDir = dir;
         if (hasAssets) {
-            // 带图片的导出到一个独立子文件夹，避免不同文档的 assets 冲突
-            QString base = si.completeBaseName();
+            QString base = QFileInfo(exportFileName).completeBaseName();
             destDir = dir + "/" + base;
             int n = 2;
             while (QDir(destDir).exists())
@@ -1737,16 +1735,44 @@ void KnowledgeBasePage::onBatchExport() {
             QDir().mkpath(destDir);
         }
 
-        QString dest = destDir + "/" + si.fileName();
+        QString dest = destDir + "/" + exportFileName;
         if (QFile::exists(dest)) QFile::remove(dest);
-        bool fileOk = QFile::copy(src, dest);
+        bool fileOk = false;
+        if (fromTranslation && !e.markdownContent.isEmpty()) {
+            // 直接写入翻译后的 markdown 内容
+            QFile f(dest);
+            fileOk = f.open(QIODevice::WriteOnly | QIODevice::Text);
+            if (fileOk) {
+                QTextStream out(&f);
+                out << e.markdownContent;
+                f.close();
+            }
+        } else {
+            QFile::copy(e.sourcePath, dest);
+            fileOk = QFile::exists(dest);
+        }
 
-        // 导出源文件即算成功；assets 图片尽力复制，失败不影响导出
-        if (fileOk && hasAssets)
-            copyDirectoryRecursive(assetsDir, destDir + "/assets");
+        if (fileOk && hasAssets) {
+            copyDirectoryRecursive(e.assetsDir, destDir + "/assets");
+            // 将 markdown 中的 assets_xxx/ 路径改写为 assets/
+            QFile mdFile(dest);
+            if (mdFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&mdFile);
+                QString content = in.readAll();
+                mdFile.close();
+                QFileInfo assetsFi(e.assetsDir);
+                QString assetsName = assetsFi.fileName();
+                content.replace(assetsName + "/", "assets/");
+                if (mdFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+                    QTextStream out(&mdFile);
+                    out << content;
+                    mdFile.close();
+                }
+            }
+        }
 
         if (fileOk) okCount++;
-        else { skipCount++; skippedNames << si.fileName(); }
+        else { skipCount++; skippedNames << exportFileName; }
     }
 
     emit statusMessage(QStringLiteral("%1 %2").arg(okCount).arg(tr("documents exported")));

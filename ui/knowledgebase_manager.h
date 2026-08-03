@@ -18,6 +18,7 @@ struct KnowledgeEntry {
     QString markdownContent; // 仅在 getEntry 时填充的内存缓存
     QString summary;         // AI 生成摘要
     QString parseStatus;     // pending/processing/done/error
+    QString assetsDir;       // 图片目录（绝对路径），导出时用来复制图片
 };
 
 class KnowledgeBaseManager : public QObject {

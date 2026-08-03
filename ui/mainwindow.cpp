@@ -2283,14 +2283,17 @@ void MainWindow::addFileToList(const QString& filePath) {
         if (savePath.isEmpty()) return;
         if (QFile::exists(outPath)) {
             if (QFile::copy(outPath, savePath)) {
-                // 复制同目录下的 assets_* 目录（如果存在）
+                // 只复制该文件对应的 assets 目录
                 {
-                    QString outDir = QFileInfo(outPath).absolutePath();
-                    QDir dir(outDir);
-                    QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
-                    for (const QString& ad : assetDirs) {
-                        QString srcAssets = outDir + "/" + ad;
-                        QString dstAssets = QFileInfo(savePath).absolutePath() + "/" + ad;
+                    QString base = QFileInfo(outPath).baseName();
+                    for (QChar& c : base) {
+                        if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                            c = QLatin1Char('_');
+                    }
+                    if (!base.isEmpty()) {
+                        if (base.length() > 30) base = base.left(30);
+                        QString srcAssets = QFileInfo(outPath).absolutePath() + "/assets_" + base;
+                        QString dstAssets = QFileInfo(savePath).absolutePath() + "/assets_" + base;
                         if (QDir(srcAssets).exists()) {
                             copyDirectory(srcAssets, dstAssets);
                             QDir(srcAssets).removeRecursively();
@@ -2338,17 +2341,33 @@ void MainWindow::addFileToList(const QString& filePath) {
         // 清理该文件对应的临时文件和 assets_* 目录
         int pathIdx = filePendingPaths_.indexOf(filePath);
         if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
-            QFile::remove(fileTempOutputPaths_[pathIdx]);
-            QString outDir = QFileInfo(fileTempOutputPaths_[pathIdx]).absolutePath();
-            QDir dir(outDir);
-            QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
-            for (const QString& ad : assetDirs)
-                QDir(outDir + "/" + ad).removeRecursively();
+            QString tempPath = fileTempOutputPaths_[pathIdx];
+            if (!tempPath.isEmpty()) {
+                QFile::remove(tempPath);
+                QString base = QFileInfo(filePath).baseName();
+                for (QChar& c : base) {
+                    if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                        c = QLatin1Char('_');
+                }
+                if (!base.isEmpty()) {
+                    if (base.length() > 30) base = base.left(30);
+                    QString assetDir = QFileInfo(tempPath).absolutePath() + "/assets_" + base;
+                    if (QDir(assetDir).exists())
+                        QDir(assetDir).removeRecursively();
+                }
+            }
             fileTempOutputPaths_[pathIdx].clear();
         }
         fileListLayout_->removeWidget(fileItem);
         fileItem->deleteLater();
         filePendingPaths_.removeAll(filePath);
+        // 调整 fileCurrentIdx_：如果删除的文件在当前文件之前，索引前移；
+        // 如果删除的就是当前翻译的文件，重置索引以便重新开始
+        if (pathIdx == fileCurrentIdx_) {
+            fileCurrentIdx_ = 0;
+        } else if (pathIdx >= 0 && pathIdx < fileCurrentIdx_) {
+            --fileCurrentIdx_;
+        }
     });
     itemLayout->addWidget(removeBtn);
 
@@ -3122,12 +3141,13 @@ void MainWindow::onProcessFile() {
     worker->enableEnhance = fileEnableEnhance_->isChecked();
     worker->currentFilePath = inputPath;
     // 更新文件列表中对应文件的状态为"翻译中"
-    // 用 fileCurrentIdx_ 直接匹配 layout 中的位置
-    int layoutIdx = 0;
+    // 根据文件路径匹配，不受删除操作影响
+    QString currentFilePath = fileCurrentIdx_ < filePendingPaths_.size()
+        ? filePendingPaths_[fileCurrentIdx_] : QString();
     for (int i = 0; i < fileListLayout_->count(); ++i) {
         auto* item = fileListLayout_->itemAt(i);
         if (!item || !item->widget()) continue;
-        if (layoutIdx == fileCurrentIdx_) {
+        if (item->widget()->property("filePath").toString() == currentFilePath) {
             QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
             for (int li = 0; li < labels.size(); ++li) {
                 if (labels[li]->property("fileStatus").isValid()) {
@@ -3138,7 +3158,6 @@ void MainWindow::onProcessFile() {
             }
             break;
         }
-        ++layoutIdx;
     }
     runWorker(worker);
 }
@@ -3595,42 +3614,51 @@ void MainWindow::onWorkerFinished(const QString& result) {
 
         // 更新当前文件的状态为已完成
         if (fileCurrentIdx_ < filePendingPaths_.size()) {
-            int layoutIdx = 0;
+            QString completedPath = filePendingPaths_[fileCurrentIdx_];
             for (int i = 0; i < fileListLayout_->count(); ++i) {
                 auto* item = fileListLayout_->itemAt(i);
                 if (!item || !item->widget()) continue;
-                if (layoutIdx == fileCurrentIdx_) {
-                    QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
-                    for (int li = 0; li < labels.size(); ++li) {
-                        if (labels[li]->property("fileStatus").isValid()) {
-                            labels[li]->setText(tr("Completed"));
-                            labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
-                            break;
-                        }
+                if (item->widget()->property("filePath").toString() == completedPath) {
+                QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+                for (int li = 0; li < labels.size(); ++li) {
+                    if (labels[li]->property("fileStatus").isValid()) {
+                        labels[li]->setText(tr("Completed"));
+                        labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
+                        break;
                     }
-                    QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
-                    bool hasArchive = false;
-                    for (int bi = 0; bi < btns.size(); ++bi) {
-                        if (btns[bi]->text() == tr("Download")) {
-                            btns[bi]->setProperty("outputPath", result);
-                            btns[bi]->show();
-                        }
-                        if (btns[bi]->property("kbArchive").isValid())
-                            hasArchive = true;
+                }
+                QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
+                bool hasArchive = false;
+                for (int bi = 0; bi < btns.size(); ++bi) {
+                    if (btns[bi]->text() == tr("Download")) {
+                        btns[bi]->setProperty("outputPath", result);
+                        btns[bi]->show();
                     }
-                    // 添加"归档至知识库"按钮
-                    if (!hasArchive && fileCurrentIdx_ < filePendingPaths_.size()) {
-                        auto* archiveBtn = new QPushButton(tr("Archive to KB"));
-                        archiveBtn->setFixedHeight(24);
-                        archiveBtn->setCursor(Qt::PointingHandCursor);
-                        archiveBtn->setStyleSheet(
-                            "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
-                            " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
-                            "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
-                        archiveBtn->setProperty("kbArchive", true);
-                        QString srcForArchive = filePendingPaths_[fileCurrentIdx_];
-                        QString resultForArchive = result;
-                        connect(archiveBtn, &QPushButton::clicked, this, [this, archiveBtn, srcForArchive, resultForArchive]() {
+                    if (btns[bi]->property("kbArchive").isValid())
+                        hasArchive = true;
+                }
+                // 添加"归档至知识库"按钮
+                if (!hasArchive && fileCurrentIdx_ < filePendingPaths_.size()) {
+                    auto* archiveBtn = new QPushButton(tr("Archive to KB"));
+                    archiveBtn->setFixedHeight(24);
+                    archiveBtn->setCursor(Qt::PointingHandCursor);
+                    archiveBtn->setStyleSheet(
+                        "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
+                        " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
+                        "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
+                    archiveBtn->setProperty("kbArchive", true);
+                    QString srcForArchive = filePendingPaths_[fileCurrentIdx_];
+                    QString resultForArchive = result;
+                    // 计算 assets 目录路径（与 C++ 侧生成逻辑一致）
+                    QString assetsBase = QFileInfo(srcForArchive).baseName();
+                    for (QChar& c : assetsBase) {
+                        if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                            c = QLatin1Char('_');
+                    }
+                    if (!assetsBase.isEmpty()) {
+                        if (assetsBase.length() > 30) assetsBase = assetsBase.left(30);
+                    }
+                    connect(archiveBtn, &QPushButton::clicked, this, [this, archiveBtn, srcForArchive, resultForArchive, assetsBase]() {
                             QFileInfo fi(srcForArchive);
                             auto& km = KnowledgeBaseManager::getInstance();
                             if (!km.initialize()) {
@@ -3641,6 +3669,9 @@ void MainWindow::onWorkerFinished(const QString& result) {
                             entry.title = fi.fileName();
                             entry.fileType = fi.suffix().toLower();
                             entry.sourcePath = srcForArchive;
+                            // 存储 assets 目录路径（与 .md 同目录的 assets_xxx）
+                            QFileInfo resultFi(resultForArchive);
+                            entry.assetsDir = resultFi.absolutePath() + "/assets_" + assetsBase;
                             entry.fileSize = fi.size();
                             if (fileLangCombo_) entry.translatedLang = fileLangCombo_->currentText();
 
@@ -3719,7 +3750,6 @@ void MainWindow::onWorkerFinished(const QString& result) {
                     }
                     break;
                 }
-                ++layoutIdx;
             }
         }
         if (statusIcon_) {

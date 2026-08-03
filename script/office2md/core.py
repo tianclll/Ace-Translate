@@ -79,11 +79,11 @@ def convert(
         try:
             rel_to_img = img_dir.relative_to(output_path.parent)
             img_prefix = str(rel_to_img) + "/"
-            # Replace all occurrences of assets/xxx with the correct relative path
-            md = md.replace("assets/", img_prefix)
-            md = md.replace("assets\\", str(rel_to_img).replace("/", "\\") + "\\")
         except ValueError:
-            pass  # img_dir not under output_dir, skip rewrite
+            # img_dir not under output dir (e.g. temp md in exe_dir/work/, assets in output_dir/)
+            img_prefix = img_dir.name + "/"
+        md = md.replace("assets/", img_prefix)
+        md = md.replace("assets\\", img_prefix.replace("/", "\\"))
 
         output_path.write_text(md, encoding="utf-8")
 

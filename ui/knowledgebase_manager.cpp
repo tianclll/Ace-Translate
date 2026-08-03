@@ -103,6 +103,10 @@ bool KnowledgeBaseManager::createTables() {
         return false;
     }
 
+    // 迁移：为已有表添加可能缺失的列
+    query.exec("ALTER TABLE documents ADD COLUMN assets_dir TEXT DEFAULT ''");
+    query.exec("ALTER TABLE documents ADD COLUMN parse_status TEXT DEFAULT 'done'");
+
     // tags 表
     query.exec(R"(
         CREATE TABLE IF NOT EXISTS tags (
@@ -188,7 +192,7 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
     // 更新真实数据（包括 created_at）
     QSqlQuery update(db_);
     update.prepare("UPDATE documents SET title=:t, file_type=:ft, source_path=:sp, "
-                   "md_path=:mp, lang=:l, file_size=:fs, created_at=:ca WHERE id=:id");
+                   "md_path=:mp, lang=:l, file_size=:fs, created_at=:ca, assets_dir=:ad WHERE id=:id");
     update.bindValue(":t",   entry.title);
     update.bindValue(":ft",  entry.fileType);
     update.bindValue(":sp",  entry.sourcePath);
@@ -196,6 +200,7 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
     update.bindValue(":l",   entry.translatedLang);
     update.bindValue(":fs",  entry.fileSize);
     update.bindValue(":ca",  QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
+    update.bindValue(":ad",  entry.assetsDir);
     update.bindValue(":id",  newId);
 
     if (!update.exec()) {
@@ -279,7 +284,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getAllEntries(int limit, int offset)
     if (!initialized_) return list;
 
     QSqlQuery query(db_);
-    query.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+    query.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
                   "FROM documents ORDER BY id DESC LIMIT :lim OFFSET :off");
     query.bindValue(":lim", limit);
     query.bindValue(":off", offset);
@@ -296,6 +301,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getAllEntries(int limit, int offset)
         e.fileSize       = query.value(6).toLongLong();
         e.summary        = query.value(7).toString();
         e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
+        e.assetsDir      = query.value(9).toString();
         list.append(e);
     }
     return list;
@@ -306,7 +312,7 @@ KnowledgeEntry KnowledgeBaseManager::getEntry(int id) {
     if (!initialized_) return e;
 
     QSqlQuery query(db_);
-    query.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+    query.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
                   "FROM documents WHERE id = :id");
     query.bindValue(":id", id);
     if (!query.exec() || !query.next()) return e;
@@ -320,6 +326,7 @@ KnowledgeEntry KnowledgeBaseManager::getEntry(int id) {
     e.fileSize       = query.value(6).toLongLong();
     e.summary        = query.value(7).toString();
     e.createdAt      = QDateTime::fromString(query.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
+    e.assetsDir      = query.value(9).toString();
 
     // 读取 .md 文件内容
     QString fullPath = storagePath() + e.mdFilePath;
@@ -342,10 +349,28 @@ int KnowledgeBaseManager::entryCount() const {
 bool KnowledgeBaseManager::exportEntry(int id, const QString& outputPath) {
     KnowledgeEntry e = getEntry(id);
     if (e.id < 0) return false;
+    // 文件翻译归档的导出 .md，知识库直接上传的导出源文件
+    QString srcPath = !e.assetsDir.isEmpty()
+        ? storagePath() + e.mdFilePath
+        : e.sourcePath;
+    if (srcPath.isEmpty()) return false;
     QFile f(outputPath);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
     QTextStream out(&f);
-    out << e.markdownContent;
+    if (!e.assetsDir.isEmpty() && !e.markdownContent.isEmpty()) {
+        QString content = e.markdownContent;
+        QFileInfo assetsFi(e.assetsDir);
+        content.replace(assetsFi.fileName() + "/", "assets/");
+        out << content;
+    } else {
+        QFile srcFile(srcPath);
+        if (srcFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            out << srcFile.readAll();
+        } else {
+            f.close();
+            return false;
+        }
+    }
     f.close();
     return true;
 }
@@ -359,16 +384,16 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByDate(const QString& from
 
     QSqlQuery q(db_);
     if (!from.isEmpty() && !to.isEmpty()) {
-        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
                   "FROM documents WHERE created_at BETWEEN :from AND :to ORDER BY id DESC");
         q.bindValue(":from", from);
         q.bindValue(":to", to);
     } else if (!from.isEmpty()) {
-        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
                   "FROM documents WHERE created_at >= :from ORDER BY id DESC");
         q.bindValue(":from", from);
     } else if (!to.isEmpty()) {
-        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+        q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
                   "FROM documents WHERE created_at <= :to ORDER BY id DESC");
         q.bindValue(":to", to);
     } else {
@@ -386,6 +411,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByDate(const QString& from
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
         e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
+        e.assetsDir      = q.value(9).toString();
         list.append(e);
     }
     return list;
@@ -469,7 +495,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::searchEntries(const QString& keyword
     QList<KnowledgeEntry> list;
     if (!initialized_ || keyword.trimmed().isEmpty()) return getAllEntries();
     QSqlQuery q(db_);
-    q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at "
+    q.prepare("SELECT id, title, file_type, source_path, md_path, lang, file_size, summary, created_at, assets_dir "
               "FROM documents WHERE title LIKE :kw OR summary LIKE :kw2 ORDER BY id DESC");
     QString like = "%" + keyword.trimmed() + "%";
     q.bindValue(":kw", like);
@@ -486,6 +512,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::searchEntries(const QString& keyword
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
         e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
+        e.assetsDir      = q.value(9).toString();
         list.append(e);
     }
     return list;
@@ -496,7 +523,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByTag(int tagId) {
     if (!initialized_) return list;
     QSqlQuery q(db_);
     q.prepare("SELECT d.id, d.title, d.file_type, d.source_path, d.md_path, d.lang, "
-              "d.file_size, d.summary, d.created_at "
+              "d.file_size, d.summary, d.created_at, d.assets_dir "
               "FROM documents d JOIN document_tags dt ON d.id=dt.doc_id "
               "WHERE dt.tag_id=:tid ORDER BY d.id DESC");
     q.bindValue(":tid", tagId);
@@ -512,6 +539,7 @@ QList<KnowledgeEntry> KnowledgeBaseManager::getEntriesByTag(int tagId) {
         e.fileSize       = q.value(6).toLongLong();
         e.summary        = q.value(7).toString();
         e.createdAt      = QDateTime::fromString(q.value(8).toString(), "yyyy-MM-dd HH:mm:ss");
+        e.assetsDir      = q.value(9).toString();
         list.append(e);
     }
     return list;
