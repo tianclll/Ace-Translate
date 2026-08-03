@@ -190,16 +190,16 @@ namespace docmind {
         return pages;
     }
 
-// 自动生成输出路径（放在 exe 同目录下的 .work/ 中）
+// 自动生成输出路径
     static std::string auto_output_path(const std::string& input_path, const std::string& ext) {
-        std::string exe_dir = get_exe_directory();
         size_t slash = input_path.find_last_of("\\/");
-        std::string base = (slash != std::string::npos) ? input_path.substr(slash + 1) : input_path;
+        std::string dir = (slash != std::string::npos) ? input_path.substr(0, slash + 1) : "";
+        std::string base = input_path.substr(slash + 1);
         size_t dot = base.find_last_of('.');
         if (dot != std::string::npos) base = base.substr(0, dot);
         std::string out_ext = (ext == "txt") ? ".txt" : ".md";
         std::string out_base = (ext == "txt") ? base + "_translated" : base;
-        return exe_dir + "\\.work\\" + out_base + out_ext;
+        return dir + out_base + out_ext;
     }
 
 // 创建目录（若不存在）
@@ -356,17 +356,15 @@ namespace docmind {
         if (GetFileAttributesA(converter_exe.c_str()) == INVALID_FILE_ATTRIBUTES)
             throw std::runtime_error("office2md.exe not found at: " + converter_exe);
 
-        // 临时 .md 放在 exe 同目录下的 .work/ 目录中
-        std::string work_dir = base_dir + "\\.work";
+        // 创建目录（确保 assets 子目录存在）
         std::error_code ec;
-        std::filesystem::create_directories(work_dir, ec);
         std::filesystem::create_directories(assets_dir, ec);
 
         // 使用随机数生成唯一文件名（与 get_temp_md_path 一致）
         static std::mt19937 rng(static_cast<unsigned>(std::time(nullptr) + GetCurrentProcessId()));
         std::uniform_int_distribution<int> dist(1000, 9999);
         std::string filename = "docmd_" + std::to_string(dist(rng)) + "_" + std::to_string(GetCurrentProcessId()) + ".md";
-        std::string temp_md = work_dir + "\\" + filename;
+        std::string temp_md = output_dir + filename;
         // 若文件已存在（极低概率），先删除
         std::remove(temp_md.c_str());
 
@@ -456,16 +454,10 @@ namespace docmind {
             throw std::runtime_error("No file extension.");
         }
 
-        // 确定最终输出路径（统一放到 exe 同目录下的 .work/ 中）
-        std::string final_output = auto_output_path(input_path, ext);
-        if (!output_path.empty()) {
-            size_t uslash = output_path.find_last_of("\\/");
-            std::string user_base = (uslash != std::string::npos)
-                ? output_path.substr(uslash + 1) : output_path;
-            size_t udot = user_base.find_last_of('.');
-            if (udot != std::string::npos) user_base = user_base.substr(0, udot);
-            std::string out_ext = (ext == "txt") ? ".txt" : ".md";
-            final_output = get_exe_directory() + "\\.work\\" + user_base + out_ext;
+        // 确定最终输出路径
+        std::string final_output = output_path;
+        if (final_output.empty()) {
+            final_output = auto_output_path(input_path, ext);
         }
 
         // 在确定 final_output 之后，提取输出目录

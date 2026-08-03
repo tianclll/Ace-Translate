@@ -146,7 +146,7 @@ bool KnowledgeBaseManager::createTables() {
     return true;
 }
 
-bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
+bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId, bool writeMd) {
     if (!ensureDb()) return false;
 
     // 先插入占位行获取 ID
@@ -163,49 +163,51 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId) {
         return false;
     }
 
-    // 写入 .md 文件（用文件名做文件名，避免冲突）
-    QString mdDir = storagePath() + "md/";
-    QDir().mkpath(mdDir);
-    QString safeName = entry.title;
-    safeName.replace(QRegularExpression("[^a-zA-Z0-9_一-鿿\\.-]"), "_");
-    if (safeName.isEmpty() || safeName.length() > 80)
-        safeName = QString::number(newId);
-    QString mdFilePath = mdDir + safeName + ".md";
-    // 尝试创建 .md 文件并用 QFile::exists 验证
-    QFile file(mdFilePath);
-    bool fileOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
-    if (!fileOk) {
-        QString errMsg = QStringLiteral("[KB] FAIL\nmdDir: %1\nmdFile: %2\nerror: %3")
-            .arg(mdDir, mdFilePath, file.errorString());
-        MessageBoxA(nullptr, errMsg.toUtf8().constData(), "KB Debug", MB_OK);
-        // 回滚
-        QSqlQuery del(db_);
-        del.prepare("DELETE FROM documents WHERE id = :id");
-        del.bindValue(":id", newId);
-        del.exec();
-        return false;
+    QString mdPath;
+    QString assetsDir;
+    if (writeMd) {
+        // 写入 .md 文件（用文件名做文件名，避免冲突）
+        QString mdDir = storagePath() + "md/";
+        QDir().mkpath(mdDir);
+        QString safeName = entry.title;
+        safeName.replace(QRegularExpression("[^a-zA-Z0-9_一-鿿\\.-]"), "_");
+        if (safeName.isEmpty() || safeName.length() > 80)
+            safeName = QString::number(newId);
+        mdPath = "md/" + safeName + ".md";
+        QFile file(mdDir + safeName + ".md");
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QString errMsg = QStringLiteral("[KB] FAIL\nmdDir: %1\nerror: %2")
+                .arg(mdDir, file.errorString());
+            MessageBoxA(nullptr, errMsg.toUtf8().constData(), "KB Debug", MB_OK);
+            QSqlQuery del(db_);
+            del.prepare("DELETE FROM documents WHERE id = :id");
+            del.bindValue(":id", newId);
+            del.exec();
+            return false;
+        }
+        QTextStream out(&file);
+        out << entry.markdownContent;
+        file.close();
+        assetsDir = entry.assetsDir;
     }
-    QTextStream out(&file);
-    out << entry.markdownContent;
-    file.close();
 
-    // 更新真实数据（包括 created_at）
+    // 更新真实数据
     QSqlQuery update(db_);
     update.prepare("UPDATE documents SET title=:t, file_type=:ft, source_path=:sp, "
                    "md_path=:mp, lang=:l, file_size=:fs, created_at=:ca, assets_dir=:ad WHERE id=:id");
     update.bindValue(":t",   entry.title);
     update.bindValue(":ft",  entry.fileType);
     update.bindValue(":sp",  entry.sourcePath);
-    update.bindValue(":mp",  QString("md/%1.md").arg(safeName));
+    update.bindValue(":mp",  mdPath);
     update.bindValue(":l",   entry.translatedLang);
     update.bindValue(":fs",  entry.fileSize);
     update.bindValue(":ca",  QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
-    update.bindValue(":ad",  entry.assetsDir);
+    update.bindValue(":ad",  assetsDir);
     update.bindValue(":id",  newId);
 
     if (!update.exec()) {
         qWarning() << "[KB] UPDATE entry failed:" << update.lastError().text();
-        QFile::remove(mdFilePath);
+        if (writeMd) QFile::remove(storagePath() + mdPath);
         QSqlQuery del(db_);
         del.prepare("DELETE FROM documents WHERE id = :id");
         del.bindValue(":id", newId);
@@ -229,7 +231,7 @@ bool KnowledgeBaseManager::deleteEntry(int id) {
         mdPath = q.value(0).toString();
     }
 
-    // 删除 .md 文件
+    // 删除 .md 文件（仅当存在时）
     if (!mdPath.isEmpty()) {
         QFile::remove(storagePath() + mdPath);
     }

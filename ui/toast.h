@@ -16,7 +16,7 @@ class ToastNotification : public QFrame {
     Q_PROPERTY(qreal windowOpacity READ windowOpacity WRITE setWindowOpacity)
 public:
     static void show(QWidget* parent, const QString& message, int durationMs = 3000,
-                     const QColor& bgColor = QColor(52, 199, 89),
+                     const QColor& bgColor = QColor(11, 124, 114),
                      const QString& iconPath = QString(),
                      const QString& actionText = QString(),
                      const QString& actionUrl = QString());

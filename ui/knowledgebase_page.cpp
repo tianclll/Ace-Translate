@@ -735,12 +735,15 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
     titleLbl->setStyleSheet("font-size: 13px; font-weight: 500; color: #1C1C1E; background: transparent; border: none;");
     titleRow->addWidget(titleLbl, 1);
 
-    // 展开/折叠摘要的小按钮
-    auto* sumToggle = new QPushButton("▶");
-    sumToggle->setFixedSize(18, 18);
+    // 展开/折叠摘要的按钮
+    auto* sumToggle = new QPushButton;
+    sumToggle->setProperty("_kb_sumToggle", true);
+    sumToggle->setFixedSize(22, 22);
     sumToggle->setCursor(Qt::PointingHandCursor);
+    sumToggle->setText("▶");
+    sumToggle->setToolTip(tr("Show summary"));
     sumToggle->setStyleSheet(
-        "QPushButton { border: none; border-radius: 3px; font-size: 8px;"
+        "QPushButton { border: none; border-radius: 4px; font-size: 10px;"
         " color: #9CA3AF; background: transparent; padding: 0px; }"
         "QPushButton:hover { background: #E8F0EF; color: #0B7C72; }");
     titleRow->addWidget(sumToggle);
@@ -828,42 +831,6 @@ QWidget* KnowledgeBasePage::createListItem(int id, const QString& title,
 
     connect(viewBtn, &QPushButton::clicked, this, [this, id]() { showDocumentDetail(id); });
     connect(delBtn, &QPushButton::clicked, this, [this, id, row]() {
-        RoundedDlg rd(this);
-        auto* dlg = rd.dlg;
-        auto* lay = rd.lay;
-
-        auto* title = new QLabel(tr("Delete"));
-        title->setStyleSheet("font-size: 15px; font-weight: 600; color: #1C1C1E; background: transparent;");
-        lay->addWidget(title);
-
-        auto* hint = new QLabel(tr("Delete this document?"));
-        hint->setWordWrap(true);
-        hint->setStyleSheet("font-size: 12px; color: #374151; background: transparent;");
-        lay->addWidget(hint);
-
-        lay->addSpacing(6);
-
-        auto* btnRow = new QHBoxLayout;
-        btnRow->setContentsMargins(0, 4, 0, 0);
-        btnRow->setSpacing(8);
-        btnRow->addStretch();
-        auto* cancelBtn = new QPushButton(tr("Cancel"));
-        cancelBtn->setObjectName("secondaryBtn");
-        cancelBtn->setFixedHeight(30);
-        cancelBtn->setCursor(Qt::PointingHandCursor);
-        connect(cancelBtn, &QPushButton::clicked, dlg, &QDialog::reject);
-        btnRow->addWidget(cancelBtn);
-        auto* delBtn2 = new QPushButton(tr("Delete"));
-        delBtn2->setObjectName("primaryBtn");
-        delBtn2->setFixedHeight(30);
-        delBtn2->setCursor(Qt::PointingHandCursor);
-        connect(delBtn2, &QPushButton::clicked, dlg, &QDialog::accept);
-        btnRow->addWidget(delBtn2);
-        lay->addLayout(btnRow);
-
-        rd.applyDialogSize(300);
-
-        if (dlg->exec() != QDialog::Accepted) return;
         KnowledgeBaseManager::getInstance().deleteEntry(id);
         row->hide();
         row->deleteLater();
@@ -1062,6 +1029,13 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
         if (me->button() == Qt::LeftButton) {
+            // 箭头按钮和操作按钮的点击不触发 checkbox toggle
+            for (QWidget* p = w; p; p = p->parentWidget()) {
+                if (p->property("_kb_sumToggle").isValid())
+                    return QWidget::eventFilter(obj, event);
+                if (qobject_cast<QPushButton*>(p))
+                    return QWidget::eventFilter(obj, event);
+            }
             if (auto* cb = rowWidget->findChild<QCheckBox*>()) {
                 cb->setChecked(!cb->isChecked());
             }
@@ -1236,14 +1210,9 @@ void KnowledgeBasePage::processNextFile(int myGen) {
 
     QString ext = task.fileType;
     if (ext == "md" || ext == "txt") {
-        QString markdown;
-        QFile f(task.filePath);
-        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            markdown = QString::fromUtf8(f.readAll());
-            f.close();
-        }
         processIndex_++;
-        finishEntry(task, markdown);
+        // 直接导入：不生成 .md 和资源文件，只保存原文件
+        finishEntryDirect(task);
         QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
     } else {
         QString filePath = task.filePath;
@@ -1265,6 +1234,10 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         std::thread([onFinish, filePath, fileType]() {
             QString md;
             try {
+                auto& km = KnowledgeBaseManager::getInstance();
+                km.initialize();
+                // KB 导入：输出到知识库目录
+                std::string kbDir = km.storagePath().toStdString();
                 std::string baseDir = QCoreApplication::applicationDirPath().toStdString();
                 auto& cfg = docmind::ConfigManager::getInstance();
                 float threshold = cfg.getNestedJson("defaults").value("layout_threshold", nlohmann::json(0.5)).get<float>();
@@ -1273,14 +1246,42 @@ void KnowledgeBasePage::processNextFile(int myGen) {
                 bool enable_warp = defaults.value("enable_warp", nlohmann::json(true)).get<bool>();
                 bool enable_enhance = defaults.value("enable_enhance", nlohmann::json(true)).get<bool>();
                 std::string extracted = extract_file_text(
-                    filePath.toStdString(), "", baseDir,
-                    threshold, dpi, enable_warp, enable_enhance);
+                    filePath.toStdString(), kbDir + filePath.toStdString().substr(filePath.toStdString().find_last_of("\\/") + 1),
+                    baseDir, threshold, dpi, enable_warp, enable_enhance);
                 if (!extracted.empty()) md = QString::fromStdString(extracted);
             } catch (...) {}
             QMetaObject::invokeMethod(QCoreApplication::instance(), [onFinish, md]() {
                 onFinish(md);
             }, Qt::QueuedConnection);
         }).detach();
+    }
+}
+
+// ============================================================
+// finishEntryDirect — 直接导入，只保存原文件路径，不生成 .md 和资源
+// ============================================================
+void KnowledgeBasePage::finishEntryDirect(const ImportTask& task) {
+    auto& km = KnowledgeBaseManager::getInstance();
+    KnowledgeEntry entry;
+    entry.title = task.title;
+    entry.fileType = task.fileType;
+    entry.sourcePath = task.filePath;
+    entry.fileSize = task.fileSize;
+    entry.markdownContent.clear();
+    int newId = -1;
+    if (km.addEntry(entry, &newId, false)) {
+        importCount_++;
+        // 应用预设标签
+        int presetTagId = (tagFilterCombo_ && tagFilterCombo_->currentData().toInt() > 0)
+                              ? tagFilterCombo_->currentData().toInt() : -1;
+        if (presetTagId > 0) {
+            km.setDocumentTags(newId, QList<int>{presetTagId});
+        }
+        // 直接用文件名作为摘要
+        QString summary = task.title;
+        QMetaObject::invokeMethod(this, [this, newId, summary]() {
+            onSummaryReady(newId, summary);
+        }, Qt::QueuedConnection);
     }
 }
 

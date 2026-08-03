@@ -30,7 +30,7 @@ public:
     bool initialize(const QString& dbPath = QString());
 
     // CRUD
-    bool addEntry(const KnowledgeEntry& entry, int* outId = nullptr);
+    bool addEntry(const KnowledgeEntry& entry, int* outId = nullptr, bool writeMd = true);
     bool deleteEntry(int id);
     int deleteEntries(const QList<int>& ids);  // 批量删除，返回成功删除数
     QList<KnowledgeEntry> getAllEntries(int limit = 100, int offset = 0);
@@ -67,6 +67,7 @@ public:
 
     // 导出 .md 文件到指定路径
     bool exportEntry(int id, const QString& outputPath);
+    QString storagePath() const;
 
 private:
     KnowledgeBaseManager(QObject* parent = nullptr);
@@ -75,7 +76,6 @@ private:
     KnowledgeBaseManager& operator=(const KnowledgeBaseManager&) = delete;
 
     bool createTables();
-    QString storagePath() const;
     bool ensureDb();  // 确保数据库连接打开，每次操作前调用
 
     QSqlDatabase db_;

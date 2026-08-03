@@ -2338,25 +2338,28 @@ void MainWindow::addFileToList(const QString& filePath) {
         "QPushButton { border: none; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; }");
     connect(removeBtn, &QPushButton::clicked, this, [this, fileItem, filePath]() {
-        // 清理该文件对应的临时文件和 assets_* 目录
+        // 清理该文件对应的临时文件、assets 目录和 .md
         int pathIdx = filePendingPaths_.indexOf(filePath);
         if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
             QString tempPath = fileTempOutputPaths_[pathIdx];
+            // 始终清理 assets 目录（即使已下载，assets 仍在源文件目录）
+            QString base = QFileInfo(filePath).baseName();
+            for (QChar& c : base) {
+                if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                    c = QLatin1Char('_');
+            }
+            if (!base.isEmpty()) {
+                if (base.length() > 30) base = base.left(30);
+                QString srcDir = QFileInfo(filePath).absolutePath();
+                QString assetDir = srcDir + "/assets_" + base;
+                if (QDir(assetDir).exists())
+                    QDir(assetDir).removeRecursively();
+            }
+            // 删除临时 .md（如果还没被下载清理掉）
             if (!tempPath.isEmpty()) {
                 QFile::remove(tempPath);
-                QString base = QFileInfo(filePath).baseName();
-                for (QChar& c : base) {
-                    if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
-                        c = QLatin1Char('_');
-                }
-                if (!base.isEmpty()) {
-                    if (base.length() > 30) base = base.left(30);
-                    QString assetDir = QFileInfo(tempPath).absolutePath() + "/assets_" + base;
-                    if (QDir(assetDir).exists())
-                        QDir(assetDir).removeRecursively();
-                }
+                fileTempOutputPaths_[pathIdx].clear();
             }
-            fileTempOutputPaths_[pathIdx].clear();
         }
         fileListLayout_->removeWidget(fileItem);
         fileItem->deleteLater();
@@ -3684,6 +3687,9 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 f.close();
                             }
                             if (km.addEntry(entry, &newDocId) && newDocId > 0) {
+                                // 归档成功，删除临时 .md 和 assets 目录
+                                QFile::remove(resultForArchive);
+                                QDir(entry.assetsDir).removeRecursively();
                                 archiveBtn->setText(tr("Archived"));
                                 archiveBtn->setEnabled(false);
                                 archiveBtn->setStyleSheet(
