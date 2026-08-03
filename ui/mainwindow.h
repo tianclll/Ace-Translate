@@ -168,6 +168,7 @@ private:
     QWidget* createKnowledgePanel();
     QWidget* createSettingsPanel();
     void runWorker(TranslateWorker* worker);
+    void cleanupTempFiles();   // 清理未下载的翻译临时文件
     void registerGlobalHotkeys();
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
     void closeEvent(QCloseEvent* event) override;
@@ -227,6 +228,7 @@ private:
     QVBoxLayout* fileListLayout_;
     QPushButton* fileTranslateBtn_;
     QStringList filePendingPaths_;
+    QStringList fileTempOutputPaths_;   // 每项对应 filePendingPaths_ 的翻译输出路径
     int fileCurrentIdx_ = 0;
 
     // -- 截图翻译 --

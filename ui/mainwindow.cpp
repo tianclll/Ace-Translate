@@ -2271,6 +2271,9 @@ void MainWindow::addFileToList(const QString& filePath) {
     connect(downloadBtn, &QPushButton::clicked, this, [this, downloadBtn]() {
         QString outPath = downloadBtn->property("outputPath").toString();
         if (outPath.isEmpty()) return;
+        // 标记已下载，不再被 cleanupTempFiles 清理
+        int idx = fileTempOutputPaths_.indexOf(outPath);
+        if (idx >= 0) fileTempOutputPaths_[idx].clear();
         QString randName = QStringLiteral("AceTranslate_%1%2")
             .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz"))
             .arg(QFileInfo(outPath).suffix().isEmpty() ? ".md" : "." + QFileInfo(outPath).suffix());
@@ -2327,6 +2330,12 @@ void MainWindow::addFileToList(const QString& filePath) {
         "QPushButton { border: none; background: transparent; color: #9CA3AF; font-size: 11px; }"
         "QPushButton:hover { color: #EF4444; }");
     connect(removeBtn, &QPushButton::clicked, this, [this, fileItem, filePath]() {
+        // 清理该文件对应的临时文件
+        int pathIdx = filePendingPaths_.indexOf(filePath);
+        if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
+            QFile::remove(fileTempOutputPaths_[pathIdx]);
+            fileTempOutputPaths_[pathIdx].clear();
+        }
         fileListLayout_->removeWidget(fileItem);
         fileItem->deleteLater();
         filePendingPaths_.removeAll(filePath);
@@ -2826,6 +2835,7 @@ void MainWindow::onShowWindow() {
 }
 
 void MainWindow::onQuitApp() {
+    cleanupTempFiles();
     if (trayIcon_) {
         trayIcon_->hide();
         delete trayIcon_;
@@ -3076,6 +3086,9 @@ void MainWindow::onSelectInputFile() {
 }
 
 void MainWindow::onProcessFile() {
+    // 清理之前未下载的临时文件
+    cleanupTempFiles();
+
     if (busy_.loadRelaxed()) {
         statusBar_->showMessage(tr("Processing, please wait…"), 3000);
         return;
@@ -3178,6 +3191,18 @@ void MainWindow::onBrowseBaseDir() {
     if (!dir.isEmpty()) {
         baseDirPath_->setText(dir);
     }
+}
+
+// ============================================================
+// 清理未下载的翻译临时文件
+// ============================================================
+void MainWindow::cleanupTempFiles() {
+    for (int i = 0; i < fileTempOutputPaths_.size(); ++i) {
+        const QString& tempPath = fileTempOutputPaths_[i];
+        if (tempPath.isEmpty()) continue;  // 已下载的不清理
+        QFile::remove(tempPath);
+    }
+    fileTempOutputPaths_.clear();
 }
 
 // ============================================================
@@ -3546,6 +3571,11 @@ void MainWindow::onWorkerFinished(const QString& result) {
         }
         break;
     case 4: // File — 状态栏显示结果 + 更新文件状态 + 显示下载按钮
+        // 存储翻译输出路径（未下载时后续会清理）
+        if (fileCurrentIdx_ >= fileTempOutputPaths_.size())
+            fileTempOutputPaths_.resize(fileCurrentIdx_ + 1);
+        fileTempOutputPaths_[fileCurrentIdx_] = result;
+
         // 更新当前文件的状态为已完成
         if (fileCurrentIdx_ < filePendingPaths_.size()) {
             int layoutIdx = 0;
