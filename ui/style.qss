@@ -459,6 +459,7 @@ QFileDialog QTreeView QHeaderView::section {
     border: none;
     border-bottom: 1px solid #E8ECEF;
     padding: 8px 10px;
+    min-width: 120px;
 }
 QFileDialog QTreeView QHeaderView::section:hover {
     background: #E8F0EF;
