@@ -3,6 +3,8 @@
 #include "docmind/modules/PhotoTranslationModule.hpp"
 #include "docmind/core/GlobalEngineContext.hpp"
 #include "regioncapture.h"
+#include "docmind/core/ConfigManager.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 #include "floatwindow.h"
 #include "toast.h"
 #include "zoomablelabel.h"
@@ -228,7 +230,10 @@ void TranslateWorker::run() {
                     auto* translator = docmind::GlobalEngineContext::getInstance().getTranslatorEngine();
                     std::string result;
                     if (translator && !ocrText.isEmpty()) {
-                        result = translator->translate(ocrText.toStdString(), targetLang.toStdString(), maxTokens);
+                        std::string ocrTextStd = ocrText.toStdString();
+                        docmind::GlossaryInjector::prepareGlossary(translator, targetLang.toStdString(), "", ocrTextStd);
+                        result = translator->translate(ocrTextStd, targetLang.toStdString(), maxTokens);
+                        docmind::GlossaryInjector::clearGlossary(translator);
                     }
                     emit finished(QString::fromStdString(result));
                 } catch (const std::exception& e) {

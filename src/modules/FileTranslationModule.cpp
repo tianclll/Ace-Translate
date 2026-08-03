@@ -330,6 +330,11 @@ namespace docmind {
             return result;
         } else {
             // TXT 按行翻译
+            GlobalEngineContext::getInstance().ensureTranslatorEngine();
+            auto* txt_trans = GlobalEngineContext::getInstance().getTranslatorEngine();
+            if (txt_trans && !target_lang.empty()) {
+                GlossaryInjector::prepareGlossary(txt_trans, target_lang, "", content);
+            }
             std::istringstream stream(content);
             std::string line;
             std::ostringstream output;
@@ -337,6 +342,7 @@ namespace docmind {
                 if (line.empty()) output << "\n";
                 else output << translate_text(line, target_lang) << "\n";
             }
+            if (txt_trans) GlossaryInjector::clearGlossary(txt_trans);
             return output.str();
         }
     }
@@ -397,12 +403,19 @@ namespace docmind {
             while (std::getline(stream, line)) {
                 if (!line.empty()) lines.push_back(line);
             }
+            auto& ctx = GlobalEngineContext::getInstance();
+            ctx.ensureTranslatorEngine();
+            auto* img_trans = ctx.getTranslatorEngine();
+            if (img_trans && !target_lang.empty()) {
+                GlossaryInjector::prepareGlossary(img_trans, target_lang, "", md);
+            }
             std::string translated_md;
             for (const auto& l : lines) {
                 if (!l.empty()) {
                     translated_md += translate_text(l, target_lang) + "\n\n";
                 }
             }
+            if (img_trans) GlossaryInjector::clearGlossary(img_trans);
             if (translated_md.size() >= 2 && translated_md.substr(translated_md.size() - 2) == "\n\n")
                 translated_md.resize(translated_md.size() - 2);
             return translated_md;

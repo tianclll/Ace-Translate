@@ -21,6 +21,7 @@
 
 // 引擎初始化头文件
 #include "docmind/core/GlobalEngineContext.hpp"
+#include "docmind/core/GlossaryInjector.hpp"
 
 // 抑制 OpenCV libpng 刷屏警告（stderr 重定向）
 #include <cstdio>
@@ -134,6 +135,8 @@ int main(int argc, char* argv[]) {
         splash.setProgress(15, QApplication::translate("MainWindow", "Loading engines…"));
         app.processEvents();
         docmind::GlobalEngineContext::getInstance().initialize(QCoreApplication::applicationDirPath().toStdString());
+        // 预加载术语库到内存（避免首次翻译时术语为空）
+        docmind::GlossaryInjector::refreshFromDB();
         splash.setProgress(70, QApplication::translate("MainWindow", "Engines loaded"));
         app.processEvents();
     } catch (const std::exception& e) {

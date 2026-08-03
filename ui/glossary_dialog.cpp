@@ -330,15 +330,21 @@ void GlossaryDialog::setupUI() {
 }
 
 void GlossaryDialog::applyDialogSize() {
-    if (parentWidget()) {
-        QRect pg = parentWidget()->geometry();
-        int w = 720, h = 440;
-        int x = pg.x() + (pg.width() - w) / 2;
-        int y = pg.y() + (pg.height() - h) / 2;
-        setGeometry(QRect(x, y, w, h));
-    } else {
-        resize(720, 440);
-    }
+    // Walk up to the top-level window (same pattern as knowledgebase_page RoundedDlg)
+    QWidget* win = this;
+    while (win->parentWidget()) win = win->parentWidget();
+
+    // Size from content hint, clamped to window
+    QSize sh = layout()->sizeHint();
+    int w = qMax(sh.width(), 720);
+    int h = qMin(sh.height(), qMax(440, win->height() - 120));
+    int maxW = win->width() - 48;
+    resize(qMin(w, maxW), h);
+
+    // Center in the top-level window
+    QRect g = win->geometry();
+    move(g.x() + g.width() / 2 - width() / 2,
+         g.y() + g.height() / 2 - height() / 2);
 }
 
 void GlossaryDialog::loadTerms() {
