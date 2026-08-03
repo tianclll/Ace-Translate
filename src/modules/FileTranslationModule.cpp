@@ -198,7 +198,9 @@ namespace docmind {
         size_t dot = base.find_last_of('.');
         if (dot != std::string::npos) base = base.substr(0, dot);
         std::string out_ext = (ext == "txt") ? ".txt" : ".md";
-        return dir + base + out_ext;
+        // TXT 输出到同名 _translated 文件，避免覆盖原文件
+        std::string out_base = (ext == "txt") ? base + "_translated" : base;
+        return dir + out_base + out_ext;
     }
 
 // 创建目录（若不存在）
@@ -470,14 +472,14 @@ namespace docmind {
             output_dir = "./";  // 当前目录
         }
 
-        // 确保输出目录和 assets 子目录存在（office2md 会往 assets/ 写图片）
-        {
+        // 仅对需要图片资源的类型创建 assets 目录
+        bool need_assets = (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "bmp" || ext == "tiff"
+                            || ext == "pdf" || ext == "docx" || ext == "pptx" || ext == "xlsx");
+        if (need_assets) {
             std::error_code ec;
             std::filesystem::create_directories(output_dir, ec);
             std::string assets_path = output_dir + "assets";
             std::filesystem::create_directories(assets_path, ec);
-            std::cout << "[FileTranslation] output_dir=" << output_dir
-                      << " assets=" << assets_path << std::endl;
         }
 
         std::string result_content;
