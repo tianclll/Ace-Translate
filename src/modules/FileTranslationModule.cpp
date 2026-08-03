@@ -472,14 +472,33 @@ namespace docmind {
             output_dir = "./";  // 当前目录
         }
 
-        // 仅对需要图片资源的类型创建 assets 目录
-        bool need_assets = (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "bmp" || ext == "tiff"
-                            || ext == "pdf" || ext == "docx" || ext == "pptx" || ext == "xlsx");
-        if (need_assets) {
+        // 确保输出目录存在
+        {
             std::error_code ec;
             std::filesystem::create_directories(output_dir, ec);
-            std::string assets_path = output_dir + "assets";
-            std::filesystem::create_directories(assets_path, ec);
+        }
+
+        // 为每个输入文件创建独立的 assets 子目录（避免多文件并发时 image_1 等覆盖）
+        std::string unique_assets_dir = output_dir + "assets";
+        {
+            // 从输入文件名提取标识（如 test.pdf → _test）
+            size_t slash = input_path.find_last_of("\\/");
+            std::string base = (slash != std::string::npos) ? input_path.substr(slash + 1) : input_path;
+            size_t dot = base.find_last_of('.');
+            if (dot != std::string::npos) base = base.substr(0, dot);
+            // 清理非法字符
+            for (char& c : base) {
+                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                      (c >= '0' && c <= '9') || c == '_' || c == '-'))
+                    c = '_';
+            }
+            if (!base.empty()) {
+                // 截断避免路径过长
+                if (base.length() > 30) base = base.substr(0, 30);
+                unique_assets_dir = output_dir + "assets_" + base;
+            }
+            std::error_code ec;
+            std::filesystem::create_directories(unique_assets_dir, ec);
         }
 
         std::string result_content;
@@ -498,7 +517,7 @@ namespace docmind {
             if (img.empty()) throw std::runtime_error("Failed to load image: " + input_path);
 
             ProcessorConfig config;
-            config.assets_dir = output_dir + "assets";   // 动态设置
+            config.assets_dir = unique_assets_dir;   // 每个文件独立目录
             config.enable_warp = enable_warp_;
             config.enable_enhance = enable_enhance_;
             result_content = process_image_doc(img, config, layout_threshold_, target_language_, enable_translate_);
@@ -507,7 +526,7 @@ namespace docmind {
             auto pages = pdf_to_images(input_path, pdf_dpi_);
             std::vector<std::string> all_segments;
             ProcessorConfig config;
-            config.assets_dir = output_dir + "assets";   // 动态设置
+            config.assets_dir = unique_assets_dir;   // 每个文件独立目录
             config.enable_warp = false;   // PDF 不启用 warp
             config.enable_enhance = false;
             for (const auto& page : pages) {
