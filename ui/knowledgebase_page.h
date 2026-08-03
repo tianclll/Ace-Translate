@@ -74,7 +74,6 @@ private slots:
     void onBatchChangeTags();
     void onBatchExport();
     void onSummaryReady(int docId, const QString& summary);
-    void onOpenGlossaryDialog();
 
 private:
     void setupUI();

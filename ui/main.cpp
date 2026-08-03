@@ -135,8 +135,10 @@ int main(int argc, char* argv[]) {
         splash.setProgress(15, QApplication::translate("MainWindow", "Loading engines…"));
         app.processEvents();
         docmind::GlobalEngineContext::getInstance().initialize(QCoreApplication::applicationDirPath().toStdString());
-        // 预加载术语库到内存（避免首次翻译时术语为空）
-        docmind::GlossaryInjector::refreshFromDB();
+        // 若术语库已启用，预加载术语到内存
+        if (docmind::ConfigManager::getInstance().getBool("enable_glossary", false)) {
+            docmind::GlossaryInjector::refreshFromDB();
+        }
         splash.setProgress(70, QApplication::translate("MainWindow", "Engines loaded"));
         app.processEvents();
     } catch (const std::exception& e) {

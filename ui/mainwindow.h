@@ -134,6 +134,7 @@ private slots:
     // onSelectOutputDir 已移除
     // 设置
     void onBrowseBaseDir();
+    void onOpenGlossaryDialog();
     // 工作线程回调
     void onWorkerFinished(const QString& result);
     void onWorkerError(const QString& err);

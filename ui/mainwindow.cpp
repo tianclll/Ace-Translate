@@ -5,6 +5,7 @@
 #include "regioncapture.h"
 #include "docmind/core/ConfigManager.hpp"
 #include "docmind/core/GlossaryInjector.hpp"
+#include "glossary_dialog.h"
 #include "floatwindow.h"
 #include "toast.h"
 #include "zoomablelabel.h"
@@ -2686,6 +2687,50 @@ QWidget* MainWindow::createSettingsPanel() {
         layout->addWidget(group);
     }
 
+    // ===== 7. 术语库 =====
+    {
+        auto* group = new QGroupBox(tr("Terminology"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* glHint = new QLabel(tr("Inject terminology into translation to enforce consistent term usage."));
+        glHint->setStyleSheet("font-size: 11px; color: #889096; font-weight: normal;");
+        glHint->setWordWrap(true);
+        form->addWidget(glHint);
+
+        auto* glRow = new QHBoxLayout;
+        glRow->setSpacing(8);
+
+        auto* glEnableCheck = new QCheckBox(tr("Enable Terminology"));
+        glEnableCheck->setObjectName("toggleSwitch");
+        glEnableCheck->setChecked(cfg.getBool("enable_glossary", false));
+        connect(glEnableCheck, &QCheckBox::toggled, this, [&cfg](bool checked) {
+            cfg.setBool("enable_glossary", checked);
+            cfg.save();
+            if (checked) {
+                docmind::GlossaryInjector::refreshFromDB();
+            }
+        });
+        glRow->addWidget(glEnableCheck);
+        glRow->addSpacing(16);
+
+        auto* glManageBtn = new QPushButton(tr("Manage…"));
+        glManageBtn->setFixedHeight(30);
+        glManageBtn->setCursor(Qt::PointingHandCursor);
+        glManageBtn->setStyleSheet(
+            "QPushButton { border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 14px;"
+            " background: transparent; color: #374151; font-size: 12px; }"
+            "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
+        connect(glManageBtn, &QPushButton::clicked, this, &MainWindow::onOpenGlossaryDialog);
+        glRow->addWidget(glManageBtn);
+
+        glRow->addStretch();
+        form->addLayout(glRow);
+
+        layout->addWidget(group);
+    }
+
     layout->addStretch();
     scrollArea->setWidget(panel);
     return scrollArea;
@@ -3118,6 +3163,12 @@ void MainWindow::onProcessPhoto() {
     worker->targetLang = photoLangCombo_->currentText();
     worker->maxTokens = photoMaxTokens_ ? photoMaxTokens_->value() : 512;
     runWorker(worker);
+}
+
+void MainWindow::onOpenGlossaryDialog() {
+    auto* dlg = new GlossaryDialog(this);
+    dlg->exec();
+    dlg->deleteLater();
 }
 
 void MainWindow::onBrowseBaseDir() {

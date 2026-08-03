@@ -1,4 +1,5 @@
 #include "docmind/core/GlossaryInjector.hpp"
+#include "docmind/core/ConfigManager.hpp"
 #include "knowledgebase_manager.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -41,6 +42,10 @@ int GlossaryInjector::prepareGlossary(TranslatorEngine* translator,
                                        const std::string& sourceLang,
                                        const std::string& text) {
     if (!translator) return 0;
+
+    // 检查配置：术语库功能是否启用
+    auto& cfg = docmind::ConfigManager::getInstance();
+    if (!cfg.getBool("enable_glossary", false)) return 0;
 
     std::vector<std::pair<std::string, std::string>> terms;
 
