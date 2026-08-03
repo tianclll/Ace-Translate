@@ -1759,7 +1759,8 @@ QWidget* MainWindow::createPhotoPanel() {
         if (paths.isEmpty()) {
             path = QFileDialog::getOpenFileName(
                 this, tr("Select Image"), QString(),
-                tr("Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)"));
+                tr("Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)"),
+                nullptr, QFileDialog::DontUseNativeDialog);
         } else {
             path = paths.first();
         }
@@ -1911,7 +1912,7 @@ QWidget* MainWindow::createPhotoPanel() {
             .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz"));
         QString savePath = QFileDialog::getSaveFileName(
             this, tr("Save Image"), randName,
-            tr("PNG Images (*.png)"));
+            tr("PNG Images (*.png)"), nullptr, QFileDialog::DontUseNativeDialog);
         if (savePath.isEmpty()) return;
         if (cv::imwrite(savePath.toStdString(), photoOutputMat_)) {
             statusBar_->showMessage(tr("Image saved: ") + QFileInfo(savePath).fileName(), 3000);
@@ -2028,7 +2029,7 @@ QWidget* MainWindow::createFilePanel() {
     connect(fileDropZone_, &DropZoneWidget::fileDropped, this, [this](const QStringList& paths) {
         auto addFile = [this](const QString& p) { addFileToList(p); filePendingPaths_.append(p); };
         if (paths.isEmpty()) {
-            // 点击上传：支持多选（DontUseNativeDialog 避免 Windows shell COM 崩溃）
+            // 点击上传：支持多选
             QStringList files = QFileDialog::getOpenFileNames(
                 this, tr("Select File"), QString(),
                 QStringLiteral("支持的文件 (*.png *.jpg *.jpeg *.bmp *.tiff *.pdf *.docx *.xlsx *.pptx *.md *.txt);;"
@@ -2277,7 +2278,7 @@ void MainWindow::addFileToList(const QString& filePath) {
             .arg(QFileInfo(outPath).suffix().isEmpty() ? ".md" : "." + QFileInfo(outPath).suffix());
         QString savePath = QFileDialog::getSaveFileName(
             this, tr("Save File"), randName,
-            tr("All Files (*)"));
+            tr("All Files (*)"), nullptr, QFileDialog::DontUseNativeDialog);
         if (savePath.isEmpty()) return;
         if (QFile::exists(outPath)) {
             if (QFile::copy(outPath, savePath)) {
@@ -2656,7 +2657,9 @@ QWidget* MainWindow::createSettingsPanel() {
             "QPushButton:hover { border-color: #0B7C72; color: #0B7C72; }");
         connect(kbBrowseBtn, &QPushButton::clicked, this, [&cfg, kbPathEdit]() {
             QString current = kbPathEdit->text();
-            QString dir = QFileDialog::getExistingDirectory(nullptr, tr("Select Knowledge Base Folder"), current);
+            QString dir = QFileDialog::getExistingDirectory(
+                nullptr, tr("Select Knowledge Base Folder"), current,
+                QFileDialog::DontUseNativeDialog);
             if (!dir.isEmpty()) {
                 kbPathEdit->setText(dir);
                 cfg.setNestedString("defaults.kb_storage_path", dir.toStdString());
@@ -3068,8 +3071,8 @@ void MainWindow::onSelectInputFile() {
                        "Office (*.docx *.xlsx *.pptx);;"
                        "Markdown (*.md);;"
                        "文本 (*.txt);;"
-                       "所有文件 (*)")
-    );
+                       "所有文件 (*)"),
+        nullptr, QFileDialog::DontUseNativeDialog);
     if (!path.isEmpty()) {
         fileInputPath_->setText(path);
     }
@@ -3124,8 +3127,8 @@ void MainWindow::onSelectPhotoInput() {
     QString path = QFileDialog::getOpenFileName(
         this, tr("Select Image"),
         QString(),
-        tr("Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)")
-    );
+        tr("Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)"),
+                nullptr, QFileDialog::DontUseNativeDialog);
     if (!path.isEmpty()) {
         photoInputPath_->setText(path);
         QPixmap fullPix(path);
@@ -3174,7 +3177,7 @@ void MainWindow::onOpenGlossaryDialog() {
 }
 
 void MainWindow::onBrowseBaseDir() {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Model/DLL Directory"));
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Model/DLL Directory"), nullptr, QFileDialog::DontUseNativeDialog);
     if (!dir.isEmpty()) {
         baseDirPath_->setText(dir);
     }

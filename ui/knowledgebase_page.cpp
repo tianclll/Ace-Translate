@@ -1101,7 +1101,8 @@ void KnowledgeBasePage::onFileDropped(const QStringList& paths) {
     QStringList files = paths;
     if (files.isEmpty()) {
         files = QFileDialog::getOpenFileNames(this, tr("Select Files"), QString(),
-            tr("Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)"));
+            tr("Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)"),
+            nullptr, QFileDialog::DontUseNativeDialog);
     }
     if (files.isEmpty()) { processing = false; return; }
     files.removeDuplicates();
