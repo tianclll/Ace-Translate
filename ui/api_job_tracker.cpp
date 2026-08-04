@@ -45,6 +45,7 @@ public:
             case JobType::File: {
                 std::string path    = params_.value("file_path", "");
                 std::string lang    = params_.value("target_language", "English");
+                std::string outPath = params_.value("output_path", "");
                 float threshold     = apiconv::qFloat(params_.value("layout_threshold", 0.5f), 0.5f);
                 int dpi             = apiconv::qInt(params_.value("pdf_dpi", 200), 200);
                 bool warp           = apiconv::qBool(params_.value("enable_warp", true), true);
@@ -52,7 +53,7 @@ public:
                 if (path.empty()) {
                     error = QStringLiteral("Missing required field: file_path");
                 } else {
-                    result = ::process_file(path, "", "", lang, threshold, dpi, warp, enhance);
+                    result = ::process_file(path, outPath, "", lang, threshold, dpi, warp, enhance);
                 }
                 break;
             }

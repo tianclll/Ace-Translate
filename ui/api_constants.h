@@ -27,6 +27,7 @@ constexpr const char* kText            = "text";
 constexpr const char* kTargetLanguage  = "target_language";
 constexpr const char* kMaxTokens       = "max_tokens";
 constexpr const char* kFilePath        = "file_path";
+constexpr const char* kOutputPath      = "output_path";
 constexpr const char* kLayoutThreshold = "layout_threshold";
 constexpr const char* kPdfDpi         = "pdf_dpi";
 constexpr const char* kEnableWarp     = "enable_warp";

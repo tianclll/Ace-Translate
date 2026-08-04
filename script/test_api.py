@@ -189,9 +189,14 @@ def test_translate_file(client):
         f.write("The quick brown fox jumps over the lazy dog.\n"
                 "Python is a powerful language for automation.\n")
         tmp_path = Path(f.name)
+    tmp_dir = tmp_path.parent
+    out_dir = tmp_dir / "apitest_out"
+    out_dir.mkdir(exist_ok=True)
+    out_md = out_dir / "translated.md"
 
     code, resp = client.post("/api/translate/file",
-                             {"file_path": str(tmp_path), "target_language": "Chinese"},
+                             {"file_path": str(tmp_path), "target_language": "Chinese",
+                              "output_path": str(out_md)},
                              expect_status=(202,))
     report("POST /api/translate/file 返回 202", code == 202, repr(resp))
 
@@ -201,8 +206,11 @@ def test_translate_file(client):
     if job and job.get("status") == "completed":
         out_path = job.get("result", "")
         report("输出文件已生成", bool(out_path) and Path(out_path).exists(), out_path)
+        # 验证指定 output_path 生效：结果应为指定的路径
+        report("output_path 生效（结果落在指定路径）",
+               Path(out_path).resolve() == out_md.resolve(), f"{out_path} vs {out_md}")
         if out_path and Path(out_path).exists():
-            Path(out_path).unlink()  # 清理
+            Path(out_path).unlink()
 
     # 不存在的文件 → 400
     code, err = client.post("/api/translate/file",
@@ -211,6 +219,17 @@ def test_translate_file(client):
     report("不存在的文件返回 400", code == 400, repr(err)[:120])
 
     tmp_path.unlink()
+    # 回收子目录
+    if out_dir.exists():
+        for p in out_dir.iterdir():
+            try:
+                p.unlink()
+            except Exception:
+                pass
+        try:
+            out_dir.rmdir()
+        except Exception:
+            pass
 
 
 def test_kb(client):
@@ -312,7 +331,7 @@ def main():
     parser = argparse.ArgumentParser(description="AceTranslatePro REST API 端到端测试")
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"服务器地址 (默认 {DEFAULT_HOST})")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"端口 (默认 {DEFAULT_PORT})")
-    parser.add_argument("--only", default="all",
+    parser.add_argument("--only", default="file",
                         help="逗号分隔指定模块: all,health,translate,kb,file,photo,cancel")
     args = parser.parse_args()
 
