@@ -3563,6 +3563,33 @@ void MainWindow::onWorkerFinished(const QString& result) {
     QApplication::processEvents(); // 立即刷新进度条隐藏
     busy_.storeRelaxed(0);
 
+    // 更新文件列表状态（无论用户当前在哪个面板都要更新）
+    if (!filePendingPaths_.isEmpty() && fileCurrentIdx_ < filePendingPaths_.size()) {
+        QString completedPath = filePendingPaths_[fileCurrentIdx_];
+        for (int i = 0; i < fileListLayout_->count(); ++i) {
+            auto* item = fileListLayout_->itemAt(i);
+            if (!item || !item->widget()) continue;
+            if (item->widget()->property("filePath").toString() == completedPath) {
+                QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+                for (int li = 0; li < labels.size(); ++li) {
+                    if (labels[li]->property("fileStatus").isValid()) {
+                        labels[li]->setText(tr("Completed"));
+                        labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
+                        break;
+                    }
+                }
+                QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
+                for (int bi = 0; bi < btns.size(); ++bi) {
+                    if (btns[bi]->text() == tr("Download")) {
+                        btns[bi]->setProperty("outputPath", result);
+                        btns[bi]->show();
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     switch (currentNavIndex_) {
     case 0: // Text
         if (textOutput_) textOutput_->setPlainText(result);
