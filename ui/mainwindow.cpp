@@ -2356,12 +2356,13 @@ void MainWindow::addFileToList(const QString& filePath) {
                         QDir(assetDir).removeRecursively();
                 }
                 QFile::remove(tempPath);
-                fileTempOutputPaths_[pathIdx].clear();
             }
+            // 从临时输出路径列表中移除该文件对应项，保持与 filePendingPaths_ 索引对齐
+            fileTempOutputPaths_.removeAt(pathIdx);
         }
         fileListLayout_->removeWidget(fileItem);
         fileItem->deleteLater();
-        filePendingPaths_.removeAll(filePath);
+        if (pathIdx >= 0) filePendingPaths_.removeAt(pathIdx);
         // 调整 fileCurrentIdx_：如果删除的文件在当前文件之前，索引前移；
         // 如果删除的就是当前翻译的文件，重置索引以便重新开始
         if (pathIdx == fileCurrentIdx_) {
