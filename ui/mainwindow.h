@@ -136,7 +136,7 @@ private slots:
     void onBrowseBaseDir();
     void onOpenGlossaryDialog();
     // 工作线程回调
-    void onWorkerFinished(const QString& result);
+    void onWorkerFinished(const QString& result, TranslateWorker::Mode mode);
     void onWorkerError(const QString& err);
     void onWorkerProgress(const QString& msg);
     void onHourglassTick();
@@ -169,6 +169,7 @@ private:
     QWidget* createSettingsPanel();
     void runWorker(TranslateWorker* worker);
     void cleanupTempFiles();   // 清理未下载的翻译临时文件
+    void handleFileTranslationFinished(const QString& result);  // 文件翻译完成回调（无条件更新文件列表）
     void registerGlobalHotkeys();
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
     void closeEvent(QCloseEvent* event) override;

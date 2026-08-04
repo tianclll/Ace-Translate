@@ -3275,7 +3275,10 @@ void MainWindow::runWorker(TranslateWorker* worker) {
     worker->moveToThread(thread);
 
     connect(thread, &QThread::started, worker, &TranslateWorker::run);
-    connect(worker, &TranslateWorker::finished, this, &MainWindow::onWorkerFinished);
+    const auto workerMode = worker->mode; // 捕获真实模式，避免依赖当前面板
+    connect(worker, &TranslateWorker::finished, this, [this, workerMode](const QString& result) {
+        onWorkerFinished(result, workerMode);
+    });
     connect(worker, &TranslateWorker::ocrFinished, this, [this](const QString& ocrText) {
         if (screenshotOcrResult_) {
             screenshotOcrResult_->setPlainText(ocrText);
@@ -3556,7 +3559,7 @@ void MainWindow::onKnowledgeBaseBusy(bool busy) {
     }
 }
 
-void MainWindow::onWorkerFinished(const QString& result) {
+void MainWindow::onWorkerFinished(const QString& result, TranslateWorker::Mode mode) {
     if (hourglassTimer_) hourglassTimer_->stop();
     if (statusLabel_) statusLabel_->setText(QString()); // 清旧消息
     if (statusIcon_) {
@@ -3567,7 +3570,28 @@ void MainWindow::onWorkerFinished(const QString& result) {
     QApplication::processEvents(); // 立即刷新进度条隐藏
     busy_.storeRelaxed(0);
 
-    switch (currentNavIndex_) {
+    // 文件翻译完成：无条件更新文件列表状态。
+    // 用 worker 的真实模式判断，而非 currentNavIndex_ —— 即使用户切走面板，
+    // 完成回调仍能正确把"翻译中"改为"已完成"并显示下载/归档按钮。
+    if (mode == TranslateWorker::FileTranslate) {
+        handleFileTranslationFinished(result);
+        busy_.storeRelaxed(0);
+        if (textTranslateBtn_) textTranslateBtn_->setEnabled(true);
+        if (fileProcessBtn_) fileProcessBtn_->setEnabled(true);
+        if (screenshotCaptureBtn_) screenshotCaptureBtn_->setEnabled(true);
+        if (photoTranslateBtn_) photoTranslateBtn_->setEnabled(true);
+
+        // 5秒后清除翻译完成状态（如果没被新操作覆盖）
+        QTimer::singleShot(5000, this, [this]() {
+            if (statusLabel_ && statusLabel_->text().contains(tr("Translation Complete"))) {
+                statusLabel_->setText(tr("Ready"));
+                if (statusIcon_) statusIcon_->hide();
+            }
+        });
+        return;
+    }
+
+    switch (mode) {
     case 0: // Text
         if (textOutput_) textOutput_->setPlainText(result);
         if (statusIcon_) {
@@ -3623,188 +3647,6 @@ void MainWindow::onWorkerFinished(const QString& result) {
             QFile::remove(outputPath);
         }
         break;
-    case 4: // File — 状态栏显示结果 + 更新文件状态 + 显示下载按钮
-        // 存储翻译输出路径（未下载时后续会清理）
-        if (fileCurrentIdx_ >= fileTempOutputPaths_.size())
-            fileTempOutputPaths_.resize(fileCurrentIdx_ + 1);
-        fileTempOutputPaths_[fileCurrentIdx_] = result;
-
-        // 更新当前文件的状态为已完成
-        if (fileCurrentIdx_ < filePendingPaths_.size()) {
-            QString completedPath = filePendingPaths_[fileCurrentIdx_];
-            for (int i = 0; i < fileListLayout_->count(); ++i) {
-                auto* item = fileListLayout_->itemAt(i);
-                if (!item || !item->widget()) continue;
-                if (item->widget()->property("filePath").toString() == completedPath) {
-                QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
-                for (int li = 0; li < labels.size(); ++li) {
-                    if (labels[li]->property("fileStatus").isValid()) {
-                        labels[li]->setText(tr("Completed"));
-                        labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
-                        break;
-                    }
-                }
-                QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
-                bool hasArchive = false;
-                for (int bi = 0; bi < btns.size(); ++bi) {
-                    if (btns[bi]->text() == tr("Download")) {
-                        btns[bi]->setProperty("outputPath", result);
-                        btns[bi]->show();
-                    }
-                    if (btns[bi]->property("kbArchive").isValid())
-                        hasArchive = true;
-                }
-                // 添加"归档至知识库"按钮
-                if (!hasArchive && fileCurrentIdx_ < filePendingPaths_.size()) {
-                    auto* archiveBtn = new QPushButton(tr("Archive to KB"));
-                    archiveBtn->setFixedHeight(24);
-                    archiveBtn->setCursor(Qt::PointingHandCursor);
-                    archiveBtn->setStyleSheet(
-                        "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
-                        " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
-                        "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
-                    archiveBtn->setProperty("kbArchive", true);
-                    QString srcForArchive = filePendingPaths_[fileCurrentIdx_];
-                    QString resultForArchive = result;
-                    // 计算 assets 目录路径（与 C++ 侧生成逻辑一致）
-                    QString assetsBase = QFileInfo(srcForArchive).baseName();
-                    for (QChar& c : assetsBase) {
-                        if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
-                            c = QLatin1Char('_');
-                    }
-                    if (!assetsBase.isEmpty()) {
-                        if (assetsBase.length() > 30) assetsBase = assetsBase.left(30);
-                    }
-                    connect(archiveBtn, &QPushButton::clicked, this, [this, archiveBtn, srcForArchive, resultForArchive, assetsBase]() {
-                            QFileInfo fi(srcForArchive);
-                            auto& km = KnowledgeBaseManager::getInstance();
-                            if (!km.initialize()) {
-                                statusBar_->showMessage(tr("Failed to init Knowledge Base"), 3000);
-                                return;
-                            }
-                            KnowledgeEntry entry;
-                            entry.title = fi.fileName();
-                            entry.fileType = fi.suffix().toLower();
-                            entry.sourcePath = srcForArchive;
-                            // 存储 assets 目录路径（与 .md 同目录的 assets_xxx）
-                            QFileInfo resultFi(resultForArchive);
-                            entry.assetsDir = resultFi.absolutePath() + "/assets_" + assetsBase;
-                            entry.fileSize = fi.size();
-                            if (fileLangCombo_) entry.translatedLang = fileLangCombo_->currentText();
-
-                            int newDocId = -1;
-                            // 读取生成的 .md 文件
-                            QFile f(resultForArchive);
-                            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                                QTextStream in(&f);
-                                entry.markdownContent = in.readAll();
-                                f.close();
-                            }
-                            if (km.addEntry(entry, &newDocId) && newDocId > 0) {
-                                // 将临时 assets 目录复制到知识库 md/ 目录下持久保存，
-                                // 与 .md 同目录，保证 md 内相对引用（assets_<base>/...）解析正确
-                                QString kbAssetsDir;
-                                if (!entry.assetsDir.isEmpty() && QDir(entry.assetsDir).exists()) {
-                                    QString dirName = QFileInfo(entry.assetsDir).fileName(); // assets_<base>
-                                    kbAssetsDir = km.storagePath() + "md/" + dirName;
-                                    QDir().mkpath(kbAssetsDir);
-                                    QDir srcAssets(entry.assetsDir);
-                                    for (const QString& f : srcAssets.entryList(QDir::Files)) {
-                                        QFile::copy(entry.assetsDir + "/" + f, kbAssetsDir + "/" + f);
-                                    }
-                                    // 更新 assets_dir 记录为 KB 内 md/ 下的路径
-                                    km.updateEntryAssetsDir(newDocId, kbAssetsDir);
-                                }
-                                // 归档成功：临时 .md 和临时 assets 资源目录均保留，
-                                // 供 Download 按钮使用；它们由 Download 或 cleanupTempFiles 统一清理。
-                                // （已复制到 KB 的 md/ 内的图片副本不受影响）
-                                archiveBtn->setText(tr("Archived"));
-                                archiveBtn->setEnabled(false);
-                                archiveBtn->setStyleSheet(
-                                    "QPushButton { border: 1px solid #10B981; background: #D1FAE5; color: #065F46;"
-                                    " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
-                                if (statusIcon_) {
-                                    QPixmap yesIcon(":/icons/yes.png");
-                                    statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                                    statusIcon_->show();
-                                }
-                                if (statusLabel_) statusLabel_->setText(tr("Archived to Knowledge Base"));
-                                if (knowledgePage_) knowledgePage_->refreshList();
-                                // 后台生成摘要
-                                if (knowledgePage_ && !entry.markdownContent.isEmpty()) {
-                                    int savedId = newDocId;
-                                    QString savedMd = entry.markdownContent;
-                                    std::thread([this, savedId, savedMd]() {
-                                        QString summary;
-                                        auto& ctx = docmind::GlobalEngineContext::getInstance();
-                                        if (ctx.ensureSummarizerEngine()) {
-                                            if (auto* engine = ctx.getSummarizerEngine()) {
-                                                std::string text_utf8 = savedMd.toUtf8().constData();
-                                                if (text_utf8.length() > 4000) {
-                                                    text_utf8 = text_utf8.substr(0, 4000);
-                                                }
-                                                std::string aiResult = engine->summarize(text_utf8, 4096);
-                                                if (!aiResult.empty()) {
-                                                    summary = QString::fromUtf8(aiResult.c_str());
-                                                }
-                                            }
-                                        }
-                                        if (summary.isEmpty()) {
-                                            QString plain = savedMd.simplified();
-                                            if (plain.length() > 2000) plain = plain.left(2000) + "……";
-                                            summary = plain.left(200);
-                                            if (plain.length() > 200) summary += "……";
-                                        }
-                                        QMetaObject::invokeMethod(this, [this, savedId, summary]() {
-                                            KnowledgeBaseManager::getInstance().updateSummary(savedId, summary);
-                                            if (knowledgePage_) knowledgePage_->refreshList();
-                                        }, Qt::QueuedConnection);
-                                    }).detach();
-                                }
-                            } else {
-                                statusBar_->showMessage(tr("Archive failed"), 3000);
-                            }
-                        });
-                        // 插入到 Download 按钮后面
-                        auto* itemLayout = item->widget()->layout();
-                        if (itemLayout) {
-                            auto* boxLayout = qobject_cast<QBoxLayout*>(itemLayout);
-                            int insertIdx = -1;
-                            for (int ci = 0; ci < itemLayout->count(); ++ci) {
-                                auto* btn = qobject_cast<QPushButton*>(itemLayout->itemAt(ci)->widget());
-                                if (btn && btn->text() == tr("Download")) {
-                                    insertIdx = ci + 1;
-                                    break;
-                                }
-                            }
-                            if (boxLayout && insertIdx >= 0)
-                                boxLayout->insertWidget(insertIdx, archiveBtn);
-                            else
-                                itemLayout->addWidget(archiveBtn);
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-        if (statusIcon_) {
-            QPixmap yesIcon(":/icons/yes.png");
-            statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            statusIcon_->show();
-        }
-        statusLabel_->setText(tr(" Translation Complete: %1").arg(result));
-        // 自动翻译下一个文件
-        ++fileCurrentIdx_;
-        if (fileCurrentIdx_ < filePendingPaths_.size()) {
-            QTimer::singleShot(500, this, &MainWindow::onProcessFile);
-        } else {
-            fileCurrentIdx_ = 0;
-            // 全部翻译完成 → 悬浮通知（带图标）
-            int total = filePendingPaths_.size();
-            QString msg = tr("All %1 files translated").arg(total);
-            ToastNotification::show(this, msg, 4000, QColor(11, 124, 114));
-        }
-        break;
     }
     busy_.storeRelaxed(0);
     if (textTranslateBtn_) textTranslateBtn_->setEnabled(true);
@@ -3819,6 +3661,195 @@ void MainWindow::onWorkerFinished(const QString& result) {
             if (statusIcon_) statusIcon_->hide();
         }
     });
+}
+
+// ============================================================
+// handleFileTranslationFinished — 文件翻译完成回调
+// 无条件更新文件列表状态（翻译中→已完成、下载/归档按钮）、自动翻译下一个文件。
+// 由 onWorkerFinished 在完成模式为 FileTranslate 时调用，
+// 不依赖当前所在面板，因此切走界面也能正确更新状态。
+// ============================================================
+void MainWindow::handleFileTranslationFinished(const QString& result) {
+    // 存储翻译输出路径（未下载时后续会清理）
+    if (fileCurrentIdx_ >= fileTempOutputPaths_.size())
+        fileTempOutputPaths_.resize(fileCurrentIdx_ + 1);
+    fileTempOutputPaths_[fileCurrentIdx_] = result;
+
+    // 更新当前文件的状态为已完成
+    if (fileCurrentIdx_ < filePendingPaths_.size()) {
+        QString completedPath = filePendingPaths_[fileCurrentIdx_];
+        for (int i = 0; i < fileListLayout_->count(); ++i) {
+            auto* item = fileListLayout_->itemAt(i);
+            if (!item || !item->widget()) continue;
+            if (item->widget()->property("filePath").toString() == completedPath) {
+            QList<QLabel*> labels = item->widget()->findChildren<QLabel*>();
+            for (int li = 0; li < labels.size(); ++li) {
+                if (labels[li]->property("fileStatus").isValid()) {
+                    labels[li]->setText(tr("Completed"));
+                    labels[li]->setStyleSheet("font-size: 11px; color: #10B981;");
+                    break;
+                }
+            }
+            QList<QPushButton*> btns = item->widget()->findChildren<QPushButton*>();
+            bool hasArchive = false;
+            for (int bi = 0; bi < btns.size(); ++bi) {
+                if (btns[bi]->text() == tr("Download")) {
+                    btns[bi]->setProperty("outputPath", result);
+                    btns[bi]->show();
+                }
+                if (btns[bi]->property("kbArchive").isValid())
+                    hasArchive = true;
+            }
+            // 添加"归档至知识库"按钮
+            if (!hasArchive && fileCurrentIdx_ < filePendingPaths_.size()) {
+                auto* archiveBtn = new QPushButton(tr("Archive to KB"));
+                archiveBtn->setFixedHeight(24);
+                archiveBtn->setCursor(Qt::PointingHandCursor);
+                archiveBtn->setStyleSheet(
+                    "QPushButton { border: 1px solid #0B7C72; background: transparent; color: #0B7C72;"
+                    " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }"
+                    "QPushButton:hover { background: #0B7C72; color: #FFFFFF; }");
+                archiveBtn->setProperty("kbArchive", true);
+                QString srcForArchive = filePendingPaths_[fileCurrentIdx_];
+                QString resultForArchive = result;
+                // 计算 assets 目录路径（与 C++ 侧生成逻辑一致）
+                QString assetsBase = QFileInfo(srcForArchive).baseName();
+                for (QChar& c : assetsBase) {
+                    if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                        c = QLatin1Char('_');
+                }
+                if (!assetsBase.isEmpty()) {
+                    if (assetsBase.length() > 30) assetsBase = assetsBase.left(30);
+                }
+                connect(archiveBtn, &QPushButton::clicked, this, [this, archiveBtn, srcForArchive, resultForArchive, assetsBase]() {
+                        QFileInfo fi(srcForArchive);
+                        auto& km = KnowledgeBaseManager::getInstance();
+                        if (!km.initialize()) {
+                            statusBar_->showMessage(tr("Failed to init Knowledge Base"), 3000);
+                            return;
+                        }
+                        KnowledgeEntry entry;
+                        entry.title = fi.fileName();
+                        entry.fileType = fi.suffix().toLower();
+                        entry.sourcePath = srcForArchive;
+                        // 存储 assets 目录路径（与 .md 同目录的 assets_xxx）
+                        QFileInfo resultFi(resultForArchive);
+                        entry.assetsDir = resultFi.absolutePath() + "/assets_" + assetsBase;
+                        entry.fileSize = fi.size();
+                        if (fileLangCombo_) entry.translatedLang = fileLangCombo_->currentText();
+
+                        int newDocId = -1;
+                        // 读取生成的 .md 文件
+                        QFile f(resultForArchive);
+                        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                            QTextStream in(&f);
+                            entry.markdownContent = in.readAll();
+                            f.close();
+                        }
+                        if (km.addEntry(entry, &newDocId) && newDocId > 0) {
+                            // 将临时 assets 目录复制到知识库 md/ 目录下持久保存，
+                            // 与 .md 同目录，保证 md 内相对引用（assets_<base>/...）解析正确
+                            QString kbAssetsDir;
+                            if (!entry.assetsDir.isEmpty() && QDir(entry.assetsDir).exists()) {
+                                QString dirName = QFileInfo(entry.assetsDir).fileName(); // assets_<base>
+                                kbAssetsDir = km.storagePath() + "md/" + dirName;
+                                QDir().mkpath(kbAssetsDir);
+                                QDir srcAssets(entry.assetsDir);
+                                for (const QString& f : srcAssets.entryList(QDir::Files)) {
+                                    QFile::copy(entry.assetsDir + "/" + f, kbAssetsDir + "/" + f);
+                                }
+                                // 更新 assets_dir 记录为 KB 内 md/ 下的路径
+                                km.updateEntryAssetsDir(newDocId, kbAssetsDir);
+                            }
+                            // 归档成功：临时 .md 和临时 assets 资源目录均保留，
+                            // 供 Download 按钮使用；它们由 Download 或 cleanupTempFiles 统一清理。
+                            // （已复制到 KB 的 md/ 内的图片副本不受影响）
+                            archiveBtn->setText(tr("Archived"));
+                            archiveBtn->setEnabled(false);
+                            archiveBtn->setStyleSheet(
+                                "QPushButton { border: 1px solid #10B981; background: #D1FAE5; color: #065F46;"
+                                " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
+                            if (statusIcon_) {
+                                QPixmap yesIcon(":/icons/yes.png");
+                                statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                                statusIcon_->show();
+                            }
+                            if (statusLabel_) statusLabel_->setText(tr("Archived to Knowledge Base"));
+                            if (knowledgePage_) knowledgePage_->refreshList();
+                            // 后台生成摘要
+                            if (knowledgePage_ && !entry.markdownContent.isEmpty()) {
+                                int savedId = newDocId;
+                                QString savedMd = entry.markdownContent;
+                                std::thread([this, savedId, savedMd]() {
+                                    QString summary;
+                                    auto& ctx = docmind::GlobalEngineContext::getInstance();
+                                    if (ctx.ensureSummarizerEngine()) {
+                                        if (auto* engine = ctx.getSummarizerEngine()) {
+                                            std::string text_utf8 = savedMd.toUtf8().constData();
+                                            if (text_utf8.length() > 4000) {
+                                                text_utf8 = text_utf8.substr(0, 4000);
+                                            }
+                                            std::string aiResult = engine->summarize(text_utf8, 4096);
+                                            if (!aiResult.empty()) {
+                                                summary = QString::fromUtf8(aiResult.c_str());
+                                            }
+                                        }
+                                    }
+                                    if (summary.isEmpty()) {
+                                        QString plain = savedMd.simplified();
+                                        if (plain.length() > 2000) plain = plain.left(2000) + "……";
+                                        summary = plain.left(200);
+                                        if (plain.length() > 200) summary += "……";
+                                    }
+                                    QMetaObject::invokeMethod(this, [this, savedId, summary]() {
+                                        KnowledgeBaseManager::getInstance().updateSummary(savedId, summary);
+                                        if (knowledgePage_) knowledgePage_->refreshList();
+                                    }, Qt::QueuedConnection);
+                                }).detach();
+                            }
+                        } else {
+                            statusBar_->showMessage(tr("Archive failed"), 3000);
+                        }
+                    });
+                    // 插入到 Download 按钮后面
+                    auto* itemLayout = item->widget()->layout();
+                    if (itemLayout) {
+                        auto* boxLayout = qobject_cast<QBoxLayout*>(itemLayout);
+                        int insertIdx = -1;
+                        for (int ci = 0; ci < itemLayout->count(); ++ci) {
+                            auto* btn = qobject_cast<QPushButton*>(itemLayout->itemAt(ci)->widget());
+                            if (btn && btn->text() == tr("Download")) {
+                                insertIdx = ci + 1;
+                                break;
+                            }
+                        }
+                        if (boxLayout && insertIdx >= 0)
+                            boxLayout->insertWidget(insertIdx, archiveBtn);
+                        else
+                            itemLayout->addWidget(archiveBtn);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    if (statusIcon_) {
+        QPixmap yesIcon(":/icons/yes.png");
+        statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        statusIcon_->show();
+    }
+    statusLabel_->setText(tr(" Translation Complete: %1").arg(result));
+    // 自动翻译下一个文件
+    ++fileCurrentIdx_;
+    if (fileCurrentIdx_ < filePendingPaths_.size()) {
+        QTimer::singleShot(500, this, &MainWindow::onProcessFile);
+    } else {
+        fileCurrentIdx_ = 0;
+        // 全部翻译完成 → 悬浮通知（带图标）
+        int total = filePendingPaths_.size();
+        QString msg = tr("All %1 files translated").arg(total);
+        ToastNotification::show(this, msg, 4000, QColor(11, 124, 114));
+    }
 }
 
 void MainWindow::onWorkerError(const QString& err) {
