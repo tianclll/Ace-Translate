@@ -3719,7 +3719,12 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 archiveBtn->setStyleSheet(
                                     "QPushButton { border: 1px solid #10B981; background: #D1FAE5; color: #065F46;"
                                     " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
-                                statusBar_->showMessage(tr("Archived to Knowledge Base"), 3000);
+                                if (statusIcon_) {
+                                    QPixmap yesIcon(":/icons/yes.png");
+                                    statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                                    statusIcon_->show();
+                                }
+                                if (statusLabel_) statusLabel_->setText(tr(" Archived to Knowledge Base"));
                                 if (knowledgePage_) knowledgePage_->refreshList();
                                 // 后台生成摘要
                                 if (knowledgePage_ && !entry.markdownContent.isEmpty()) {
