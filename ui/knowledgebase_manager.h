@@ -29,6 +29,9 @@ public:
     // 初始化数据库（懒加载，首次访问时调用）
     bool initialize(const QString& dbPath = QString());
 
+    // 确保数据库连接打开，每次操作前可安全调用
+    bool ensureDb();
+
     // CRUD
     bool addEntry(const KnowledgeEntry& entry, int* outId = nullptr, bool writeMd = true);
     bool deleteEntry(int id);
@@ -78,8 +81,6 @@ private:
     KnowledgeBaseManager& operator=(const KnowledgeBaseManager&) = delete;
 
     bool createTables();
-    bool ensureDb();  // 确保数据库连接打开，每次操作前调用
-
     QSqlDatabase db_;
     QString dbPath_;
     bool initialized_ = false;

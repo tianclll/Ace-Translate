@@ -376,6 +376,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
     setupUI();
     createTrayIcon();
+    initApiServer();
     resize(1113, 620);
     setMinimumSize(800, 550);
     onNavButtonClicked(0);
@@ -2773,6 +2774,60 @@ QWidget* MainWindow::createSettingsPanel() {
         layout->addWidget(group);
     }
 
+    // ===== 8. REST API Server =====
+    {
+        auto* group = new QGroupBox(tr("REST API Server"));
+        group->setStyleSheet(groupStyle);
+        auto* form = new QVBoxLayout(group);
+        form->setSpacing(6);
+
+        auto* hint = new QLabel(tr("Expose translation and knowledge base operations via HTTP. "
+                                    "Requires restart. Default: disabled."));
+        hint->setStyleSheet("font-size: 11px; color: #889096; font-weight: normal;");
+        hint->setWordWrap(true);
+        form->addWidget(hint);
+
+        auto* row = new QHBoxLayout;
+        row->setSpacing(8);
+
+        apiEnableCheck_ = new QCheckBox(tr("Enable REST API"));
+        apiEnableCheck_->setObjectName("toggleSwitch");
+        apiEnableCheck_->setChecked(cfg.getBool("api_enabled", false));
+        connect(apiEnableCheck_, &QCheckBox::toggled, this, [&cfg](bool checked) {
+            cfg.setBool("api_enabled", checked);
+            cfg.save();
+        });
+        row->addWidget(apiEnableCheck_);
+        row->addSpacing(16);
+
+        auto* portLbl = new QLabel(tr("Port:"));
+        portLbl->setStyleSheet("font-size: 12px; color: #374151;");
+        row->addWidget(portLbl);
+
+        apiPortSpin_ = new QSpinBox;
+        apiPortSpin_->setRange(1024, 65535);
+        apiPortSpin_->setValue(cfg.getInt("api_port", 18888));
+        apiPortSpin_->setFixedWidth(90);
+        apiPortSpin_->setEnabled(cfg.getBool("api_enabled", false));
+        connect(apiEnableCheck_, &QCheckBox::toggled, this, [this](bool checked) {
+            if (apiPortSpin_) apiPortSpin_->setEnabled(checked);
+        });
+        connect(apiPortSpin_, QOverload<int>::of(&QSpinBox::valueChanged), this, [&cfg](int port) {
+            cfg.setInt("api_port", port);
+            cfg.save();
+        });
+        row->addWidget(apiPortSpin_);
+
+        apiStatusLabel_ = new QLabel(tr("Disabled"));
+        apiStatusLabel_->setStyleSheet("font-size: 11px; color: #889096;");
+        row->addWidget(apiStatusLabel_);
+
+        row->addStretch();
+        form->addLayout(row);
+
+        layout->addWidget(group);
+    }
+
     layout->addStretch();
     scrollArea->setWidget(panel);
     return scrollArea;
@@ -2866,6 +2921,7 @@ void MainWindow::onShowWindow() {
 }
 
 void MainWindow::onQuitApp() {
+    cleanupApiServer();
     cleanupTempFiles();
     if (trayIcon_) {
         trayIcon_->hide();
@@ -2873,6 +2929,41 @@ void MainWindow::onQuitApp() {
         trayIcon_ = nullptr;
     }
     QApplication::quit();
+}
+
+// ============================================================
+// initApiServer — 启动 REST API 服务器
+// ============================================================
+void MainWindow::initApiServer() {
+    auto& cfg = docmind::ConfigManager::getInstance();
+    if (!cfg.getBool("api_enabled", false)) {
+        if (apiStatusLabel_)
+            apiStatusLabel_->setText(tr("Disabled"));
+        return;
+    }
+
+    int port = cfg.getInt("api_port", 18888);
+    apiServer_ = new ApiServer(this);
+    if (apiServer_->start(port)) {
+        if (apiStatusLabel_)
+            apiStatusLabel_->setText(tr("Listening on port %1").arg(port));
+    } else {
+        if (apiStatusLabel_)
+            apiStatusLabel_->setText(tr("Failed to start on port %1").arg(port));
+        delete apiServer_;
+        apiServer_ = nullptr;
+    }
+}
+
+// ============================================================
+// cleanupApiServer — 停止 REST API 服务器
+// ============================================================
+void MainWindow::cleanupApiServer() {
+    if (apiServer_) {
+        apiServer_->stop();
+        apiServer_->deleteLater();
+        apiServer_ = nullptr;
+    }
 }
 
 // ============================================================

@@ -49,6 +49,9 @@ namespace docmind {
                 {"enable_layout", false},
                 {"enable_docproc", false},
                 {"enable_asr", false},
+                {"enable_summarizer", false},
+                {"api_enabled", false},
+                {"api_port", 18888}
             }}
         };
     }

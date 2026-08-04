@@ -32,9 +32,8 @@ class KnowledgeBasePage;
 #include <QPropertyAnimation>
 #include "zoomablelabel.h"
 
-#include "zoomablelabel.h"
 #include "docmind/core/ConfigManager.hpp"
-#include <QTimer>
+#include "api_server.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -50,6 +49,7 @@ class KnowledgeBasePage;
 
 class RegionCapture;
 class FloatTranslateWindow;
+class ApiServer;
 
 // ============================================================
 // 工作线程（避免 UI 卡死）
@@ -170,6 +170,8 @@ private:
     void runWorker(TranslateWorker* worker);
     void cleanupTempFiles();   // 清理未下载的翻译临时文件
     void handleFileTranslationFinished(const QString& result);  // 文件翻译完成回调（无条件更新文件列表）
+    void initApiServer();
+    void cleanupApiServer();
     void registerGlobalHotkeys();
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
     void closeEvent(QCloseEvent* event) override;
@@ -298,4 +300,10 @@ private:
     // -- 语音输入 --
     bool isRecording_ = false;
     QThread* asrThread_ = nullptr;
+
+    // -- REST API --
+    ApiServer* apiServer_ = nullptr;
+    QCheckBox* apiEnableCheck_ = nullptr;
+    QSpinBox*  apiPortSpin_    = nullptr;
+    QLabel*    apiStatusLabel_ = nullptr;
 };

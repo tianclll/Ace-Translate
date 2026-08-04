@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 # ------------------ Qt ------------------
 set(QT_DIR "D:/Qt/6.5.2/msvc2019_64")
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT_DIR})
-find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Sql Network HttpServer)
 
 # ------------------ OpenCV ------------------
 set(OpenCV_INCLUDE_DIRS "D:/project/cpp/opencv/build/include")
@@ -45,6 +45,8 @@ set(SOURCES
         ui/knowledgebase_page.cpp
         ui/knowledgebase_manager.cpp
         ui/glossary_dialog.cpp
+        ui/api_server.cpp
+        ui/api_job_tracker.cpp
         ui/resources.qrc
         ui/app_icon.rc
 
@@ -91,7 +93,7 @@ target_link_libraries(${PROJECT_NAME}
     $<$<NOT:$<CONFIG:Debug>>:${OpenCV_LIB_DIR}/opencv_world480.lib>
 )
 target_link_libraries(${PROJECT_NAME} ${PDFIUM_LIBRARY})
-target_link_libraries(${PROJECT_NAME} Qt6::Widgets Qt6::Sql)
+target_link_libraries(${PROJECT_NAME} Qt6::Widgets Qt6::Sql Qt6::HttpServer)
 target_link_libraries(${PROJECT_NAME} ole32 sapi winmm)
 
 # ====== deps 子项目（GPU 版：定义 GGML_USE_CUDA）======
