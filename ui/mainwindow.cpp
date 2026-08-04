@@ -3724,7 +3724,7 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                     statusIcon_->setPixmap(yesIcon.isNull() ? createCheckIcon() : yesIcon.scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                                     statusIcon_->show();
                                 }
-                                if (statusLabel_) statusLabel_->setText(tr(" Archived to Knowledge Base"));
+                                if (statusLabel_) statusLabel_->setText(tr("Archived to Knowledge Base"));
                                 if (knowledgePage_) knowledgePage_->refreshList();
                                 // 后台生成摘要
                                 if (knowledgePage_ && !entry.markdownContent.isEmpty()) {

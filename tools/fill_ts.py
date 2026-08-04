@@ -566,7 +566,7 @@ def fill_ts(ts_path, trans_map):
             src = src_el.text or ''
             if src in trans_map:
                 tr_el.text = trans_map[src]
-                tr_el.set('type', 'unfinished')
+                tr_el.attrib.pop('type', None)  # 标记为已完成
                 n += 1
     tree.write(ts_path, encoding='utf-8', xml_declaration=True)
     return n

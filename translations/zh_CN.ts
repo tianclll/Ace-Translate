@@ -5,217 +5,217 @@
     <message>
         <location filename="../ui/floatwindow.cpp" line="35" />
         <source>Selection Translation</source>
-        <translation type="unfinished">划词翻译</translation>
+        <translation>划词翻译</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="76" />
         <source>Selected text will appear here…</source>
-        <translation type="unfinished">选中的文本将显示在这里…</translation>
+        <translation>选中的文本将显示在这里…</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="89" />
         <source>Translation result will appear here…</source>
-        <translation type="unfinished">翻译结果将显示在这里…</translation>
+        <translation>翻译结果将显示在这里…</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="98" />
         <source>Chinese</source>
-        <translation type="unfinished">中文</translation>
+        <translation>中文</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="99" />
         <source>English</source>
-        <translation type="unfinished">英语</translation>
+        <translation>英语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="100" />
         <source>French</source>
-        <translation type="unfinished">法语</translation>
+        <translation>法语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="101" />
         <source>Portuguese</source>
-        <translation type="unfinished">葡萄牙语</translation>
+        <translation>葡萄牙语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="102" />
         <source>Spanish</source>
-        <translation type="unfinished">西班牙语</translation>
+        <translation>西班牙语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="103" />
         <source>Japanese</source>
-        <translation type="unfinished">日语</translation>
+        <translation>日语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="104" />
         <source>Turkish</source>
-        <translation type="unfinished">土耳其语</translation>
+        <translation>土耳其语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="105" />
         <source>Russian</source>
-        <translation type="unfinished">俄语</translation>
+        <translation>俄语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="106" />
         <source>Arabic</source>
-        <translation type="unfinished">阿拉伯语</translation>
+        <translation>阿拉伯语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="107" />
         <source>Korean</source>
-        <translation type="unfinished">韩语</translation>
+        <translation>韩语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="108" />
         <source>Thai</source>
-        <translation type="unfinished">泰语</translation>
+        <translation>泰语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="109" />
         <source>Italian</source>
-        <translation type="unfinished">意大利语</translation>
+        <translation>意大利语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="110" />
         <source>German</source>
-        <translation type="unfinished">德语</translation>
+        <translation>德语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="111" />
         <source>Vietnamese</source>
-        <translation type="unfinished">越南语</translation>
+        <translation>越南语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="112" />
         <source>Malay</source>
-        <translation type="unfinished">马来语</translation>
+        <translation>马来语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="113" />
         <source>Indonesian</source>
-        <translation type="unfinished">印尼语</translation>
+        <translation>印尼语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="114" />
         <source>Filipino</source>
-        <translation type="unfinished">菲律宾语</translation>
+        <translation>菲律宾语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="115" />
         <source>Hindi</source>
-        <translation type="unfinished">印地语</translation>
+        <translation>印地语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="116" />
         <source>Traditional Chinese</source>
-        <translation type="unfinished">繁体中文</translation>
+        <translation>繁体中文</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="117" />
         <source>Polish</source>
-        <translation type="unfinished">波兰语</translation>
+        <translation>波兰语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="118" />
         <source>Czech</source>
-        <translation type="unfinished">捷克语</translation>
+        <translation>捷克语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="119" />
         <source>Dutch</source>
-        <translation type="unfinished">荷兰语</translation>
+        <translation>荷兰语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="120" />
         <source>Khmer</source>
-        <translation type="unfinished">高棉语</translation>
+        <translation>高棉语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="121" />
         <source>Burmese</source>
-        <translation type="unfinished">缅甸语</translation>
+        <translation>缅甸语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="122" />
         <source>Persian</source>
-        <translation type="unfinished">波斯语</translation>
+        <translation>波斯语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="123" />
         <source>Gujarati</source>
-        <translation type="unfinished">古吉拉特语</translation>
+        <translation>古吉拉特语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="124" />
         <source>Urdu</source>
-        <translation type="unfinished">乌尔都语</translation>
+        <translation>乌尔都语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="125" />
         <source>Telugu</source>
-        <translation type="unfinished">泰卢固语</translation>
+        <translation>泰卢固语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="126" />
         <source>Marathi</source>
-        <translation type="unfinished">马拉地语</translation>
+        <translation>马拉地语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="127" />
         <source>Hebrew</source>
-        <translation type="unfinished">希伯来语</translation>
+        <translation>希伯来语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="128" />
         <source>Bengali</source>
-        <translation type="unfinished">孟加拉语</translation>
+        <translation>孟加拉语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="129" />
         <source>Tamil</source>
-        <translation type="unfinished">泰米尔语</translation>
+        <translation>泰米尔语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="130" />
         <source>Ukrainian</source>
-        <translation type="unfinished">乌克兰语</translation>
+        <translation>乌克兰语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="131" />
         <source>Tibetan</source>
-        <translation type="unfinished">藏语</translation>
+        <translation>藏语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="132" />
         <source>Kazakh</source>
-        <translation type="unfinished">哈萨克语</translation>
+        <translation>哈萨克语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="133" />
         <source>Mongolian</source>
-        <translation type="unfinished">蒙古语</translation>
+        <translation>蒙古语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="134" />
         <source>Uyghur</source>
-        <translation type="unfinished">维吾尔语</translation>
+        <translation>维吾尔语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="135" />
         <source>Cantonese</source>
-        <translation type="unfinished">粤语</translation>
+        <translation>粤语</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="147" />
         <source>Translate</source>
-        <translation type="unfinished">翻译</translation>
+        <translation>翻译</translation>
     </message>
     <message>
         <location filename="../ui/floatwindow.cpp" line="152" />
         <source>Copy</source>
-        <translation type="unfinished">复制</translation>
+        <translation>复制</translation>
     </message>
 </context>
 <context>
@@ -223,12 +223,12 @@
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="99" />
         <source>Terminology Management</source>
-        <translation type="unfinished">专有词管理</translation>
+        <translation>专有词管理</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="155" />
         <source>Add</source>
-        <translation type="unfinished">添加</translation>
+        <translation>添加</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="163" />
@@ -238,41 +238,41 @@
         <location filename="../ui/glossary_dialog.cpp" line="476" />
         <location filename="../ui/glossary_dialog.cpp" line="525" />
         <source>Import</source>
-        <translation type="unfinished">导入</translation>
+        <translation>导入</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="175" />
         <location filename="../ui/glossary_dialog.cpp" line="294" />
         <location filename="../ui/glossary_dialog.cpp" line="481" />
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="212" />
         <location filename="../ui/glossary_dialog.cpp" line="217" />
         <source>Term</source>
-        <translation type="unfinished">术语</translation>
+        <translation>术语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="225" />
         <location filename="../ui/glossary_dialog.cpp" line="230" />
         <source>Translation</source>
-        <translation type="unfinished">译文</translation>
+        <translation>译文</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="240" />
         <source>Save</source>
-        <translation type="unfinished">保存</translation>
+        <translation>保存</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="247" />
         <source>Delete</source>
-        <translation type="unfinished">删除</translation>
+        <translation>删除</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="266" />
         <source>Paste terminology text below, one term per line:</source>
-        <translation type="unfinished">在下方粘贴术语文本，每行一条：</translation>
+        <translation>在下方粘贴术语文本，每行一条：</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="272" />
@@ -285,232 +285,233 @@ BERT BERT</source>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="319" />
         <source>Clear All</source>
-        <translation type="unfinished">清空全部</translation>
+        <translation>清空全部</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="381" />
         <source>Total %1 terms</source>
-        <translation type="unfinished">共 %1 条术语</translation>
+        <translation>共 %1 条术语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="404" />
         <source>Term and translation cannot be empty</source>
-        <translation type="unfinished">术语和译文不能为空</translation>
+        <translation>术语和译文不能为空</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="414" />
         <source>Failed to add term</source>
-        <translation type="unfinished">添加失败</translation>
+        <translation>添加失败</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="422" />
         <source>Failed to update term</source>
-        <translation type="unfinished">更新失败</translation>
+        <translation>更新失败</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="429" />
         <source>Term added</source>
-        <translation type="unfinished">已添加</translation>
+        <translation>已添加</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="429" />
         <source>Term updated</source>
-        <translation type="unfinished">已更新</translation>
+        <translation>已更新</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="448" />
         <source>Failed to delete term</source>
-        <translation type="unfinished">删除失败</translation>
+        <translation>删除失败</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="454" />
         <source>Term deleted</source>
-        <translation type="unfinished">已删除</translation>
+        <translation>已删除</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="469" />
         <source>All terms cleared</source>
-        <translation type="unfinished">已清空全部</translation>
+        <translation>已清空全部</translation>
     </message>
     <message>
         <source>Import Terminology</source>
-        <translation type="unfinished">导入专有词</translation>
+        <translation>导入专有词</translation>
     </message>
     <message>
         <source>Cannot open file</source>
-        <translation type="unfinished">无法打开文件</translation>
+        <translation>无法打开文件</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="529" />
         <source>Imported %1 terms</source>
-        <translation type="unfinished">已导入 %1 条术语</translation>
+        <translation>已导入 %1 条术语</translation>
     </message>
 </context>
 <context>
     <name>KnowledgeBasePage</name>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="492" />
+        <location filename="../ui/knowledgebase_page.cpp" line="507" />
         <source>Actions</source>
         <translation type="unfinished">操作</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="507" />
+        <location filename="../ui/knowledgebase_page.cpp" line="522" />
         <source>No documents yet
 Drop files above to get started</source>
         <translation type="unfinished">暂无文档
 拖放文件到这里开始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="822" />
+        <location filename="../ui/knowledgebase_page.cpp" line="759" />
+        <source>Show summary</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="../ui/knowledgebase_page.cpp" line="840" />
         <source>View</source>
         <translation type="unfinished">查看</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="991" />
+        <location filename="../ui/knowledgebase_page.cpp" line="973" />
         <source>Year</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1017" />
+        <location filename="../ui/knowledgebase_page.cpp" line="999" />
         <source>Previous year</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1018" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1000" />
         <source>Previous month</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1019" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1001" />
         <source>Next month</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1020" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1002" />
         <source>Next year</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1371" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1453" />
         <source>Add</source>
-        <translation type="unfinished">添加</translation>
+        <translation>添加</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1472" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1554" />
         <source>All Documents</source>
         <translation type="unfinished">全部文档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1519" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1601" />
         <source>Batch Delete</source>
         <translation type="unfinished">批量删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1572" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1654" />
         <source>Batch Modify Tags</source>
         <translation type="unfinished">批量修改标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1758" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1866" />
         <source>Open this folder</source>
-        <translation type="unfinished">打开此文件夹</translation>
+        <translation>打开此文件夹</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="532" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1563" />
+        <location filename="../ui/knowledgebase_page.cpp" line="547" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1645" />
         <source>Batch Tag</source>
         <translation type="unfinished">批量标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="850" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1534" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1604" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1689" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1616" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1686" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1771" />
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1643" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1725" />
         <source>Choose export folder</source>
         <translation type="unfinished">选择导出文件夹</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="349" />
+        <location filename="../ui/knowledgebase_page.cpp" line="364" />
         <source>Clear</source>
-        <translation type="unfinished">清空</translation>
+        <translation>清空</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1355" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1437" />
         <source>Create or remove tags.</source>
         <translation type="unfinished">创建或删除标签。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="480" />
+        <location filename="../ui/knowledgebase_page.cpp" line="495" />
         <source>Date</source>
         <translation type="unfinished">日期</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="551" />
-        <location filename="../ui/knowledgebase_page.cpp" line="823" />
-        <location filename="../ui/knowledgebase_page.cpp" line="835" />
-        <location filename="../ui/knowledgebase_page.cpp" line="856" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1428" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1540" />
+        <location filename="../ui/knowledgebase_page.cpp" line="566" />
+        <location filename="../ui/knowledgebase_page.cpp" line="841" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1510" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1622" />
         <source>Delete</source>
-        <translation type="unfinished">删除</translation>
+        <translation>删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="839" />
         <source>Delete this document?</source>
-        <translation type="unfinished">删除此文档？</translation>
+        <translation type="obsolete">删除此文档？</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1500" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1582" />
         <source>Deselect All</source>
         <translation type="unfinished">取消全选</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="476" />
+        <location filename="../ui/knowledgebase_page.cpp" line="491" />
         <source>Document</source>
         <translation type="unfinished">文档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1455" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1537" />
         <source>Done</source>
-        <translation type="unfinished">完成</translation>
+        <translation>完成</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="228" />
+        <location filename="../ui/knowledgebase_page.cpp" line="243" />
         <source>Drop files here to archive</source>
         <translation type="unfinished">拖放文件到这里归档</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="541" />
+        <location filename="../ui/knowledgebase_page.cpp" line="556" />
         <source>Export</source>
         <translation type="unfinished">导出</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1085" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1074" />
         <source>File not found: %1</source>
         <translation type="unfinished">文件不存在: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="301" />
+        <location filename="../ui/knowledgebase_page.cpp" line="316" />
         <source>From</source>
         <translation type="unfinished">起始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1094" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1083" />
         <source>Import in progress, please wait</source>
         <translation type="unfinished">导入中，请稍候</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1351" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1433" />
         <source>Manage Tags</source>
         <translation type="unfinished">管理标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1364" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1446" />
         <source>New tag name…</source>
         <translation type="unfinished">新标签名…</translation>
     </message>
@@ -519,145 +520,145 @@ Drop files above to get started</source>
         <translation type="obsolete">暂无文档\n拖放文件到这里开始</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1473" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1555" />
         <source>No tag</source>
         <translation type="unfinished">无标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1412" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1494" />
         <source>No tags yet.</source>
         <translation type="unfinished">暂无标签。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1564" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1646" />
         <source>No tags yet. Create one first with the +Tag button.</source>
         <translation type="unfinished">暂无标签。请先点击 +标签 按钮创建。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1610" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1695" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1692" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1777" />
         <source>OK</source>
-        <translation type="unfinished">确定</translation>
+        <translation>确定</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="822" />
+        <location filename="../ui/knowledgebase_page.cpp" line="840" />
         <source>Open source file</source>
         <translation type="unfinished">打开源文件</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="370" />
+        <location filename="../ui/knowledgebase_page.cpp" line="385" />
         <source>Search</source>
         <translation type="unfinished">搜索</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="263" />
+        <location filename="../ui/knowledgebase_page.cpp" line="278" />
         <source>Search titles, content…</source>
         <translation type="unfinished">搜索标题、内容…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="407" />
-        <location filename="../ui/knowledgebase_page.cpp" line="584" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1503" />
+        <location filename="../ui/knowledgebase_page.cpp" line="422" />
+        <location filename="../ui/knowledgebase_page.cpp" line="599" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1585" />
         <source>Select All</source>
         <translation type="unfinished">全选</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1103" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1092" />
         <source>Select Files</source>
         <translation type="unfinished">选择文件</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1083" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1072" />
         <source>Source path is empty</source>
         <translation type="unfinished">源文件路径为空</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="231" />
+        <location filename="../ui/knowledgebase_page.cpp" line="246" />
         <source>Supports PDF / DOCX / XLSX / PPTX / MD / TXT / Images</source>
         <translation type="unfinished">支持 PDF / DOCX / XLSX / PPTX / MD / TXT / 图片</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1104" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1093" />
         <source>Supported files (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;All files (*)</source>
         <translation type="unfinished">支持的文件 (*.pdf *.docx *.xlsx *.pptx *.md *.txt *.png *.jpg *.jpeg *.bmp *.tiff);;所有文件 (*)</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="397" />
+        <location filename="../ui/knowledgebase_page.cpp" line="412" />
         <source>Tag</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1385" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1467" />
         <source>Tag already exists: %1</source>
         <translation type="unfinished">标签已存在: %1</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="486" />
+        <location filename="../ui/knowledgebase_page.cpp" line="501" />
         <source>Tags</source>
         <translation type="unfinished">标签</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="331" />
+        <location filename="../ui/knowledgebase_page.cpp" line="346" />
         <source>To</source>
         <translation type="unfinished">结束</translation>
     </message>
     <message>
         <source>Terminology</source>
-        <translation type="unfinished">专有词</translation>
+        <translation>专有词</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1554" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1636" />
         <source>documents deleted</source>
         <translation type="unfinished">个文档已删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1663" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1745" />
         <source>浏览…</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1751" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1859" />
         <source>documents exported</source>
         <translation type="unfinished">个文档已导出</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1224" />
-        <location filename="../ui/knowledgebase_page.cpp" line="1226" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1214" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1216" />
         <source>documents imported</source>
         <translation type="unfinished">个文档已导入</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1626" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1708" />
         <source>documents tagged</source>
         <translation type="unfinished">个文档已标记</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1523" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1605" />
         <source>documents to delete</source>
         <translation type="unfinished">个文档要删除</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1647" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1729" />
         <source>Enter target folder path (auto-created if not exists), or click Browse… to select.</source>
-        <translation type="unfinished">输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
+        <translation>输入目标文件夹路径（不存在会自动创建），或点「浏览…」选择。</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1754" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1862" />
         <source>failed to export</source>
         <translation type="unfinished">导出失败</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1125" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1115" />
         <source>files parsing…</source>
         <translation type="unfinished">文件解析中…</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1234" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1224" />
         <source>parsing</source>
         <translation type="unfinished">解析中</translation>
     </message>
     <message>
-        <location filename="../ui/knowledgebase_page.cpp" line="1485" />
+        <location filename="../ui/knowledgebase_page.cpp" line="1567" />
         <source>selected</source>
         <translation type="unfinished">已选择</translation>
     </message>
@@ -666,36 +667,36 @@ Drop files above to get started</source>
     <name>MainWindow</name>
     <message>
         <location filename="../ui/mainwindow.cpp" line="706" />
-        <location filename="../ui/mainwindow.cpp" line="2370" />
+        <location filename="../ui/mainwindow.cpp" line="2411" />
         <source>Settings</source>
-        <translation type="unfinished">设置</translation>
+        <translation>设置</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="756" />
-        <location filename="../ui/mainwindow.cpp" line="3704" />
+        <location filename="../ui/mainwindow.cpp" line="3814" />
         <source>Ready</source>
-        <translation type="unfinished">就绪</translation>
+        <translation>就绪</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="681" />
         <location filename="../ui/mainwindow.cpp" line="857" />
         <source>Text Translation</source>
-        <translation type="unfinished">文本翻译</translation>
+        <translation>文本翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="861" />
         <source>Enter or paste text to translate</source>
-        <translation type="unfinished">输入或粘贴文本，快速翻译到目标语言</translation>
+        <translation>输入或粘贴文本，快速翻译到目标语言</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="872" />
         <source>Source Language:</source>
-        <translation type="unfinished">源语言:</translation>
+        <translation>源语言:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="876" />
         <source>Auto Detect</source>
-        <translation type="unfinished">自动检测</translation>
+        <translation>自动检测</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="889" />
@@ -703,17 +704,17 @@ Drop files above to get started</source>
         <location filename="../ui/mainwindow.cpp" line="1952" />
         <location filename="../ui/mainwindow.cpp" line="2097" />
         <source>Target Language:</source>
-        <translation type="unfinished">目标语言:</translation>
+        <translation>目标语言:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="932" />
         <source>Source Text</source>
-        <translation type="unfinished">原文</translation>
+        <translation>原文</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="937" />
         <source>Paste</source>
-        <translation type="unfinished">粘贴</translation>
+        <translation>粘贴</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="947" />
@@ -721,94 +722,94 @@ Drop files above to get started</source>
         <location filename="../ui/mainwindow.cpp" line="1583" />
         <location filename="../ui/mainwindow.cpp" line="1829" />
         <source>Clear</source>
-        <translation type="unfinished">清空</translation>
+        <translation>清空</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="966" />
         <source>Enter text to translate…</source>
-        <translation type="unfinished">请输入要翻译的文本…</translation>
+        <translation>请输入要翻译的文本…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="978" />
         <source>0 characters</source>
-        <translation type="unfinished">0 字符</translation>
+        <translation>0 字符</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1009" />
         <source>%1 characters</source>
-        <translation type="unfinished">%1 字符</translation>
+        <translation>%1 字符</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1035" />
         <location filename="../ui/mainwindow.cpp" line="1662" />
         <location filename="../ui/mainwindow.cpp" line="1884" />
         <source>Translation Result</source>
-        <translation type="unfinished">翻译结果</translation>
+        <translation>翻译结果</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1040" />
         <location filename="../ui/mainwindow.cpp" line="1687" />
         <location filename="../ui/mainwindow.cpp" line="1890" />
         <source>Copy</source>
-        <translation type="unfinished">复制</translation>
+        <translation>复制</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1048" />
         <location filename="../ui/mainwindow.cpp" line="1695" />
         <source>Copied</source>
-        <translation type="unfinished">译文已复制</translation>
+        <translation>译文已复制</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1053" />
         <location filename="../ui/mainwindow.cpp" line="1699" />
         <source>Read Aloud</source>
-        <translation type="unfinished">朗读</translation>
+        <translation>朗读</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1074" />
         <location filename="../ui/mainwindow.cpp" line="1678" />
         <source>Translation Result…</source>
-        <translation type="unfinished">翻译结果…</translation>
+        <translation>翻译结果…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1100" />
         <source>Upload File</source>
-        <translation type="unfinished">上传文件</translation>
+        <translation>上传文件</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="684" />
         <location filename="../ui/mainwindow.cpp" line="1105" />
         <source>Image Translation</source>
-        <translation type="unfinished">图片翻译</translation>
+        <translation>图片翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1112" />
         <location filename="../ui/mainwindow.cpp" line="2162" />
         <source>Translate</source>
-        <translation type="unfinished">翻译</translation>
+        <translation>翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="682" />
         <location filename="../ui/mainwindow.cpp" line="1130" />
         <source>Selection Translation</source>
-        <translation type="unfinished">划词翻译</translation>
+        <translation>划词翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1134" />
         <source>Select text in any app, press hotkey to translate</source>
-        <translation type="unfinished">选中任意应用中的文字，按快捷键弹出翻译窗口</translation>
+        <translation>选中任意应用中的文字，按快捷键弹出翻译窗口</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1148" />
         <location filename="../ui/mainwindow.cpp" line="1267" />
         <source>Hotkey</source>
-        <translation type="unfinished">快捷键</translation>
+        <translation>快捷键</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1165" />
         <location filename="../ui/mainwindow.cpp" line="1183" />
         <source>Set Selection Hotkey</source>
-        <translation type="unfinished">设置划词翻译快捷键</translation>
+        <translation>设置划词翻译快捷键</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1192" />
@@ -820,19 +821,19 @@ Drop files above to get started</source>
         <location filename="../ui/mainwindow.cpp" line="1219" />
         <location filename="../ui/mainwindow.cpp" line="1469" />
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1228" />
         <location filename="../ui/mainwindow.cpp" line="1478" />
         <source>OK</source>
-        <translation type="unfinished">确定</translation>
+        <translation>确定</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1274" />
         <location filename="../ui/mainwindow.cpp" line="1517" />
         <source>Hotkey Conflict</source>
-        <translation type="unfinished">快捷键冲突</translation>
+        <translation>快捷键冲突</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1275" />
@@ -847,47 +848,47 @@ Drop files above to get started</source>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1325" />
-        <location filename="../ui/mainwindow.cpp" line="2393" />
+        <location filename="../ui/mainwindow.cpp" line="2434" />
         <source>Default Language</source>
-        <translation type="unfinished">默认语言</translation>
+        <translation>默认语言</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1336" />
         <source>Auto Copy</source>
-        <translation type="unfinished">自动复制</translation>
+        <translation>自动复制</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1341" />
         <source>Stay on Top</source>
-        <translation type="unfinished">窗口置顶</translation>
+        <translation>窗口置顶</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1357" />
         <source>Translation History</source>
-        <translation type="unfinished">翻译历史</translation>
+        <translation>翻译历史</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1376" />
         <source>Translation history will appear here…</source>
-        <translation type="unfinished">划词翻译记录将显示在这里…</translation>
+        <translation>划词翻译记录将显示在这里…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="683" />
         <location filename="../ui/mainwindow.cpp" line="1395" />
         <location filename="../ui/mainwindow.cpp" line="1406" />
         <source>Screenshot Translation</source>
-        <translation type="unfinished">截图翻译</translation>
+        <translation>截图翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1399" />
         <source>Capture screen area for OCR and translation</source>
-        <translation type="unfinished">截图即可进行 OCR 识别和翻译</translation>
+        <translation>截图即可进行 OCR 识别和翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1426" />
         <location filename="../ui/mainwindow.cpp" line="1439" />
         <source>Set Screenshot Hotkey</source>
-        <translation type="unfinished">设置截图快捷键</translation>
+        <translation>设置截图快捷键</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1518" />
@@ -897,38 +898,38 @@ Drop files above to get started</source>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1576" />
         <source>Screenshot Preview</source>
-        <translation type="unfinished">截图预览</translation>
+        <translation>截图预览</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1591" />
         <location filename="../ui/mainwindow.cpp" line="1607" />
         <source>Waiting for screenshot…</source>
-        <translation type="unfinished">等待截图…</translation>
+        <translation>等待截图…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1641" />
         <source>Recognition Result</source>
-        <translation type="unfinished">识别结果</translation>
+        <translation>识别结果</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1648" />
         <source>OCR Text…</source>
-        <translation type="unfinished">OCR 识别文本…</translation>
+        <translation>OCR 识别文本…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1747" />
         <source>Drag image here or click to upload</source>
-        <translation type="unfinished">拖拽图片到此处，或点击上传</translation>
+        <translation>拖拽图片到此处，或点击上传</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1761" />
-        <location filename="../ui/mainwindow.cpp" line="3123" />
+        <location filename="../ui/mainwindow.cpp" line="3180" />
         <source>Select Image</source>
-        <translation type="unfinished">选择图片</translation>
+        <translation>选择图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1762" />
-        <location filename="../ui/mainwindow.cpp" line="3125" />
+        <location filename="../ui/mainwindow.cpp" line="3182" />
         <source>Images (*.png *.jpg *.jpeg *.bmp *.tiff);;All Files (*)</source>
         <translation type="unfinished" />
     </message>
@@ -936,257 +937,257 @@ Drop files above to get started</source>
         <location filename="../ui/mainwindow.cpp" line="1790" />
         <location filename="../ui/mainwindow.cpp" line="1793" />
         <source>Cannot load image</source>
-        <translation type="unfinished">无法加载图片</translation>
+        <translation>无法加载图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1823" />
         <source>Original</source>
-        <translation type="unfinished">原图</translation>
+        <translation>原图</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1837" />
         <location filename="../ui/mainwindow.cpp" line="1855" />
         <source>Image preview…</source>
-        <translation type="unfinished">拖拽图片预览…</translation>
+        <translation>拖拽图片预览…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1842" />
         <location filename="../ui/mainwindow.cpp" line="1930" />
         <source>Result shows after translation…</source>
-        <translation type="unfinished">翻译完成后显示结果…</translation>
+        <translation>翻译完成后显示结果…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1899" />
         <source>Image copied</source>
-        <translation type="unfinished">图片已复制</translation>
+        <translation>图片已复制</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1905" />
         <location filename="../ui/mainwindow.cpp" line="2262" />
-        <location filename="../ui/mainwindow.cpp" line="3565" />
-        <location filename="../ui/mainwindow.cpp" line="3660" />
+        <location filename="../ui/mainwindow.cpp" line="3646" />
+        <location filename="../ui/mainwindow.cpp" line="3771" />
         <source>Download</source>
-        <translation type="unfinished">下载</translation>
+        <translation>下载</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1913" />
         <source>Save Image</source>
-        <translation type="unfinished">保存图片</translation>
+        <translation>保存图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1914" />
         <source>PNG Images (*.png)</source>
-        <translation type="unfinished">PNG 图片 (*.png)</translation>
+        <translation>PNG 图片 (*.png)</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1919" />
         <source>Save Image Failed</source>
-        <translation type="unfinished">保存图片失败</translation>
+        <translation>保存图片失败</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1917" />
         <source>Image saved: </source>
-        <translation type="unfinished">图片已保存: </translation>
+        <translation>图片已保存: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="1966" />
         <source>Translate Image</source>
-        <translation type="unfinished">翻译图片</translation>
+        <translation>翻译图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2003" />
         <source>Drag files here or click to upload</source>
-        <translation type="unfinished">拖拽文件到此处，或点击上传</translation>
+        <translation>拖拽文件到此处，或点击上传</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2008" />
         <source>Supports PDF / Word / Excel / PPT / MD / TXT / Images</source>
-        <translation type="unfinished">支持 PDF / Word / Excel / PPT / MD / TXT / 图片</translation>
+        <translation>支持 PDF / Word / Excel / PPT / MD / TXT / 图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2033" />
-        <location filename="../ui/mainwindow.cpp" line="3061" />
+        <location filename="../ui/mainwindow.cpp" line="3105" />
         <source>Select File</source>
-        <translation type="unfinished">选择文件</translation>
+        <translation>选择文件</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2055" />
         <source>File List</source>
-        <translation type="unfinished">上传文件列表</translation>
+        <translation>上传文件列表</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2115" />
         <source>Layout Threshold:</source>
-        <translation type="unfinished">版面阈值:</translation>
+        <translation>版面阈值:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2127" />
         <source>DPI:</source>
-        <translation type="unfinished">DPI:</translation>
+        <translation>DPI:</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2145" />
         <source>Deskew</source>
-        <translation type="unfinished">去扭曲</translation>
+        <translation>去扭曲</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2152" />
         <source>Enhance</source>
-        <translation type="unfinished">增强</translation>
+        <translation>增强</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2256" />
         <source>Queued</source>
-        <translation type="unfinished">排队中</translation>
+        <translation>排队中</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2278" />
+        <location filename="../ui/mainwindow.cpp" line="2281" />
         <source>Save File</source>
-        <translation type="unfinished">保存文件</translation>
+        <translation>保存文件</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2279" />
+        <location filename="../ui/mainwindow.cpp" line="2282" />
         <source>All Files (*)</source>
-        <translation type="unfinished">所有文件 (*)</translation>
+        <translation>所有文件 (*)</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2299" />
+        <location filename="../ui/mainwindow.cpp" line="2310" />
         <source>Downloaded to: </source>
-        <translation type="unfinished">已下载到: </translation>
+        <translation>已下载到: </translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2301" />
+        <location filename="../ui/mainwindow.cpp" line="2312" />
         <source>📂 Open in Folder</source>
-        <translation type="unfinished">📂 在文件夹中打开</translation>
+        <translation>📂 在文件夹中打开</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2317" />
+        <location filename="../ui/mainwindow.cpp" line="2328" />
         <source>Save Failed</source>
-        <translation type="unfinished">保存失败</translation>
+        <translation>保存失败</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2374" />
+        <location filename="../ui/mainwindow.cpp" line="2415" />
         <source>Requires restart</source>
-        <translation type="unfinished">修改后需重启应用生效</translation>
+        <translation>修改后需重启应用生效</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="37" />
         <location filename="../ui/glossary_dialog.cpp" line="145" />
         <location filename="../ui/mainwindow.cpp" line="74" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
-        <location filename="../ui/mainwindow.cpp" line="3007" />
+        <location filename="../ui/mainwindow.cpp" line="2443" />
+        <location filename="../ui/mainwindow.cpp" line="3051" />
         <source>Chinese</source>
-        <translation type="unfinished">中文</translation>
+        <translation>中文</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="38" />
         <location filename="../ui/mainwindow.cpp" line="75" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/mainwindow.cpp" line="2443" />
         <source>English</source>
-        <translation type="unfinished">英语</translation>
+        <translation>英语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="41" />
         <location filename="../ui/mainwindow.cpp" line="76" />
-        <location filename="../ui/mainwindow.cpp" line="2402" />
+        <location filename="../ui/mainwindow.cpp" line="2443" />
         <source>French</source>
-        <translation type="unfinished">法语</translation>
+        <translation>法语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="44" />
         <location filename="../ui/mainwindow.cpp" line="77" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
+        <location filename="../ui/mainwindow.cpp" line="2444" />
         <source>Portuguese</source>
-        <translation type="unfinished">葡萄牙语</translation>
+        <translation>葡萄牙语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="43" />
         <location filename="../ui/mainwindow.cpp" line="78" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
+        <location filename="../ui/mainwindow.cpp" line="2444" />
         <source>Spanish</source>
-        <translation type="unfinished">西班牙语</translation>
+        <translation>西班牙语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="39" />
         <location filename="../ui/mainwindow.cpp" line="79" />
-        <location filename="../ui/mainwindow.cpp" line="2403" />
-        <location filename="../ui/mainwindow.cpp" line="3866" />
+        <location filename="../ui/mainwindow.cpp" line="2444" />
+        <location filename="../ui/mainwindow.cpp" line="3976" />
         <source>Japanese</source>
-        <translation type="unfinished">日语</translation>
+        <translation>日语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="52" />
         <location filename="../ui/mainwindow.cpp" line="80" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
+        <location filename="../ui/mainwindow.cpp" line="2445" />
         <source>Turkish</source>
-        <translation type="unfinished">土耳其语</translation>
+        <translation>土耳其语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="45" />
         <location filename="../ui/mainwindow.cpp" line="81" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
-        <location filename="../ui/mainwindow.cpp" line="3883" />
+        <location filename="../ui/mainwindow.cpp" line="2445" />
+        <location filename="../ui/mainwindow.cpp" line="3993" />
         <source>Russian</source>
-        <translation type="unfinished">俄语</translation>
+        <translation>俄语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="46" />
         <location filename="../ui/mainwindow.cpp" line="82" />
-        <location filename="../ui/mainwindow.cpp" line="2404" />
-        <location filename="../ui/mainwindow.cpp" line="3877" />
+        <location filename="../ui/mainwindow.cpp" line="2445" />
+        <location filename="../ui/mainwindow.cpp" line="3987" />
         <source>Arabic</source>
-        <translation type="unfinished">阿拉伯语</translation>
+        <translation>阿拉伯语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="40" />
         <location filename="../ui/mainwindow.cpp" line="83" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
-        <location filename="../ui/mainwindow.cpp" line="3865" />
+        <location filename="../ui/mainwindow.cpp" line="2446" />
+        <location filename="../ui/mainwindow.cpp" line="3975" />
         <source>Korean</source>
-        <translation type="unfinished">韩语</translation>
+        <translation>韩语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="47" />
         <location filename="../ui/mainwindow.cpp" line="84" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
-        <location filename="../ui/mainwindow.cpp" line="3876" />
+        <location filename="../ui/mainwindow.cpp" line="2446" />
+        <location filename="../ui/mainwindow.cpp" line="3986" />
         <source>Thai</source>
-        <translation type="unfinished">泰语</translation>
+        <translation>泰语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="49" />
         <location filename="../ui/mainwindow.cpp" line="85" />
-        <location filename="../ui/mainwindow.cpp" line="2405" />
+        <location filename="../ui/mainwindow.cpp" line="2446" />
         <source>Italian</source>
-        <translation type="unfinished">意大利语</translation>
+        <translation>意大利语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="42" />
         <location filename="../ui/mainwindow.cpp" line="86" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
+        <location filename="../ui/mainwindow.cpp" line="2447" />
         <source>German</source>
-        <translation type="unfinished">德语</translation>
+        <translation>德语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="48" />
         <location filename="../ui/mainwindow.cpp" line="87" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
+        <location filename="../ui/mainwindow.cpp" line="2447" />
         <source>Vietnamese</source>
-        <translation type="unfinished">越南语</translation>
+        <translation>越南语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="55" />
         <location filename="../ui/mainwindow.cpp" line="88" />
-        <location filename="../ui/mainwindow.cpp" line="2406" />
+        <location filename="../ui/mainwindow.cpp" line="2447" />
         <source>Malay</source>
-        <translation type="unfinished">马来语</translation>
+        <translation>马来语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="54" />
         <location filename="../ui/mainwindow.cpp" line="89" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
+        <location filename="../ui/mainwindow.cpp" line="2448" />
         <source>Indonesian</source>
-        <translation type="unfinished">印尼语</translation>
+        <translation>印尼语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="56" />
@@ -1226,9 +1227,9 @@ Drop files above to get started</source>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="66" />
         <location filename="../ui/mainwindow.cpp" line="90" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
+        <location filename="../ui/mainwindow.cpp" line="2448" />
         <source>Filipino</source>
-        <translation type="unfinished">菲律宾语</translation>
+        <translation>菲律宾语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="72" />
@@ -1238,53 +1239,53 @@ Drop files above to get started</source>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="53" />
         <location filename="../ui/mainwindow.cpp" line="91" />
-        <location filename="../ui/mainwindow.cpp" line="2407" />
-        <location filename="../ui/mainwindow.cpp" line="3868" />
+        <location filename="../ui/mainwindow.cpp" line="2448" />
+        <location filename="../ui/mainwindow.cpp" line="3978" />
         <source>Hindi</source>
-        <translation type="unfinished">印地语</translation>
+        <translation>印地语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="92" />
-        <location filename="../ui/mainwindow.cpp" line="2408" />
+        <location filename="../ui/mainwindow.cpp" line="2449" />
         <source>Traditional Chinese</source>
-        <translation type="unfinished">繁体中文</translation>
+        <translation>繁体中文</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="51" />
         <location filename="../ui/mainwindow.cpp" line="93" />
-        <location filename="../ui/mainwindow.cpp" line="2408" />
+        <location filename="../ui/mainwindow.cpp" line="2449" />
         <source>Polish</source>
-        <translation type="unfinished">波兰语</translation>
+        <translation>波兰语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="57" />
         <location filename="../ui/mainwindow.cpp" line="94" />
-        <location filename="../ui/mainwindow.cpp" line="2408" />
+        <location filename="../ui/mainwindow.cpp" line="2449" />
         <source>Czech</source>
-        <translation type="unfinished">捷克语</translation>
+        <translation>捷克语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="50" />
         <location filename="../ui/mainwindow.cpp" line="95" />
-        <location filename="../ui/mainwindow.cpp" line="2409" />
+        <location filename="../ui/mainwindow.cpp" line="2450" />
         <source>Dutch</source>
-        <translation type="unfinished">荷兰语</translation>
+        <translation>荷兰语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="68" />
         <location filename="../ui/mainwindow.cpp" line="96" />
-        <location filename="../ui/mainwindow.cpp" line="2409" />
-        <location filename="../ui/mainwindow.cpp" line="3879" />
+        <location filename="../ui/mainwindow.cpp" line="2450" />
+        <location filename="../ui/mainwindow.cpp" line="3989" />
         <source>Khmer</source>
-        <translation type="unfinished">高棉语</translation>
+        <translation>高棉语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="67" />
         <location filename="../ui/mainwindow.cpp" line="97" />
-        <location filename="../ui/mainwindow.cpp" line="2409" />
-        <location filename="../ui/mainwindow.cpp" line="3880" />
+        <location filename="../ui/mainwindow.cpp" line="2450" />
+        <location filename="../ui/mainwindow.cpp" line="3990" />
         <source>Burmese</source>
-        <translation type="unfinished">缅甸语</translation>
+        <translation>缅甸语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="69" />
@@ -1299,522 +1300,517 @@ Drop files above to get started</source>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="71" />
         <location filename="../ui/mainwindow.cpp" line="98" />
-        <location filename="../ui/mainwindow.cpp" line="2410" />
+        <location filename="../ui/mainwindow.cpp" line="2451" />
         <source>Persian</source>
-        <translation type="unfinished">波斯语</translation>
+        <translation>波斯语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="99" />
-        <location filename="../ui/mainwindow.cpp" line="2410" />
-        <location filename="../ui/mainwindow.cpp" line="3872" />
+        <location filename="../ui/mainwindow.cpp" line="2451" />
+        <location filename="../ui/mainwindow.cpp" line="3982" />
         <source>Gujarati</source>
-        <translation type="unfinished">古吉拉特语</translation>
+        <translation>古吉拉特语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="100" />
-        <location filename="../ui/mainwindow.cpp" line="2410" />
+        <location filename="../ui/mainwindow.cpp" line="2451" />
         <source>Urdu</source>
-        <translation type="unfinished">乌尔都语</translation>
+        <translation>乌尔都语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="101" />
-        <location filename="../ui/mainwindow.cpp" line="2411" />
-        <location filename="../ui/mainwindow.cpp" line="3870" />
+        <location filename="../ui/mainwindow.cpp" line="2452" />
+        <location filename="../ui/mainwindow.cpp" line="3980" />
         <source>Telugu</source>
-        <translation type="unfinished">泰卢固语</translation>
+        <translation>泰卢固语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="102" />
-        <location filename="../ui/mainwindow.cpp" line="2411" />
-        <location filename="../ui/mainwindow.cpp" line="3871" />
+        <location filename="../ui/mainwindow.cpp" line="2452" />
+        <location filename="../ui/mainwindow.cpp" line="3981" />
         <source>Marathi</source>
-        <translation type="unfinished">马拉地语</translation>
+        <translation>马拉地语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="103" />
-        <location filename="../ui/mainwindow.cpp" line="2411" />
-        <location filename="../ui/mainwindow.cpp" line="3878" />
+        <location filename="../ui/mainwindow.cpp" line="2452" />
+        <location filename="../ui/mainwindow.cpp" line="3988" />
         <source>Hebrew</source>
-        <translation type="unfinished">希伯来语</translation>
+        <translation>希伯来语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="65" />
         <location filename="../ui/mainwindow.cpp" line="104" />
-        <location filename="../ui/mainwindow.cpp" line="2412" />
-        <location filename="../ui/mainwindow.cpp" line="3869" />
+        <location filename="../ui/mainwindow.cpp" line="2453" />
+        <location filename="../ui/mainwindow.cpp" line="3979" />
         <source>Bengali</source>
-        <translation type="unfinished">孟加拉语</translation>
+        <translation>孟加拉语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="105" />
-        <location filename="../ui/mainwindow.cpp" line="2412" />
-        <location filename="../ui/mainwindow.cpp" line="3867" />
+        <location filename="../ui/mainwindow.cpp" line="2453" />
+        <location filename="../ui/mainwindow.cpp" line="3977" />
         <source>Tamil</source>
-        <translation type="unfinished">泰米尔语</translation>
+        <translation>泰米尔语</translation>
     </message>
     <message>
         <location filename="../ui/glossary_dialog.cpp" line="64" />
         <location filename="../ui/mainwindow.cpp" line="106" />
-        <location filename="../ui/mainwindow.cpp" line="2412" />
+        <location filename="../ui/mainwindow.cpp" line="2453" />
         <source>Ukrainian</source>
-        <translation type="unfinished">乌克兰语</translation>
+        <translation>乌克兰语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="107" />
-        <location filename="../ui/mainwindow.cpp" line="2413" />
-        <location filename="../ui/mainwindow.cpp" line="3881" />
+        <location filename="../ui/mainwindow.cpp" line="2454" />
+        <location filename="../ui/mainwindow.cpp" line="3991" />
         <source>Tibetan</source>
-        <translation type="unfinished">藏语</translation>
+        <translation>藏语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="108" />
-        <location filename="../ui/mainwindow.cpp" line="2413" />
+        <location filename="../ui/mainwindow.cpp" line="2454" />
         <source>Kazakh</source>
-        <translation type="unfinished">哈萨克语</translation>
+        <translation>哈萨克语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="109" />
-        <location filename="../ui/mainwindow.cpp" line="2413" />
-        <location filename="../ui/mainwindow.cpp" line="3882" />
+        <location filename="../ui/mainwindow.cpp" line="2454" />
+        <location filename="../ui/mainwindow.cpp" line="3992" />
         <source>Mongolian</source>
-        <translation type="unfinished">蒙古语</translation>
+        <translation>蒙古语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="110" />
-        <location filename="../ui/mainwindow.cpp" line="2414" />
+        <location filename="../ui/mainwindow.cpp" line="2455" />
         <source>Uyghur</source>
-        <translation type="unfinished">维吾尔语</translation>
+        <translation>维吾尔语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="111" />
-        <location filename="../ui/mainwindow.cpp" line="2414" />
+        <location filename="../ui/mainwindow.cpp" line="2455" />
         <source>Cantonese</source>
-        <translation type="unfinished">粤语</translation>
+        <translation>粤语</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="685" />
         <source>File Translation</source>
-        <translation type="unfinished">文件翻译</translation>
+        <translation>文件翻译</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="686" />
         <source>Knowledge Base</source>
-        <translation type="unfinished">知识库</translation>
+        <translation>知识库</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2427" />
+        <location filename="../ui/mainwindow.cpp" line="2468" />
         <source>Language</source>
-        <translation type="unfinished">界面语言</translation>
+        <translation>界面语言</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2448" />
+        <location filename="../ui/mainwindow.cpp" line="2489" />
         <source>Language change takes effect after restart</source>
-        <translation type="unfinished">语言切换将在重启后生效</translation>
+        <translation>语言切换将在重启后生效</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2456" />
+        <location filename="../ui/mainwindow.cpp" line="2497" />
         <source>OCR Model Size</source>
-        <translation type="unfinished">OCR 模型大小</translation>
+        <translation>OCR 模型大小</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2479" />
+        <location filename="../ui/mainwindow.cpp" line="2520" />
         <source>Translation Model</source>
-        <translation type="unfinished">翻译模型</translation>
+        <translation>翻译模型</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2516" />
+        <location filename="../ui/mainwindow.cpp" line="2557" />
         <source>Load Engines on Startup</source>
-        <translation type="unfinished">启动时加载引擎</translation>
+        <translation>启动时加载引擎</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2521" />
+        <location filename="../ui/mainwindow.cpp" line="2562" />
         <source>Disable to reduce startup time. Engines load on demand.</source>
-        <translation type="unfinished">关闭后可减少启动时间，引擎在需要时按需加载。</translation>
+        <translation>关闭后可减少启动时间，引擎在需要时按需加载。</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2537" />
+        <location filename="../ui/mainwindow.cpp" line="2578" />
         <source>OCR Engine</source>
-        <translation type="unfinished">OCR 引擎</translation>
+        <translation>OCR 引擎</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2538" />
+        <location filename="../ui/mainwindow.cpp" line="2579" />
         <source>Translator</source>
-        <translation type="unfinished">翻译引擎</translation>
+        <translation>翻译引擎</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2539" />
+        <location filename="../ui/mainwindow.cpp" line="2580" />
         <source>Formula Recognition</source>
-        <translation type="unfinished">公式识别</translation>
+        <translation>公式识别</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2540" />
+        <location filename="../ui/mainwindow.cpp" line="2581" />
         <source>Layout Analysis</source>
-        <translation type="unfinished">版面分析</translation>
+        <translation>版面分析</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2541" />
+        <location filename="../ui/mainwindow.cpp" line="2582" />
         <source>Image Correction</source>
-        <translation type="unfinished">图片矫正</translation>
+        <translation>图片矫正</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2542" />
+        <location filename="../ui/mainwindow.cpp" line="2583" />
         <source>Speech Recognition</source>
-        <translation type="unfinished">语音识别</translation>
+        <translation>语音识别</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2543" />
+        <location filename="../ui/mainwindow.cpp" line="2584" />
         <source>Summarization Engine</source>
-        <translation type="unfinished">摘要引擎</translation>
+        <translation>摘要引擎</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2550" />
+        <location filename="../ui/mainwindow.cpp" line="2591" />
         <source>GPU Settings</source>
-        <translation type="unfinished">GPU 设置</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2555" />
-        <source>Disable GPU to reduce VRAM. Restart required.</source>
-        <translation type="unfinished">关闭 GPU 以节省显存。修改后需重启应用生效。</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2560" />
-        <source>Enable All GPU Acceleration</source>
-        <translation type="unfinished">启用全部 GPU 加速</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2595" />
-        <source>Layout GPU</source>
-        <translation type="unfinished">版面分析启用 GPU</translation>
+        <translation>GPU 设置</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2596" />
-        <source>OCR GPU</source>
-        <translation type="unfinished">OCR 启用 GPU</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2597" />
-        <source>VLM GPU</source>
-        <translation type="unfinished">公式识别启用 GPU</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2598" />
-        <source>Image Correction GPU</source>
-        <translation type="unfinished">图片矫正启用 GPU</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2599" />
-        <source>Translator GPU</source>
-        <translation type="unfinished">翻译引擎启用 GPU</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2600" />
-        <source>ASR GPU</source>
-        <translation type="unfinished">语音识别启用 GPU</translation>
+        <source>Disable GPU to reduce VRAM. Restart required.</source>
+        <translation>关闭 GPU 以节省显存。修改后需重启应用生效。</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="2601" />
+        <source>Enable All GPU Acceleration</source>
+        <translation>启用全部 GPU 加速</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2636" />
+        <source>Layout GPU</source>
+        <translation>版面分析启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2637" />
+        <source>OCR GPU</source>
+        <translation>OCR 启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2638" />
+        <source>VLM GPU</source>
+        <translation>公式识别启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2639" />
+        <source>Image Correction GPU</source>
+        <translation>图片矫正启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2640" />
+        <source>Translator GPU</source>
+        <translation>翻译引擎启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2641" />
+        <source>ASR GPU</source>
+        <translation>语音识别启用 GPU</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2642" />
         <source>Summarizer GPU</source>
-        <translation type="unfinished">摘要引擎 GPU</translation>
+        <translation>摘要引擎 GPU</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2628" />
+        <location filename="../ui/mainwindow.cpp" line="2669" />
         <source>Knowledge Base Path</source>
-        <translation type="unfinished">知识库路径</translation>
+        <translation>知识库路径</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2633" />
+        <location filename="../ui/mainwindow.cpp" line="2674" />
         <source>Storage directory for imported documents. Restart required.</source>
-        <translation type="unfinished">导入文档的存储目录。修改后需重启生效。</translation>
+        <translation>导入文档的存储目录。修改后需重启生效。</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2649" />
+        <location filename="../ui/mainwindow.cpp" line="2690" />
         <source>Browse…</source>
-        <translation type="unfinished">浏览…</translation>
+        <translation>浏览…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2657" />
+        <location filename="../ui/mainwindow.cpp" line="2699" />
         <source>Select Knowledge Base Folder</source>
-        <translation type="unfinished">选择知识库文件夹</translation>
+        <translation>选择知识库文件夹</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2665" />
+        <location filename="../ui/mainwindow.cpp" line="2708" />
         <source>Reset</source>
-        <translation type="unfinished">重置</translation>
+        <translation>重置</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2692" />
+        <location filename="../ui/mainwindow.cpp" line="2735" />
         <source>Terminology</source>
-        <translation type="unfinished">专有词</translation>
+        <translation>专有词</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2697" />
+        <location filename="../ui/mainwindow.cpp" line="2740" />
         <source>Inject terminology into translation to enforce consistent term usage.</source>
-        <translation type="unfinished">在翻译中注入术语，确保术语使用一致。</translation>
+        <translation>在翻译中注入术语，确保术语使用一致。</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2705" />
+        <location filename="../ui/mainwindow.cpp" line="2748" />
         <source>Enable Terminology</source>
-        <translation type="unfinished">启用术语库</translation>
+        <translation>启用术语库</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2718" />
+        <location filename="../ui/mainwindow.cpp" line="2761" />
         <source>Manage…</source>
-        <translation type="unfinished">管理…</translation>
+        <translation>管理…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2800" />
+        <location filename="../ui/mainwindow.cpp" line="2843" />
         <source>Show Main Window</source>
-        <translation type="unfinished">显示主窗口</translation>
+        <translation>显示主窗口</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2805" />
+        <location filename="../ui/mainwindow.cpp" line="2848" />
         <source>Exit</source>
-        <translation type="unfinished">退出</translation>
+        <translation>退出</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2993" />
-        <location filename="../ui/mainwindow.cpp" line="3078" />
-        <location filename="../ui/mainwindow.cpp" line="3148" />
+        <location filename="../ui/mainwindow.cpp" line="3037" />
+        <location filename="../ui/mainwindow.cpp" line="3125" />
+        <location filename="../ui/mainwindow.cpp" line="3205" />
         <source>Processing, please wait…</source>
-        <translation type="unfinished">正在处理中，请等待…</translation>
+        <translation>正在处理中，请等待…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2447" />
-        <location filename="../ui/mainwindow.cpp" line="2999" />
-        <location filename="../ui/mainwindow.cpp" line="3083" />
-        <location filename="../ui/mainwindow.cpp" line="3154" />
+        <location filename="../ui/mainwindow.cpp" line="2488" />
+        <location filename="../ui/mainwindow.cpp" line="3043" />
+        <location filename="../ui/mainwindow.cpp" line="3130" />
+        <location filename="../ui/mainwindow.cpp" line="3211" />
         <source>Prompt</source>
-        <translation type="unfinished">提示</translation>
+        <translation>提示</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="2999" />
+        <location filename="../ui/mainwindow.cpp" line="3043" />
         <source>Enter text to translate</source>
-        <translation type="unfinished">请输入要翻译的文本</translation>
+        <translation>请输入要翻译的文本</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3023" />
+        <location filename="../ui/mainwindow.cpp" line="3067" />
         <source>Screenshot cancelled</source>
-        <translation type="unfinished">截图取消</translation>
+        <translation>截图取消</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3029" />
+        <location filename="../ui/mainwindow.cpp" line="3073" />
         <source>Screenshot Unavailable</source>
-        <translation type="unfinished">截图翻译不可用</translation>
+        <translation>截图翻译不可用</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3030" />
+        <location filename="../ui/mainwindow.cpp" line="3074" />
         <source>OCR engine failed to load. Please check if model files exist.
 Path: models/ocr/[tiny/small/medium]/</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3083" />
+        <location filename="../ui/mainwindow.cpp" line="3130" />
         <source>Drag or select input file</source>
-        <translation type="unfinished">请拖拽或选择输入文件</translation>
+        <translation>请拖拽或选择输入文件</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3109" />
+        <location filename="../ui/mainwindow.cpp" line="3167" />
         <source>Translating…</source>
-        <translation type="unfinished">正在翻译…</translation>
+        <translation>正在翻译…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3141" />
+        <location filename="../ui/mainwindow.cpp" line="3198" />
         <source>Cannot load preview</source>
-        <translation type="unfinished">无法加载预览</translation>
+        <translation>无法加载预览</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3154" />
+        <location filename="../ui/mainwindow.cpp" line="3211" />
         <source>Select input image</source>
-        <translation type="unfinished">请选择输入图片</translation>
+        <translation>请选择输入图片</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3175" />
+        <location filename="../ui/mainwindow.cpp" line="3232" />
         <source>Select Model/DLL Directory</source>
-        <translation type="unfinished">选择模型/DLL 目录</translation>
+        <translation>选择模型/DLL 目录</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3210" />
-        <location filename="../ui/mainwindow.cpp" line="3461" />
+        <location filename="../ui/mainwindow.cpp" line="3286" />
+        <location filename="../ui/mainwindow.cpp" line="3537" />
         <source>Processing…</source>
-        <translation type="unfinished">处理中…</translation>
+        <translation>处理中…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3241" />
+        <location filename="../ui/mainwindow.cpp" line="3317" />
         <source>Click to stop recording</source>
-        <translation type="unfinished">点击停止录音</translation>
+        <translation>点击停止录音</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3242" />
+        <location filename="../ui/mainwindow.cpp" line="3318" />
         <source>Test mode: reading test.wav…</source>
-        <translation type="unfinished">测试模式：读取 test.wav…</translation>
+        <translation>测试模式：读取 test.wav…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3242" />
+        <location filename="../ui/mainwindow.cpp" line="3318" />
         <source>Recording… click to stop</source>
-        <translation type="unfinished">录音中…点击 🎤 停止</translation>
+        <translation>录音中…点击 🎤 停止</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3255" />
+        <location filename="../ui/mainwindow.cpp" line="3331" />
         <source>ASR Engine Not Loaded</source>
-        <translation type="unfinished">ASR 引擎未加载</translation>
+        <translation>ASR 引擎未加载</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3267" />
+        <location filename="../ui/mainwindow.cpp" line="3343" />
         <source>ASR DLL Interface Error</source>
-        <translation type="unfinished">ASR DLL 接口错误</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="3281" />
-        <source>ASR Model Load Failed</source>
-        <translation type="unfinished">ASR 模型加载失败</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="3297" />
-        <source>Test mode: test.wav not found</source>
-        <translation type="unfinished">测试模式：找不到 test.wav</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="3329" />
-        <source>Test mode: loaded, recognizing</source>
-        <translation type="unfinished">测试模式：读取完成，开始识别</translation>
+        <translation>ASR DLL 接口错误</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="3357" />
+        <source>ASR Model Load Failed</source>
+        <translation>ASR 模型加载失败</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="3373" />
+        <source>Test mode: test.wav not found</source>
+        <translation>测试模式：找不到 test.wav</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="3405" />
+        <source>Test mode: loaded, recognizing</source>
+        <translation>测试模式：读取完成，开始识别</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="3433" />
         <source>Microphone open failed</source>
-        <translation type="unfinished">麦克风打开失败</translation>
+        <translation>麦克风打开失败</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3399" />
+        <location filename="../ui/mainwindow.cpp" line="3475" />
         <source>Speech complete</source>
-        <translation type="unfinished">语音识别完成</translation>
+        <translation>语音识别完成</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3415" />
+        <location filename="../ui/mainwindow.cpp" line="3491" />
         <source>Speech recognition…</source>
-        <translation type="unfinished">语音识别中…</translation>
+        <translation>语音识别中…</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3426" />
+        <location filename="../ui/mainwindow.cpp" line="3502" />
         <source>Voice Input</source>
-        <translation type="unfinished">语音输入</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="3498" />
-        <location filename="../ui/mainwindow.cpp" line="3507" />
-        <location filename="../ui/mainwindow.cpp" line="3510" />
-        <source> Translation Complete</source>
-        <translation type="unfinished"> 翻译完成</translation>
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="2180" />
-        <location filename="../ui/mainwindow.cpp" line="3557" />
-        <source>Completed</source>
-        <translation type="unfinished">已完成</translation>
+        <translation>语音输入</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="3574" />
+        <location filename="../ui/mainwindow.cpp" line="3583" />
+        <location filename="../ui/mainwindow.cpp" line="3586" />
+        <source> Translation Complete</source>
+        <translation> 翻译完成</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2180" />
+        <location filename="../ui/mainwindow.cpp" line="3638" />
+        <source>Completed</source>
+        <translation>已完成</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="3655" />
         <source>Archive to KB</source>
-        <translation type="unfinished">归档到知识库</translation>
+        <translation>归档到知识库</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3588" />
+        <location filename="../ui/mainwindow.cpp" line="3678" />
         <source>Failed to init Knowledge Base</source>
-        <translation type="unfinished">知识库初始化失败</translation>
+        <translation>知识库初始化失败</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3607" />
+        <location filename="../ui/mainwindow.cpp" line="3717" />
         <source>Archived</source>
-        <translation type="unfinished">已归档</translation>
+        <translation>已归档</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3612" />
+        <location filename="../ui/mainwindow.cpp" line="3727" />
         <source>Archived to Knowledge Base</source>
-        <translation type="unfinished">已归档到知识库</translation>
+        <translation>已归档到知识库</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3616" />
-        <source>Document archived: %1</source>
-        <translation type="unfinished" />
-    </message>
-    <message>
-        <location filename="../ui/mainwindow.cpp" line="3650" />
+        <location filename="../ui/mainwindow.cpp" line="3761" />
         <source>Archive failed</source>
-        <translation type="unfinished">归档失败</translation>
+        <translation>归档失败</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3681" />
+        <location filename="../ui/mainwindow.cpp" line="3791" />
         <source> Translation Complete: %1</source>
-        <translation type="unfinished"> 翻译完成: %1</translation>
+        <translation> 翻译完成: %1</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3690" />
+        <location filename="../ui/mainwindow.cpp" line="3800" />
         <source>All %1 files translated</source>
-        <translation type="unfinished">全部翻译完成（共 %1 个文件）</translation>
+        <translation>全部翻译完成（共 %1 个文件）</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3703" />
+        <location filename="../ui/mainwindow.cpp" line="3813" />
         <source>Translation Complete</source>
-        <translation type="unfinished">翻译完成</translation>
+        <translation>翻译完成</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3713" />
+        <location filename="../ui/mainwindow.cpp" line="3823" />
         <source>Error</source>
-        <translation type="unfinished">错误</translation>
+        <translation>错误</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3714" />
+        <location filename="../ui/mainwindow.cpp" line="3824" />
         <source>Translation Error</source>
-        <translation type="unfinished">翻译出错</translation>
+        <translation>翻译出错</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3873" />
+        <location filename="../ui/mainwindow.cpp" line="3983" />
         <source>Malayalam</source>
-        <translation type="unfinished">马拉雅拉姆语</translation>
+        <translation>马拉雅拉姆语</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3874" />
+        <location filename="../ui/mainwindow.cpp" line="3984" />
         <source>Kannada</source>
-        <translation type="unfinished">卡纳达语</translation>
+        <translation>卡纳达语</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3875" />
+        <location filename="../ui/mainwindow.cpp" line="3985" />
         <source>Punjabi</source>
-        <translation type="unfinished">旁遮普语</translation>
+        <translation>旁遮普语</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3887" />
+        <location filename="../ui/mainwindow.cpp" line="3997" />
         <source>Voice %1 not found</source>
-        <translation type="unfinished">未找到 %1 语音包</translation>
+        <translation>未找到 %1 语音包</translation>
     </message>
     <message>
-        <location filename="../ui/mainwindow.cpp" line="3889" />
+        <location filename="../ui/mainwindow.cpp" line="3999" />
         <source>Open Settings</source>
-        <translation type="unfinished">打开设置</translation>
+        <translation>打开设置</translation>
     </message>
     <message>
         <location filename="../ui/main.cpp" line="130" />
         <source>Loading config…</source>
-        <translation type="unfinished">正在加载配置…</translation>
+        <translation>正在加载配置…</translation>
     </message>
     <message>
         <location filename="../ui/main.cpp" line="135" />
         <source>Loading engines…</source>
-        <translation type="unfinished">正在加载引擎…</translation>
+        <translation>正在加载引擎…</translation>
     </message>
     <message>
         <location filename="../ui/main.cpp" line="142" />
         <source>Engines loaded</source>
-        <translation type="unfinished">引擎加载完成</translation>
+        <translation>引擎加载完成</translation>
     </message>
     <message>
         <location filename="../ui/main.cpp" line="152" />
         <source>Initializing UI…</source>
-        <translation type="unfinished">正在初始化界面…</translation>
+        <translation>正在初始化界面…</translation>
     </message>
     <message>
         <location filename="../ui/main.cpp" line="156" />
         <source>Startup complete</source>
-        <translation type="unfinished">启动完成</translation>
+        <translation>启动完成</translation>
     </message>
 </context>
 <context>
@@ -1823,47 +1819,47 @@ Path: models/ocr/[tiny/small/medium]/</source>
         <location filename="../ui/mainwindow.cpp" line="173" />
         <location filename="../ui/mainwindow.cpp" line="229" />
         <source>Translating…</source>
-        <translation type="unfinished">正在翻译…</translation>
+        <translation>正在翻译…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="181" />
         <source>Translation engine error: </source>
-        <translation type="unfinished">翻译引擎错误: </translation>
+        <translation>翻译引擎错误: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="186" />
         <source>Processing: </source>
-        <translation type="unfinished">处理文件: </translation>
+        <translation>处理文件: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="199" />
         <source>File translation error: </source>
-        <translation type="unfinished">文件翻译错误: </translation>
+        <translation>文件翻译错误: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="204" />
         <source>Recognizing…</source>
-        <translation type="unfinished">OCR 识别截图…</translation>
+        <translation>OCR 识别截图…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="208" />
         <source>Screenshot is empty</source>
-        <translation type="unfinished">截图图像为空</translation>
+        <translation>截图图像为空</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="241" />
         <source>Screenshot translation error: </source>
-        <translation type="unfinished">截图翻译错误: </translation>
+        <translation>截图翻译错误: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="246" />
         <source>Translating image…</source>
-        <translation type="unfinished">翻译图片…</translation>
+        <translation>翻译图片…</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="250" />
         <source>Cannot load image</source>
-        <translation type="unfinished">无法加载图片</translation>
+        <translation>无法加载图片</translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="256" />
@@ -1873,17 +1869,17 @@ Path: models/ocr/[tiny/small/medium]/</source>
     <message>
         <location filename="../ui/mainwindow.cpp" line="265" />
         <source>Image translation error: </source>
-        <translation type="unfinished">图片翻译错误: </translation>
+        <translation>图片翻译错误: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="271" />
         <source>Translation error: </source>
-        <translation type="unfinished">翻译出错: </translation>
+        <translation>翻译出错: </translation>
     </message>
     <message>
         <location filename="../ui/mainwindow.cpp" line="273" />
         <source>Unknown error (DLL load failure)</source>
-        <translation type="unfinished">未知错误（可能是 DLL 加载失败）</translation>
+        <translation>未知错误（可能是 DLL 加载失败）</translation>
     </message>
 </context>
 </TS>
