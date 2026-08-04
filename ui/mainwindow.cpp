@@ -2342,21 +2342,19 @@ void MainWindow::addFileToList(const QString& filePath) {
         int pathIdx = filePendingPaths_.indexOf(filePath);
         if (pathIdx >= 0 && pathIdx < fileTempOutputPaths_.size()) {
             QString tempPath = fileTempOutputPaths_[pathIdx];
-            // 始终清理 assets 目录（即使已下载，assets 仍在源文件目录）
-            QString base = QFileInfo(filePath).baseName();
-            for (QChar& c : base) {
-                if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
-                    c = QLatin1Char('_');
-            }
-            if (!base.isEmpty()) {
-                if (base.length() > 30) base = base.left(30);
-                QString srcDir = QFileInfo(filePath).absolutePath();
-                QString assetDir = srcDir + "/assets_" + base;
-                if (QDir(assetDir).exists())
-                    QDir(assetDir).removeRecursively();
-            }
-            // 删除临时 .md（如果还没被下载清理掉）
+            // 从输出文件所在目录（.tmp_files/）删除 assets_* 目录
             if (!tempPath.isEmpty()) {
+                QString base = QFileInfo(tempPath).baseName();
+                for (QChar& c : base) {
+                    if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                        c = QLatin1Char('_');
+                }
+                if (!base.isEmpty()) {
+                    if (base.length() > 30) base = base.left(30);
+                    QString assetDir = QFileInfo(tempPath).absolutePath() + "/assets_" + base;
+                    if (QDir(assetDir).exists())
+                        QDir(assetDir).removeRecursively();
+                }
                 QFile::remove(tempPath);
                 fileTempOutputPaths_[pathIdx].clear();
             }
@@ -3118,8 +3116,8 @@ void MainWindow::onSelectInputFile() {
 }
 
 void MainWindow::onProcessFile() {
-    // 清理之前未下载的临时文件
-    cleanupTempFiles();
+    // 注意：不再在这里自动清理临时文件，避免连续翻译时删除之前的结果
+    // 临时文件在 onQuitApp() 退出时统一清理
 
     if (busy_.loadRelaxed()) {
         statusBar_->showMessage(tr("Processing, please wait…"), 3000);
@@ -3239,16 +3237,22 @@ void MainWindow::onBrowseBaseDir() {
 // 清理未下载的翻译临时文件
 // ============================================================
 void MainWindow::cleanupTempFiles() {
+    // 清理所有未下载的临时文件（仅在 onQuitApp() 时调用）
     for (int i = 0; i < fileTempOutputPaths_.size(); ++i) {
         const QString& tempPath = fileTempOutputPaths_[i];
         if (tempPath.isEmpty()) continue;  // 已下载的不清理
         QFile::remove(tempPath);
-        // 删除同目录下的 assets_* 目录
-        QString outDir = QFileInfo(tempPath).absolutePath();
-        QDir dir(outDir);
-        QStringList assetDirs = dir.entryList(QStringList() << "assets_*", QDir::Dirs);
-        for (const QString& ad : assetDirs) {
-            QDir(outDir + "/" + ad).removeRecursively();
+        // 从输出目录删除对应的 assets_* 目录（与 C++ 侧命名一致）
+        QString base = QFileInfo(tempPath).baseName();
+        for (QChar& c : base) {
+            if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                c = QLatin1Char('_');
+        }
+        if (!base.isEmpty()) {
+            if (base.length() > 30) base = base.left(30);
+            QString assetDir = QFileInfo(tempPath).absolutePath() + "/assets_" + base;
+            if (QDir(assetDir).exists())
+                QDir(assetDir).removeRecursively();
         }
     }
     fileTempOutputPaths_.clear();
