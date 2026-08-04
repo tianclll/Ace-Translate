@@ -85,14 +85,15 @@ bool KnowledgeBaseManager::initialize(const QString& dbPath) {
 
 bool KnowledgeBaseManager::createTables() {
     QSqlQuery query(db_);
-    // documents 表
+
+    // documents 表（md_path 允许 NULL：直接导入的文件无 .md）
     QString sql = R"(
         CREATE TABLE IF NOT EXISTS documents (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             title      TEXT NOT NULL,
             file_type  TEXT NOT NULL DEFAULT '',
             source_path TEXT DEFAULT '',
-            md_path    TEXT NOT NULL,
+            md_path    TEXT DEFAULT NULL,
             lang       TEXT DEFAULT '',
             file_size  INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
@@ -101,6 +102,40 @@ bool KnowledgeBaseManager::createTables() {
     if (!query.exec(sql)) {
         qWarning() << "[KB] Create documents table failed:" << query.lastError().text();
         return false;
+    }
+
+    // 迁移：若旧表 md_path 仍为 NOT NULL，重建为允许 NULL
+    // （SQLite 无法直接改列约束，用重建表方式）
+    {
+        // 检查当前 md_path 是否为 NOT NULL（PRAGMA table_info 的 notnull 字段）
+        bool mdNotNull = false;
+        QSqlQuery pragma(db_);
+        pragma.exec("PRAGMA table_info(documents)");
+        while (pragma.next()) {
+            if (pragma.value(1).toString() == "md_path" && pragma.value(3).toInt() == 1) {
+                mdNotNull = true;
+                break;
+            }
+        }
+        if (mdNotNull) {
+            db_.transaction();
+            QSqlQuery t(db_);
+            t.exec("CREATE TABLE documents_new ("
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   "title TEXT NOT NULL,"
+                   "file_type TEXT NOT NULL DEFAULT '',"
+                   "source_path TEXT DEFAULT '',"
+                   "md_path TEXT DEFAULT NULL,"
+                   "lang TEXT DEFAULT '',"
+                   "file_size INTEGER DEFAULT 0,"
+                   "created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')))");
+            t.exec("INSERT INTO documents_new (id,title,file_type,source_path,md_path,lang,file_size,created_at) "
+                   "SELECT id,title,file_type,source_path,md_path,lang,file_size,created_at FROM documents");
+            t.exec("ALTER TABLE documents RENAME TO documents_old");
+            t.exec("ALTER TABLE documents_new RENAME TO documents");
+            t.exec("DROP TABLE documents_old");
+            db_.commit();
+        }
     }
 
     // 迁移：为已有表添加可能缺失的列
@@ -153,13 +188,15 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId, boo
     QSqlQuery query(db_);
     if (!query.exec("INSERT INTO documents (title, file_type, source_path, md_path, lang, file_size) "
                     "VALUES ('', '', '', '', '', 0)")) {
-        QString err = QStringLiteral("[KB] INSERT failed: %1").arg(query.lastError().text());
-        MessageBoxA(nullptr, err.toUtf8().constData(), "KB Debug", MB_OK);
+        QFile f(storagePath() + "kb_error.log");
+        if (f.open(QIODevice::Append | QIODevice::Text)) {
+            f.write(("[KB] INSERT failed: " + query.lastError().text() + " db=" + db_.databaseName() + "\n").toUtf8());
+            f.close();
+        }
         return false;
     }
     int newId = query.lastInsertId().toInt();
     if (newId <= 0) {
-        MessageBoxA(nullptr, ("[KB] Invalid lastInsertId: " + QString::number(newId)).toUtf8().constData(), "KB Debug", MB_OK);
         return false;
     }
 
@@ -176,9 +213,6 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId, boo
         mdPath = "md/" + safeName + ".md";
         QFile file(mdDir + safeName + ".md");
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QString errMsg = QStringLiteral("[KB] FAIL\nmdDir: %1\nerror: %2")
-                .arg(mdDir, file.errorString());
-            MessageBoxA(nullptr, errMsg.toUtf8().constData(), "KB Debug", MB_OK);
             QSqlQuery del(db_);
             del.prepare("DELETE FROM documents WHERE id = :id");
             del.bindValue(":id", newId);
@@ -198,15 +232,21 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId, boo
     update.bindValue(":t",   entry.title);
     update.bindValue(":ft",  entry.fileType);
     update.bindValue(":sp",  entry.sourcePath);
-    update.bindValue(":mp",  mdPath);
+    // Qt 会把空 QString 绑定为 NULL；此处用 QVariant 显式强制字符串类型，
+    // 否则空 md_path 违反 NOT NULL 约束导致 UPDATE 失败。
+    update.bindValue(":mp",  QVariant(mdPath));     // 空串 → 非 NULL
     update.bindValue(":l",   entry.translatedLang);
     update.bindValue(":fs",  entry.fileSize);
     update.bindValue(":ca",  QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
-    update.bindValue(":ad",  assetsDir);
+    update.bindValue(":ad",  QVariant(assetsDir));
     update.bindValue(":id",  newId);
 
     if (!update.exec()) {
-        qWarning() << "[KB] UPDATE entry failed:" << update.lastError().text();
+        QFile f(storagePath() + "kb_error.log");
+        if (f.open(QIODevice::Append | QIODevice::Text)) {
+            f.write(("[KB] UPDATE failed: " + update.lastError().text() + "\n").toUtf8());
+            f.close();
+        }
         if (writeMd) QFile::remove(storagePath() + mdPath);
         QSqlQuery del(db_);
         del.prepare("DELETE FROM documents WHERE id = :id");
@@ -222,18 +262,38 @@ bool KnowledgeBaseManager::addEntry(const KnowledgeEntry& entry, int* outId, boo
 bool KnowledgeBaseManager::deleteEntry(int id) {
     if (!ensureDb()) return false;
 
-    // 先查询 md_path
+    // 查询 md_path、source_path 和 assets_dir
     QSqlQuery q(db_);
-    q.prepare("SELECT md_path FROM documents WHERE id = :id");
+    q.prepare("SELECT md_path, source_path, assets_dir FROM documents WHERE id = :id");
     q.bindValue(":id", id);
-    QString mdPath;
+    QString mdPath, srcPath, assetsDir;
     if (q.exec() && q.next()) {
         mdPath = q.value(0).toString();
+        srcPath = q.value(1).toString();
+        assetsDir = q.value(2).toString();
     }
 
     // 删除 .md 文件（仅当存在时）
     if (!mdPath.isEmpty()) {
         QFile::remove(storagePath() + mdPath);
+    }
+
+    // 删除 KB 内的资源目录（归档翻译时复制到 KB 下的 assets_* 目录）
+    if (!assetsDir.isEmpty()) {
+        QString kbRoot = QDir::cleanPath(storagePath());
+        QString cleanAssets = QDir::cleanPath(assetsDir);
+        if (cleanAssets.startsWith(kbRoot, Qt::CaseInsensitive) && QDir(cleanAssets).exists()) {
+            QDir(cleanAssets).removeRecursively();
+        }
+    }
+
+    // 若 source_path 指向知识库 files/ 内的副本，则一并删除
+    if (!srcPath.isEmpty()) {
+        QString filesPrefix = QDir::cleanPath(storagePath() + "files/");
+        QString cleanSrc = QDir::cleanPath(srcPath);
+        if (cleanSrc.startsWith(filesPrefix, Qt::CaseInsensitive)) {
+            QFile::remove(cleanSrc);
+        }
     }
 
     // 删除 DB 行
@@ -251,20 +311,42 @@ int KnowledgeBaseManager::deleteEntries(const QList<int>& ids) {
         if (!db_.open()) return 0;
     }
 
-    // 查询所有 md_path
+    // 查询所有 md_path、source_path 和 assets_dir
     QStringList idStrs;
     for (int id : ids) idStrs << QString::number(id);
     QSqlQuery q(db_);
-    q.exec("SELECT id, md_path FROM documents WHERE id IN (" + idStrs.join(",") + ")");
-    QStringList mdPaths;
+    q.exec("SELECT id, md_path, source_path, assets_dir FROM documents WHERE id IN (" + idStrs.join(",") + ")");
+    QStringList mdPaths, srcPaths, assetDirs;
     while (q.next()) {
         mdPaths.append(q.value(1).toString());
+        srcPaths.append(q.value(2).toString());
+        assetDirs.append(q.value(3).toString());
     }
 
     // 删除 .md 文件
     for (const QString& mdPath : mdPaths) {
         if (!mdPath.isEmpty()) {
             QFile::remove(storagePath() + mdPath);
+        }
+    }
+
+    // 删除知识库 files/ 内的原文件副本
+    QString filesPrefix = QDir::cleanPath(storagePath() + "files/");
+    for (const QString& src : srcPaths) {
+        if (src.isEmpty()) continue;
+        QString cleanSrc = QDir::cleanPath(src);
+        if (cleanSrc.startsWith(filesPrefix, Qt::CaseInsensitive)) {
+            QFile::remove(cleanSrc);
+        }
+    }
+
+    // 删除 KB 内的资源目录（归档翻译复制到 KB 下的 assets_* 目录）
+    QString kbRoot = QDir::cleanPath(storagePath());
+    for (const QString& ad : assetDirs) {
+        if (ad.isEmpty()) continue;
+        QString cleanAd = QDir::cleanPath(ad);
+        if (cleanAd.startsWith(kbRoot, Qt::CaseInsensitive) && QDir(cleanAd).exists()) {
+            QDir(cleanAd).removeRecursively();
         }
     }
 
@@ -555,6 +637,15 @@ bool KnowledgeBaseManager::updateSummary(int docId, const QString& summary) {
     QSqlQuery q(db_);
     q.prepare("UPDATE documents SET summary=:s WHERE id=:id");
     q.bindValue(":s", summary);
+    q.bindValue(":id", docId);
+    return q.exec();
+}
+
+bool KnowledgeBaseManager::updateEntryAssetsDir(int docId, const QString& assetsDir) {
+    if (!ensureDb()) return false;
+    QSqlQuery q(db_);
+    q.prepare("UPDATE documents SET assets_dir=:ad WHERE id=:id");
+    q.bindValue(":ad", QVariant(assetsDir));
     q.bindValue(":id", docId);
     return q.exec();
 }

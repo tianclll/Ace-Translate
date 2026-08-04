@@ -3136,7 +3136,17 @@ void MainWindow::onProcessFile() {
     auto* worker = new TranslateWorker;
     worker->mode = TranslateWorker::FileTranslate;
     worker->inputPath = inputPath;
-    worker->outputPath = QString();
+    // 临时输出放到 exe 目录的 .tmp_files/ 下，保持各文件独立目录，
+    // 便于统一清理，不污染源文件目录。
+    // 扩展名：txt 翻译输出 .txt，其余输出 .md（与 FileTranslationModule 一致）
+    QString qBaseDir = QCoreApplication::applicationDirPath();
+    QString exeTmpDir = qBaseDir + "/.tmp_files";
+    QDir().mkpath(exeTmpDir);
+    QString inExt = QFileInfo(inputPath).suffix().toLower();
+    QString outName = QFileInfo(inputPath).completeBaseName();
+    outName = (inExt == "txt") ? outName + "_translated" : outName;
+    QString outExt = (inExt == "txt") ? ".txt" : ".md";
+    worker->outputPath = exeTmpDir + "/" + outName + outExt;
     worker->targetLang = fileLangCombo_->currentText();
     worker->layoutThreshold = static_cast<float>(fileLayoutThreshold_->value());
     worker->pdfDpi = filePdfDpi_->value();
@@ -3687,9 +3697,23 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                 f.close();
                             }
                             if (km.addEntry(entry, &newDocId) && newDocId > 0) {
-                                // 归档成功，删除临时 .md 和 assets 目录
-                                QFile::remove(resultForArchive);
-                                QDir(entry.assetsDir).removeRecursively();
+                                // 将临时 assets 目录复制到知识库 md/ 目录下持久保存，
+                                // 与 .md 同目录，保证 md 内相对引用（assets_<base>/...）解析正确
+                                QString kbAssetsDir;
+                                if (!entry.assetsDir.isEmpty() && QDir(entry.assetsDir).exists()) {
+                                    QString dirName = QFileInfo(entry.assetsDir).fileName(); // assets_<base>
+                                    kbAssetsDir = km.storagePath() + "md/" + dirName;
+                                    QDir().mkpath(kbAssetsDir);
+                                    QDir srcAssets(entry.assetsDir);
+                                    for (const QString& f : srcAssets.entryList(QDir::Files)) {
+                                        QFile::copy(entry.assetsDir + "/" + f, kbAssetsDir + "/" + f);
+                                    }
+                                    // 更新 assets_dir 记录为 KB 内 md/ 下的路径
+                                    km.updateEntryAssetsDir(newDocId, kbAssetsDir);
+                                }
+                                // 归档成功：临时 .md 和临时 assets 资源目录均保留，
+                                // 供 Download 按钮使用；它们由 Download 或 cleanupTempFiles 统一清理。
+                                // （已复制到 KB 的 md/ 内的图片副本不受影响）
                                 archiveBtn->setText(tr("Archived"));
                                 archiveBtn->setEnabled(false);
                                 archiveBtn->setStyleSheet(
@@ -3697,10 +3721,6 @@ void MainWindow::onWorkerFinished(const QString& result) {
                                     " font-size: 11px; font-weight: 500; border-radius: 5px; padding: 0 12px; }");
                                 statusBar_->showMessage(tr("Archived to Knowledge Base"), 3000);
                                 if (knowledgePage_) knowledgePage_->refreshList();
-                                // 知识库页面显示 Toast 通知
-                                if (knowledgePage_) {
-                                    ToastNotification::show(knowledgePage_, tr("Document archived: %1").arg(fi.fileName()), 4000, QColor(11, 124, 114));
-                                }
                                 // 后台生成摘要
                                 if (knowledgePage_ && !entry.markdownContent.isEmpty()) {
                                     int savedId = newDocId;

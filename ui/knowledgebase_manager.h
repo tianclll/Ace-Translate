@@ -55,6 +55,8 @@ public:
     // ---- 摘要 & 状态 ----
     bool updateSummary(int docId, const QString& summary);
     bool updateParseStatus(int docId, const QString& status);
+    // 更新文档的 assets_dir 记录
+    bool updateEntryAssetsDir(int docId, const QString& assetsDir);
 
     // ---- 术语库 CRUD ----
     bool addGlossaryTerm(const QString& term, const QString& translation,

@@ -81,7 +81,7 @@ private:
     /// 逐个处理下一个文件（由 QTimer 驱动）
     void processNextFile(int myGen = 0);
     void finishEntry(const ImportTask& task, const QString& markdown);
-    void finishEntryDirect(const ImportTask& task);
+    void finishEntryDirect(const ImportTask& task, const QString& markdown = QString());
     QWidget* createListItem(int id, const QString& title, const QString& date,
                             const QString& fileType, const QStringList& tags,
                             const QString& summary, const QString& keyword = QString());

@@ -44,9 +44,24 @@
 // ============================================================
 #pragma comment(lib, "dbghelp.lib")
 static LONG WINAPI crashHandler(EXCEPTION_POINTERS* ep) {
+    DWORD code = ep->ExceptionRecord->ExceptionCode;
+
+    // 忽略调试器/无害异常——这些会在无调试器时由 Qt 的 qDebug/qWarning
+    // （内部 OutputDebugStringW）触发，不构成真正崩溃，直接原样放行，
+    // 避免 VEH 里做符号解析（StackWalk64/SymFromAddr 不可重入）导致崩溃。
+    switch (code) {
+        case 0x80000003:            // EXCEPTION_BREAKPOINT
+        case 0x4001000A:            // DBG_PRINTEXCEPTION_C (OutputDebugString)
+        case 0x4001000B:            // DBG_RIPEXCEPTION
+        case 0x40010006:            // DBG_PRINTEXCEPTION_WIDE_C
+            return EXCEPTION_CONTINUE_SEARCH;
+        default:
+            break;
+    }
+
     std::ofstream log("D:\\crash_log.txt", std::ios::app);
     log << "\n=== CRASH at " << GetCurrentProcessId() << " ===" << std::endl;
-    log << "ExceptionCode: 0x" << std::hex << ep->ExceptionRecord->ExceptionCode << std::dec << std::endl;
+    log << "ExceptionCode: 0x" << std::hex << code << std::dec << std::endl;
     log << "ExceptionAddress: " << ep->ExceptionRecord->ExceptionAddress << std::endl;
 
     HANDLE hProcess = GetCurrentProcess();
@@ -1211,8 +1226,15 @@ void KnowledgeBasePage::processNextFile(int myGen) {
     QString ext = task.fileType;
     if (ext == "md" || ext == "txt") {
         processIndex_++;
-        // 直接导入：不生成 .md 和资源文件，只保存原文件
-        finishEntryDirect(task);
+        // 直接导入：读原文用于生成摘要，不生成 .md / 资源文件
+        QString markdown;
+        QFile f(task.filePath);
+        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            markdown = QString::fromUtf8(f.readAll());
+            f.close();
+        }
+        ImportTask t = task;
+        finishEntryDirect(t, markdown);
         QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
     } else {
         QString filePath = task.filePath;
@@ -1221,23 +1243,12 @@ void KnowledgeBasePage::processNextFile(int myGen) {
         qint64 fileSize = task.fileSize;
         processIndex_++;
 
-        auto onFinish = [this, fileName, fileType, filePath, fileSize, myGen](QString markdown) {
-            ImportTask t;
-            t.filePath = filePath;
-            t.title = fileName;
-            t.fileType = fileType;
-            t.fileSize = fileSize;
-            finishEntry(t, markdown);
-            QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
-        };
-
-        std::thread([onFinish, filePath, fileType]() {
-            QString md;
+        // 后台提取文本 → 用于生成摘要（不写 .md / 资源文件到 knowledge_base）
+        std::thread([this, filePath, fileName, fileType, fileSize, myGen]() {
+            QString markdown;
             try {
                 auto& km = KnowledgeBaseManager::getInstance();
                 km.initialize();
-                // KB 导入：输出到知识库目录
-                std::string kbDir = km.storagePath().toStdString();
                 std::string baseDir = QCoreApplication::applicationDirPath().toStdString();
                 auto& cfg = docmind::ConfigManager::getInstance();
                 float threshold = cfg.getNestedJson("defaults").value("layout_threshold", nlohmann::json(0.5)).get<float>();
@@ -1245,29 +1256,71 @@ void KnowledgeBasePage::processNextFile(int myGen) {
                 auto defaults = cfg.getNestedJson("defaults");
                 bool enable_warp = defaults.value("enable_warp", nlohmann::json(true)).get<bool>();
                 bool enable_enhance = defaults.value("enable_enhance", nlohmann::json(true)).get<bool>();
+                // 输出到系统临时目录，用完即清理，不污染 knowledge_base/
+                QString tmpOut = QDir::temp().absoluteFilePath(QString::fromStdString(
+                    filePath.toStdString().substr(filePath.toStdString().find_last_of("\\/") + 1)));
                 std::string extracted = extract_file_text(
-                    filePath.toStdString(), kbDir + filePath.toStdString().substr(filePath.toStdString().find_last_of("\\/") + 1),
+                    filePath.toStdString(), tmpOut.toStdString(),
                     baseDir, threshold, dpi, enable_warp, enable_enhance);
-                if (!extracted.empty()) md = QString::fromStdString(extracted);
+                if (!extracted.empty()) markdown = QString::fromStdString(extracted);
+                // 清理临时输出. md 及同目录下的 assets_<源文件名基名> 目录
+                if (QFile::exists(tmpOut)) QFile::remove(tmpOut);
+                QString baseName = QFileInfo(filePath).completeBaseName();
+                for (QChar& c : baseName) {
+                    if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-'))
+                        c = QLatin1Char('_');
+                }
+                if (baseName.length() > 30) baseName = baseName.left(30);
+                QDir tmpDir(QDir::temp().absoluteFilePath("assets_" + baseName));
+                if (tmpDir.exists()) tmpDir.removeRecursively();
             } catch (...) {}
-            QMetaObject::invokeMethod(QCoreApplication::instance(), [onFinish, md]() {
-                onFinish(md);
+            ImportTask t;
+            t.filePath = filePath;
+            t.title = fileName;
+            t.fileType = fileType;
+            t.fileSize = fileSize;
+            QMetaObject::invokeMethod(this, [this, t, markdown, myGen]() {
+                finishEntryDirect(t, markdown);
+                QTimer::singleShot(0, this, [this, myGen]() { processNextFile(myGen); });
             }, Qt::QueuedConnection);
         }).detach();
     }
 }
 
 // ============================================================
-// finishEntryDirect — 直接导入，只保存原文件路径，不生成 .md 和资源
+// finishEntryDirect — 直接导入：将原文件复制到知识库 files/ 目录保存，
+// 不生成 .md 和资源文件；markdown 仅用于生成摘要
 // ============================================================
-void KnowledgeBasePage::finishEntryDirect(const ImportTask& task) {
+void KnowledgeBasePage::finishEntryDirect(const ImportTask& task, const QString& markdown) {
     auto& km = KnowledgeBaseManager::getInstance();
     KnowledgeEntry entry;
     entry.title = task.title;
     entry.fileType = task.fileType;
-    entry.sourcePath = task.filePath;
+    entry.sourcePath = task.filePath;   // 原始路径
     entry.fileSize = task.fileSize;
     entry.markdownContent.clear();
+
+    // 将原文件复制到知识库 files/ 目录，保证知识库自包含
+    QString savedPath;
+    if (!task.filePath.isEmpty() && QFile::exists(task.filePath)) {
+        QString filesDir = km.storagePath() + "files/";
+        QDir().mkpath(filesDir);
+        QString dest = filesDir + task.title;
+        // 若目标已存在，改为带序号，避免覆盖
+        if (QFile::exists(dest)) {
+            QString base = QFileInfo(task.title).completeBaseName();
+            QString ext  = QFileInfo(task.title).suffix();
+            for (int i = 2; QFile::exists(dest); ++i) {
+                dest = filesDir + base + "_" + QString::number(i)
+                     + (ext.isEmpty() ? "" : "." + ext);
+            }
+        }
+        if (QFile::copy(task.filePath, dest)) {
+            savedPath = dest;
+            entry.sourcePath = dest;    // 指向知识库内副本
+        }
+    }
+
     int newId = -1;
     if (km.addEntry(entry, &newId, false)) {
         importCount_++;
@@ -1277,11 +1330,38 @@ void KnowledgeBasePage::finishEntryDirect(const ImportTask& task) {
         if (presetTagId > 0) {
             km.setDocumentTags(newId, QList<int>{presetTagId});
         }
-        // 直接用文件名作为摘要
-        QString summary = task.title;
-        QMetaObject::invokeMethod(this, [this, newId, summary]() {
-            onSummaryReady(newId, summary);
-        }, Qt::QueuedConnection);
+        // 后台生成摘要：优先用提取的文本做 AI 摘要，失败则回退到文件名
+        if (!markdown.trimmed().isEmpty()) {
+            QString savedMarkdown = markdown;
+            int savedId = newId;
+            std::thread([this, savedMarkdown, savedId]() {
+                QString summary;
+                auto& ctx = docmind::GlobalEngineContext::getInstance();
+                if (ctx.ensureSummarizerEngine()) {
+                    if (auto* engine = ctx.getSummarizerEngine()) {
+                        std::string text_utf8 = savedMarkdown.toUtf8().constData();
+                        if (text_utf8.length() > 4000) text_utf8 = text_utf8.substr(0, 4000);
+                        std::string aiResult = engine->summarize(text_utf8, 4096);
+                        if (!aiResult.empty()) summary = QString::fromUtf8(aiResult.c_str());
+                    }
+                }
+                if (summary.isEmpty()) {
+                    QString plain = savedMarkdown.simplified();
+                    if (plain.length() > 2000) plain = plain.left(2000) + "…";
+                    summary = plain.left(200);
+                    if (plain.length() > 200) summary += "…";
+                }
+                QMetaObject::invokeMethod(this, [this, savedId, summary]() {
+                    onSummaryReady(savedId, summary);
+                }, Qt::QueuedConnection);
+            }).detach();
+        } else {
+            // 无文本时回退到文件名
+            QString summary = task.title;
+            QMetaObject::invokeMethod(this, [this, newId, summary]() {
+                onSummaryReady(newId, summary);
+            }, Qt::QueuedConnection);
+        }
     }
 }
 
