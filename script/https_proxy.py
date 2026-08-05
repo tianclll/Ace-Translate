@@ -26,7 +26,7 @@ from pathlib import Path
 
 DEFAULT_PORT = 8443
 DEFAULT_API = "http://127.0.0.1:18888"
-SSL_DIR = Path(__file__).resolve().parent.parent / "ssl"
+SSL_DIR = Path(__file__).resolve().parent.parent / "webapp" / "ssl"
 CERT_FILE = SSL_DIR / "cert.pem"
 KEY_FILE = SSL_DIR / "key.pem"
 
