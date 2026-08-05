@@ -311,28 +311,43 @@ def test_translate_photo(client):
 
 def test_asr(client):
     print("\n===== 6. 语音识别（ASR）=====")
-    # Generate a minimal valid WAV file (16kHz 16-bit mono, 0.5s silence)
-    import io, struct
-    sample_rate = 16000
-    num_samples = sample_rate // 2  # 0.5s
-    pcm_data = b'\x00\x00' * num_samples  # silence
 
-    # Build WAV header (44 bytes)
-    wav_buf = io.BytesIO()
-    wav_buf.write(b'RIFF')
-    wav_buf.write(struct.pack('<I', 36 + len(pcm_data)))
-    wav_buf.write(b'WAVE')
-    wav_buf.write(b'fmt ')
-    wav_buf.write(struct.pack('<IHHIIHH', 16, 1, 1, sample_rate, sample_rate * 2, 2, 16))
-    wav_buf.write(b'data')
-    wav_buf.write(struct.pack('<I', len(pcm_data)))
-    wav_buf.write(pcm_data)
-    wav_bytes = wav_buf.getvalue()
-    wav_b64 = __import__('base64').b64encode(wav_bytes).decode()
+    # Try to load a real test.wav; fall back to generated silence
+    wav_b64 = None
+    for wav_path in [
+        str(Path(__file__).parent.parent / "build" / "Release" / "tests" / "test.wav"),
+        str(Path(__file__).parent.parent / "build_all" / "Release" / "tests" / "test.wav"),
+        "build/Release/tests/test.wav",
+    ]:
+        p = Path(wav_path)
+        if p.exists():
+            wav_b64 = p.read_bytes()
+            print(f"  Loaded test.wav from: {p} ({len(wav_b64)} bytes)")
+            break
+
+    if wav_b64 is None:
+        print("  test.wav not found, generating 0.5s silence fallback")
+        import io, struct
+        sample_rate = 16000
+        num_samples = sample_rate // 2
+        pcm_data = b'\x00\x00' * num_samples
+        wav_buf = io.BytesIO()
+        wav_buf.write(b'RIFF')
+        wav_buf.write(struct.pack('<I', 36 + len(pcm_data)))
+        wav_buf.write(b'WAVE')
+        wav_buf.write(b'fmt ')
+        wav_buf.write(struct.pack('<IHHIIHH', 16, 1, 1, sample_rate, sample_rate * 2, 2, 16))
+        wav_buf.write(b'data')
+        wav_buf.write(struct.pack('<I', len(pcm_data)))
+        wav_buf.write(pcm_data)
+        wav_b64 = wav_buf.getvalue()
+
+    import base64
+    wav_b64_str = base64.b64encode(wav_b64).decode()
 
     # 发送 base64 WAV 进行识别
     code, resp = client.post("/api/asr/recognize",
-                             {"audio_base64": wav_b64, "max_duration": 10},
+                             {"audio_base64": r"D:\AceTranslatePro\AceTranslatePro\build\Release\tests\test.wav", "max_duration": 10},
                              expect_status=(200,))
     report("POST /api/asr/recognize 返回 200", code == 200, repr(resp)[:200])
     if isinstance(resp, dict):
