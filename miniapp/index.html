@@ -763,6 +763,11 @@ async function toggleRecording() {
 }
 
 async function startRecording(btn) {
+  // Check if getUserMedia is available (requires HTTPS or localhost)
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast('手机浏览器需要 HTTPS 才能使用麦克风，请使用桌面端录音', 'error');
+    return;
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true }
