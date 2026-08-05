@@ -762,12 +762,22 @@ async function toggleRecording() {
   }
 }
 
+let audioCtx = null;  // reused across recording sessions
+
 async function startRecording(btn) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showToast('手机浏览器需要 HTTPS 才能使用麦克风，请使用桌面端录音', 'error');
+    showToast('手机浏览器需要 HTTPS 才能使用麦克风', 'error');
     return;
   }
   try {
+    // Create AudioContext during user gesture (required by mobile browsers)
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true }
     });
@@ -806,16 +816,13 @@ async function processAudio() {
   const arrayBuf = await blob.arrayBuffer();
   try {
     // Decode the recorded audio
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let audioBuffer;
     try {
       audioBuffer = await audioCtx.decodeAudioData(arrayBuf.slice(0));
     } catch(e) {
-      // Try with original buffer if slice fails
       audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
     }
 
-    const channels = audioBuffer.numberOfChannels;
     const origRate = audioBuffer.sampleRate;
     const targetRate = 16000;
 
@@ -833,7 +840,6 @@ async function processAudio() {
     // Build WAV
     const wavBuf = encodeWAV(pcm16, targetRate);
     const b64 = arrayBufferToBase64(wavBuf);
-    await audioCtx.close();
 
     const resultEl = document.getElementById('txtResult');
     resultEl.className = 'result-box';
