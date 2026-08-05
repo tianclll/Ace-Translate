@@ -347,7 +347,7 @@ def test_asr(client):
 
     # 发送 base64 WAV 进行识别
     code, resp = client.post("/api/asr/recognize",
-                             {"audio_base64": r"D:\AceTranslatePro\AceTranslatePro\build\Release\tests\test.wav", "max_duration": 10},
+                             {"audio_base64": wav_b64_str, "max_duration": 3157},
                              expect_status=(200,))
     report("POST /api/asr/recognize 返回 200", code == 200, repr(resp)[:200])
     if isinstance(resp, dict):

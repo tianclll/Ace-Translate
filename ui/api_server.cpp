@@ -246,14 +246,27 @@ void ApiServer::registerRoutes() {
                                     QHttpServerResponse::StatusCode::BadRequest);
             }
 
-            // Strip WAV header if present (44 bytes standard header)
+            // Strip WAV header if present: parse chunks to find data offset
             const short* pcm = reinterpret_cast<const short*>(audioData.constData());
             int pcmSamples = audioData.size() / sizeof(short);
-            if (pcmSamples > 0) {
-                // Check for RIFF WAVE header
-                if (audioData.startsWith("RIFF") && audioData.size() > 44) {
-                    pcm += 22;  // skip 44 bytes (22 shorts)
-                    pcmSamples -= 22;
+            if (pcmSamples > 44 && audioData.startsWith("RIFF")) {
+                int offset = 12;
+                int dataOffset = -1;
+                while (offset + 8 <= audioData.size()) {
+                    const char* chunkId = audioData.constData() + offset;
+                    quint32 chunkSize = (uchar)audioData[offset+4]
+                        | ((uchar)audioData[offset+5] << 8)
+                        | ((uchar)audioData[offset+6] << 16)
+                        | ((uchar)audioData[offset+7] << 24);
+                    if (memcmp(chunkId, "data", 4) == 0) {
+                        dataOffset = offset + 8;
+                        break;
+                    }
+                    offset += 8 + chunkSize;
+                }
+                if (dataOffset > 0) {
+                    pcm = reinterpret_cast<const short*>(audioData.constData() + dataOffset);
+                    pcmSamples = (audioData.size() - dataOffset) / sizeof(short);
                 }
             }
 
