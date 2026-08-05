@@ -142,6 +142,26 @@ int ApiServer::port() const {
 void ApiServer::registerRoutes() {
     auto* srv = server_;
 
+    // ---- Root ----
+    srv->route("/", QHttpServerRequest::Method::Get, [this](const QHttpServerRequest&) {
+        // Serve the Web client HTML page
+        QString htmlPath = QDir(QCoreApplication::applicationDirPath()).filePath("miniapp/index.html");
+        QFile f(htmlPath);
+        if (!f.open(QIODevice::ReadOnly)) {
+            auto resp = QHttpServerResponse(
+                QStringLiteral("{\"status\":\"ok\",\"message\":\"AceTranslatePro REST API\"}"),
+                QHttpServerResponse::StatusCode::Ok
+            );
+            resp.setHeader("Content-Type", "application/json");
+            return resp;
+        }
+        QByteArray html = f.readAll();
+        auto resp = QHttpServerResponse(html, QHttpServerResponse::StatusCode::Ok);
+        resp.setHeader("Content-Type", "text/html; charset=utf-8");
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        return resp;
+    });
+
     // ---- Health ----
     srv->route(ApiRoutes::kHealth, QHttpServerRequest::Method::Get, [](const QHttpServerRequest&) {
         return QHttpServerResponse(
