@@ -214,9 +214,9 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     "${CMAKE_SOURCE_DIR}/script/office2md.exe" "${OUT_DIR}/"
 )
 
-# Web client (miniapp)
+# Web client (webapp)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}/miniapp"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}/webapp"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/miniapp/index.html" "${OUT_DIR}/miniapp/"
+    "${CMAKE_SOURCE_DIR}/webapp/index.html" "${OUT_DIR}/webapp/"
 )

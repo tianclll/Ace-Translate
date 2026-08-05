@@ -145,7 +145,7 @@ void ApiServer::registerRoutes() {
     // ---- Root ----
     srv->route("/", QHttpServerRequest::Method::Get, [this](const QHttpServerRequest&) {
         // Serve the Web client HTML page
-        QString htmlPath = QDir(QCoreApplication::applicationDirPath()).filePath("miniapp/index.html");
+        QString htmlPath = QDir(QCoreApplication::applicationDirPath()).filePath("webapp/index.html");
         QFile f(htmlPath);
         if (!f.open(QIODevice::ReadOnly)) {
             auto resp = QHttpServerResponse(

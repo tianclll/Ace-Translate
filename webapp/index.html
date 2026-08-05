@@ -526,7 +526,20 @@ let photoBase64 = null;
   document.getElementById('apiPort').value = apiPort;
 })();
 
-function baseUrl() { return `http://${apiHost}:${apiPort}`; }
+function baseUrl() {
+  // When accessed through proxy (port 8443), use relative paths
+  // so requests go through the proxy to the API backend.
+  // When directly accessing port 18888, use absolute paths (same origin).
+  const pagePort = window.location.port;
+  if (pagePort && pagePort !== '18888') {
+    return '';  // relative paths via proxy
+  }
+  // If no explicit host set (default 127.0.0.1), also use relative
+  if (!apiHost || apiHost === '127.0.0.1') {
+    return '';  // relative paths
+  }
+  return `http://${apiHost}:${apiPort}`;
+}
 
 // ============================================================
 // HTTP Client
