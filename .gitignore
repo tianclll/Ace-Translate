@@ -119,3 +119,6 @@ test/
 ui/icons/LOGO1.png
 ui/icons/LOGO1.ico
 models/ssl/
+
+# ── HTTPS 代理证书（自签名） ──
+ssl/
