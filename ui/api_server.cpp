@@ -1,5 +1,6 @@
 #include "api_server.h"
 
+#include <QCoreApplication>
 #include <QEventLoop>
 #include <QDir>
 #include <QFile>
@@ -13,11 +14,13 @@
 #include "knowledgebase_manager.h"
 
 #include "docmind/DocumentEngine.h"
+#include "docmind/core/ConfigManager.hpp"
 
 #include <nlohmann/json.hpp>
 
 #include <cstdlib>
 #include <algorithm>
+#include <cstring>
 
 using nlohmann::json;
 
@@ -218,6 +221,79 @@ void ApiServer::registerRoutes() {
                 {ApiRoutes::RespKeys::kMessage, "Translation started"}
             };
             return makeResponse(resp, QHttpServerResponse::StatusCode::Accepted);
+        }
+    );
+
+    // ---- ASR Speech Recognition (sync) ----
+    srv->route(ApiRoutes::kASRRecognize, QHttpServerRequest::Method::Post,
+        [this](const QHttpServerRequest& req) {
+            json body = qObjectToJson(req);
+            if (!hasKey(body, ApiRoutes::BodyKeys::kAudioBase64)) {
+                return makeResponse({{"error", "Missing required field: audio_base64"}},
+                                    QHttpServerResponse::StatusCode::BadRequest);
+            }
+
+            std::string b64 = body[ApiRoutes::BodyKeys::kAudioBase64].get<std::string>();
+            if (b64.size() > 20 * 1024 * 1024) {
+                return makeResponse({{"error", "Audio data too large (max 20MB)"}},
+                                    QHttpServerResponse::StatusCode::BadRequest);
+            }
+
+            // Decode base64
+            QByteArray audioData = QByteArray::fromBase64(QByteArray(b64.c_str()));
+            if (audioData.isEmpty()) {
+                return makeResponse({{"error", "Invalid base64 audio data"}},
+                                    QHttpServerResponse::StatusCode::BadRequest);
+            }
+
+            // Strip WAV header if present (44 bytes standard header)
+            const short* pcm = reinterpret_cast<const short*>(audioData.constData());
+            int pcmSamples = audioData.size() / sizeof(short);
+            if (pcmSamples > 0) {
+                // Check for RIFF WAVE header
+                if (audioData.startsWith("RIFF") && audioData.size() > 44) {
+                    pcm += 22;  // skip 44 bytes (22 shorts)
+                    pcmSamples -= 22;
+                }
+            }
+
+            // Apply max_duration limit (default 10s, max 60s)
+            int maxDuration = apiconv::qInt(body.value(ApiRoutes::BodyKeys::kMaxDuration, 10), 10);
+            maxDuration = std::clamp(maxDuration, 1, 60);
+            int maxSamples = maxDuration * 16000;
+            if (pcmSamples > maxSamples) {
+                pcmSamples = maxSamples;
+            }
+
+            if (pcmSamples <= 0) {
+                return makeResponse({{"error", "No audio data after processing"}},
+                                    QHttpServerResponse::StatusCode::BadRequest);
+            }
+
+            // Resolve base_dir from config
+            QString baseDir = QCoreApplication::applicationDirPath();
+            auto& cfg = docmind::ConfigManager::getInstance();
+            std::string baseDirStr = baseDir.toStdString();
+
+            // Recognize
+            std::string text;
+            try {
+                text = ::recognize_audio(pcm, pcmSamples, baseDirStr, false);
+            } catch (const std::exception& e) {
+                return makeResponse({{"error", std::string("ASR recognition failed: ") + e.what()}},
+                                    QHttpServerResponse::StatusCode::InternalServerError);
+            } catch (...) {
+                return makeResponse({{"error", "ASR recognition failed: unknown error"}},
+                                    QHttpServerResponse::StatusCode::InternalServerError);
+            }
+
+            int durationMs = (pcmSamples * 1000) / 16000;
+            json resp = {
+                {"text", text},
+                {ApiRoutes::RespKeys::kDurationMs, durationMs},
+                {"language", "auto"}
+            };
+            return makeResponse(resp);
         }
     );
 

@@ -6,6 +6,7 @@
 #include "docmind/modules/ScreenshotTranslationModule.hpp"
 #include <fstream>
 #include <filesystem>
+#include <iostream>
 
 
 std::string process_image(
@@ -78,4 +79,36 @@ std::string translate_text(const std::string& text, const std::string& target_la
 std::string translate_screenshot_image(const cv::Mat& image, const std::string& target_language, int max_tokens) {
     docmind::ScreenshotTranslationModule module(target_language);
     return module.translate(image, max_tokens);
+}
+
+// ============================================================
+// recognize_audio — 语音识别
+// ============================================================
+std::string recognize_audio(const short* pcm, int pcm_len,
+                            const std::string& base_dir, bool use_gpu) {
+    if (!pcm || pcm_len <= 0) return {};
+
+    try {
+        auto& ctx = docmind::GlobalEngineContext::getInstance();
+        ctx.initialize(base_dir);
+
+        if (!ctx.ensureASREngine()) {
+            std::cerr << "ASR engine not available." << std::endl;
+            return {};
+        }
+
+        auto* asr = ctx.getASREngine();
+        if (!asr) {
+            std::cerr << "ASR engine is null after ensure." << std::endl;
+            return {};
+        }
+
+        return asr->recognize(pcm, pcm_len);
+    } catch (const std::exception& e) {
+        std::cerr << "recognize_audio error: " << e.what() << std::endl;
+        return std::string("[error: ") + e.what() + "]";
+    } catch (...) {
+        std::cerr << "recognize_audio unknown error." << std::endl;
+        return "[error: unknown]";
+    }
 }

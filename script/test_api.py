@@ -309,8 +309,55 @@ def test_translate_photo(client):
            job.get("status") if job else "超时")
 
 
+def test_asr(client):
+    print("\n===== 6. 语音识别（ASR）=====")
+    # Generate a minimal valid WAV file (16kHz 16-bit mono, 0.5s silence)
+    import io, struct
+    sample_rate = 16000
+    num_samples = sample_rate // 2  # 0.5s
+    pcm_data = b'\x00\x00' * num_samples  # silence
+
+    # Build WAV header (44 bytes)
+    wav_buf = io.BytesIO()
+    wav_buf.write(b'RIFF')
+    wav_buf.write(struct.pack('<I', 36 + len(pcm_data)))
+    wav_buf.write(b'WAVE')
+    wav_buf.write(b'fmt ')
+    wav_buf.write(struct.pack('<IHHIIHH', 16, 1, 1, sample_rate, sample_rate * 2, 2, 16))
+    wav_buf.write(b'data')
+    wav_buf.write(struct.pack('<I', len(pcm_data)))
+    wav_buf.write(pcm_data)
+    wav_bytes = wav_buf.getvalue()
+    wav_b64 = __import__('base64').b64encode(wav_bytes).decode()
+
+    # 发送 base64 WAV 进行识别
+    code, resp = client.post("/api/asr/recognize",
+                             {"audio_base64": wav_b64, "max_duration": 10},
+                             expect_status=(200,))
+    report("POST /api/asr/recognize 返回 200", code == 200, repr(resp)[:200])
+    if isinstance(resp, dict):
+        report("返回 text 字段", "text" in resp)
+        report("返回 duration_ms 字段", "duration_ms" in resp)
+
+    # 缺少 audio_base64 → 400
+    code, err = client.post("/api/asr/recognize", {}, expect_status=(400,))
+    report("缺少 audio_base64 返回 400", code == 400, repr(err)[:120])
+
+    # 数据过大 → 400
+    code, err = client.post("/api/asr/recognize",
+                            {"audio_base64": "A" * 21 * 1024 * 1024},
+                            expect_status=(400,))
+    report("音频超过 20MB 返回 400", code == 400, repr(err)[:120])
+
+    # 无效 base64 → 400
+    code, err = client.post("/api/asr/recognize",
+                            {"audio_base64": "NOT_VALID_BASE64!!!"},
+                            expect_status=(400,))
+    report("无效 base64 返回 400", code == 400, repr(err)[:120])
+
+
 def test_cancel_and_errors(client):
-    print("\n===== 6. 取消与错误处理 =====")
+    print("\n===== 7. 取消与错误处理 =====")
     # 不存在 job → 404
     code, err = client.get("/api/jobs/not-a-real-job", expect_status=(404,))
     report("GET /api/jobs/{不存在} 返回 404", code == 404, repr(err)[:120])
@@ -332,7 +379,7 @@ def main():
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"服务器地址 (默认 {DEFAULT_HOST})")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"端口 (默认 {DEFAULT_PORT})")
     parser.add_argument("--only", default="file",
-                        help="逗号分隔指定模块: all,health,translate,kb,file,photo,cancel")
+                        help="逗号分隔指定模块: all,health,translate,kb,file,photo,asr,cancel")
     args = parser.parse_args()
 
     base = f"http://{args.host}:{args.port}"
@@ -360,6 +407,8 @@ def main():
         test_kb(client)
     if "all" in requested or "translate" in requested or "photo" in requested:
         test_translate_photo(client)
+    if "all" in requested or "asr" in requested:
+        test_asr(client)
     if "all" in requested or "cancel" in requested or "error" in requested:
         test_cancel_and_errors(client)
 

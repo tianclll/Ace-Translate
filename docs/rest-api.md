@@ -515,6 +515,59 @@ POST /api/translate/text  →  GET /api/jobs/{id}
 
 ---
 
+## 10. 语音识别（ASR）
+
+### POST `/api/asr/recognize`
+
+将 16kHz 16-bit mono PCM 音频转为文字（SenseVoice 模型）。同步返回，不需要轮询。
+
+**请求体**
+```json
+{
+    "audio_base64": "BASE64_ENCODED_AUDIO_DATA",
+    "max_duration": 10
+}
+```
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|---|---|---|---|---|
+| `audio_base64` | string | ✅ | — | 音频的 base64 编码（支持裸 PCM 或带 WAV 头的完整 WAV 文件，16kHz 16-bit mono） |
+| `max_duration` | int | 否 | `10` | 最大识别时长（秒，1–60），超出部分截断 |
+
+**响应 200**
+```json
+{
+    "text": "你好世界",
+    "duration_ms": 3450,
+    "language": "auto"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `text` | string | 识别出的文字，失败时为空字符串 |
+| `duration_ms` | int | 实际识别的音频时长（毫秒） |
+| `language` | string | 当前固定为 `"auto"`（自动检测语言） |
+
+**错误**
+- `400`：缺少 `audio_base64`，或数据超过 20MB，或处理后无有效音频数据
+- `500`：ASR 引擎未加载（需要安装 ASR 模型），或识别过程中出错
+
+**注意**
+- 音频格式必须是 **16kHz、16-bit、单声道** PCM。如果是完整 WAV 文件（带 RIFF 头），服务端会自动跳过 44 字节头部。
+- ASR 引擎需要模型文件：`models/ASR/model_quant.onnx`、`models/ASR/tokens.json`、`models/ASR/am.mvn`。未加载时返回 500。
+- 数据大小限制 20MB（约 10 分钟的 16kHz 16-bit 音频）。
+
+**curl 示例**
+```bash
+# 从 test.wav 发送语音识别
+curl -X POST http://localhost:18888/api/asr/recognize \
+  -H "Content-Type: application/json" \
+  -d "{\"audio_base64\":\"$(base64 -w 0 test.wav)\"}"
+```
+
+---
+
 ## 快速上手（curl 示例）
 
 ```bash
@@ -574,5 +627,6 @@ python311 script/test_api.py
 | GET/POST | `/api/kb/glossary` | 术语列表 / 添加 | 否 |
 | DELETE | `/api/kb/glossary/{id}` | 删除术语 | 否 |
 | POST | `/api/kb/import` | 导入文件 | ✅ |
+| POST | `/api/asr/recognize` | 语音识别（base64 PCM） | 否 |
 
 > 注：`<id>`、`<job_id>` 为路径参数占位符，需替换为实际值（如 `/api/kb/entries/12`）。路径参数使用尖括号语法是 Qt 6.5 的 `QHttpServer` 路由规范。

@@ -159,3 +159,18 @@ std::string translate_screenshot_image(
         const std::string& target_language = "English",
         int max_tokens = 512
 );
+
+/**
+ * @brief 语音识别（ASR）：将 16kHz 16-bit mono PCM 音频转为文字
+ * @param pcm        PCM 数据指针（short 数组）
+ * @param pcm_len    采样点数（每个 sample = 16-bit = 2 bytes）
+ * @param base_dir   资源目录（模型/DLL 所在目录，默认自动获取可执行文件目录）
+ * @param use_gpu    是否使用 GPU（默认 false，ASR 模型通常 CPU 即可）
+ * @return 识别文本，失败返回空字符串
+ */
+std::string recognize_audio(
+        const short* pcm,
+        int pcm_len,
+        const std::string& base_dir = "",
+        bool use_gpu = false
+);

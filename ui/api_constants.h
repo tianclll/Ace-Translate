@@ -19,6 +19,7 @@ constexpr const char* kKBSearch      = "/api/kb/search";
 constexpr const char* kKBTags        = "/api/kb/tags";
 constexpr const char* kKBGlossary    = "/api/kb/glossary";
 constexpr const char* kKBImport      = "/api/kb/import";
+constexpr const char* kASRRecognize  = "/api/asr/recognize";
 
 // ==================== JSON Schema Keys ====================
 
@@ -40,6 +41,8 @@ constexpr const char* kOffset         = "offset";
 constexpr const char* kSourceLang     = "source_lang";
 constexpr const char* kTargetLang     = "target_lang";
 constexpr const char* kSkipMd         = "skip_md";
+constexpr const char* kAudioBase64    = "audio_base64";
+constexpr const char* kMaxDuration    = "max_duration";
 constexpr const char* kTerm           = "term";
 constexpr const char* kTranslation    = "translation";
 constexpr const char* kName           = "name";
@@ -68,6 +71,8 @@ constexpr const char* kFinishedAt = "finished_at";
 constexpr const char* kTotal     = "total";
 constexpr const char* kEntries   = "entries";
 constexpr const char* kId        = "id";
+constexpr const char* kDurationMs = "duration_ms";
+constexpr const char* kLanguage  = "language";
 }
 
 } // namespace ApiRoutes
