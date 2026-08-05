@@ -50,6 +50,18 @@ static QHttpServerResponse makeResponse(const nlohmann::json& body,
         code
     );
     resp.setHeader("Content-Type", "application/json");
+    resp.setHeader("Access-Control-Allow-Origin", "*");
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return resp;
+}
+
+static QHttpServerResponse makeOptionsResponse() {
+    auto resp = QHttpServerResponse(QHttpServerResponse::StatusCode::Ok);
+    resp.setHeader("Access-Control-Allow-Origin", "*");
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    resp.setHeader("Access-Control-Max-Age", "86400");
     return resp;
 }
 
@@ -716,6 +728,13 @@ void ApiServer::registerRoutes() {
                 {ApiRoutes::RespKeys::kMessage, "Import started"}
             };
             return makeResponse(resp, QHttpServerResponse::StatusCode::Accepted);
+        }
+    );
+
+    // ---- CORS: handle OPTIONS preflight ----
+    srv->route("/*", QHttpServerRequest::Method::Options,
+        [](const QHttpServerRequest&) {
+            return makeOptionsResponse();
         }
     );
 }

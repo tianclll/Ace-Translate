@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AceTranslatePro</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #F8FAFA;
+  color: #333;
+  font-size: 14px;
+  overflow-x: hidden;
+  padding-bottom: 70px;
+}
+
+/* Header */
+.header {
+  background: #0B7C72;
+  color: white;
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Container */
+.container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* Card */
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Form elements */
+.input, .select, .textarea {
+  width: 100%;
+  border: 1.5px solid #E8ECEF;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  background: #F8FAFA;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.input:focus, .select:focus, .textarea:focus {
+  border-color: #0B7C72;
+}
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: #0B7C72; color: white; }
+.btn-primary:hover { background: #096B62; }
+.btn-primary:disabled { background: #CCC; color: #999; cursor: not-allowed; }
+.btn-danger { background: #E74C3C; color: white; padding: 8px 16px; font-size: 13px; }
+.btn-danger:hover { background: #C0392B; }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+.btn-block { width: 100%; }
+.btn-recording {
+  background: #E74C3C !important;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Status badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge-pending { background: #FFF3CD; color: #856404; }
+.badge-running { background: #CCE5FF; color: #004085; }
+.badge-completed { background: #D4EDDA; color: #155724; }
+.badge-failed { background: #F8D7DA; color: #721C24; }
+.badge-cancelled { background: #E2E3E5; color: #383D41; }
+
+/* Result area */
+.result-box {
+  background: #F0F7F6;
+  border: 1px solid #D0E8E4;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  min-height: 40px;
+}
+.result-box.empty {
+  color: #AAA;
+  font-style: italic;
+}
+
+/* Job list item */
+.job-item {
+  background: #F8FAFA;
+  border: 1px solid #E8ECEF;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.job-id { font-family: monospace; font-size: 13px; color: #555; }
+.job-time { font-size: 11px; color: #AAA; }
+
+/* KB entry card */
+.kb-card {
+  background: #FFFFFF;
+  border: 1px solid #E8ECEF;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.kb-card-title {
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.kb-card-meta {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+.kb-card-summary {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* TabBar */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-top: 1px solid #E8ECEF;
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 6px;
+  cursor: pointer;
+  color: #999;
+  font-size: 10px;
+  transition: color 0.2s;
+  user-select: none;
+}
+.tab-item.active { color: #0B7C72; }
+.tab-icon { font-size: 22px; margin-bottom: 2px; }
+
+/* Page visibility */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: white;
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #FFF;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+.toast.error { background: #E74C3C; }
+.toast.success { background: #28A745; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #AAA;
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-text { font-size: 14px; }
+
+/* Search bar */
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.search-bar .input { flex: 1; }
+
+/* Mic button */
+.mic-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #0B7C72;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.mic-btn:hover { background: #096B62; }
+.mic-btn.recording {
+  background: #E74C3C;
+  animation: pulse 1s infinite;
+}
+
+/* Settings status */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-dot.online { background: #28A745; }
+.status-dot.offline { background: #CCC; }
+
+/* Hidden file input */
+input[type="file"] { display: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CCC; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">AceTranslatePro</div>
+
+<!-- ========== TRANSLATE PAGE ========== -->
+<div id="page-translate" class="page active">
+<div class="container">
+
+  <!-- Text Translation -->
+  <div class="card">
+    <div class="card-title">📝 文本翻译</div>
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <select id="txtLang" class="select" style="flex:1;">
+        <option value="Chinese">中文</option><option value="English">English</option>
+        <option value="Japanese">日本語</option><option value="Korean">한국어</option>
+        <option value="French">Français</option><option value="German">Deutsch</option>
+        <option value="Spanish">Español</option><option value="Russian">Русский</option>
+        <option value="Portuguese">Português</option><option value="Arabic">العربية</option>
+        <option value="Thai">ไทย</option><option value="Vietnamese">Tiếng Việt</option>
+        <option value="Auto">Auto Detect</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; align-items:flex-start;">
+      <textarea id="txtInput" class="textarea" placeholder="输入要翻译的文本..." style="flex:1;"></textarea>
+      <button class="mic-btn" id="micBtn" title="语音输入" onclick="toggleRecording()">🎤</button>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:10px;" id="txtTranslateBtn" onclick="translateText()">
+      翻译
+    </button>
+    <div id="txtResult" class="result-box empty">翻译结果将显示在这里</div>
+  </div>
+
+  <!-- File Translation -->
+  <div class="card">
+    <div class="card-title">📄 文件翻译</div>
+    <input class="input" id="filePath" placeholder="输入文件路径，如 C:/docs/manual.pdf" />
+    <input class="input" id="fileOutput" placeholder="输出路径（可选，默认同目录 .md）" style="margin-top:8px;" />
+    <select id="fileLang" class="select" style="margin-top:8px;">
+      <option value="Chinese">中文</option><option value="English">English</option>
+      <option value="Japanese">日本語</option><option value="Korean">한국어</option>
+      <option value="French">Français</option><option value="German">Deutsch</option>
+      <option value="Spanish">Español</option><option value="Russian">Русский</option>
+    </select>
+    <button class="btn btn-primary btn-block" style="margin-top:10px;" id="fileTranslateBtn" onclick="translateFile()">
+      翻译文件
+    </button>
+    <div id="fileResult" class="result-box empty">输出文件路径将显示在这里</div>
+  </div>
+
+  <!-- Photo Translation -->
+  <div class="card">
+    <div class="card-title">🖼️ 图片翻译</div>
+    <select id="photoLang" class="select" style="margin-bottom:8px;">
+      <option value="Chinese">中文</option><option value="English">English</option>
+      <option value="Japanese">日本語</option><option value="Korean">한국어</option>
+    </select>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoFile').click()">选择图片</button>
+      <span id="photoFileName" style="font-size:12px; color:#888;">未选择文件</span>
+      <input type="file" id="photoFile" accept="image/*" onchange="onPhotoSelected(event)">
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:10px;" id="photoTranslateBtn" onclick="translatePhoto()">
+      翻译图片
+    </button>
+    <div id="photoResult" class="result-box empty">翻译结果将显示在这里</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ========== KB PAGE ========== -->
+<div id="page-kb" class="page">
+<div class="container">
+  <div class="card">
+    <div class="card-title">📚 知识库</div>
+    <div class="search-bar">
+      <input class="input" id="kbSearch" placeholder="搜索文档..." onkeydown="if(event.key==='Enter')searchKB()">
+      <button class="btn btn-primary btn-sm" onclick="searchKB()">搜索</button>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="showCreateModal()" style="margin-bottom:12px;">+ 新建文档</button>
+    <div id="kbList"></div>
+    <div id="kbEmpty" class="empty-state" style="display:none;">
+      <div class="empty-state-icon">📭</div>
+      <div class="empty-state-text">暂无文档</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== JOBS PAGE ========== -->
+<div id="page-jobs" class="page">
+<div class="container">
+  <div class="card">
+    <div class="card-title">📋 任务列表</div>
+    <div id="jobsList"></div>
+    <div id="jobsEmpty" class="empty-state" style="display:none;">
+      <div class="empty-state-icon">📭</div>
+      <div class="empty-state-text">暂无任务</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== SETTINGS PAGE ========== -->
+<div id="page-settings" class="page">
+<div class="container">
+  <div class="card">
+    <div class="card-title">⚙️ 设置</div>
+    <label style="font-size:13px; color:#666; margin-bottom:4px; display:block;">服务器地址</label>
+    <input class="input" id="apiHost" placeholder="127.0.0.1" style="margin-bottom:12px;">
+    <label style="font-size:13px; color:#666; margin-bottom:4px; display:block;">端口</label>
+    <input class="input" id="apiPort" placeholder="18888" style="margin-bottom:16px;">
+    <button class="btn btn-primary btn-block" onclick="saveSettings()" style="margin-bottom:8px;">保存设置</button>
+    <button class="btn btn-primary btn-block" onclick="testConnection()" style="background:#555;">测试连接</button>
+    <div id="connStatus" style="margin-top:12px; text-align:center; font-size:13px; color:#888;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ℹ️ 关于</div>
+    <p style="font-size:13px; color:#666; line-height:1.6;">
+      AceTranslatePro Web Client<br>
+      调用本地 REST API 进行翻译和语音识别<br>
+      确保手机/浏览器与 PC 在同一 WiFi 网络
+    </p>
+  </div>
+</div>
+</div>
+
+<!-- ========== TAB BAR ========== -->
+<div class="tabbar">
+  <div class="tab-item active" onclick="switchTab('translate', this)">
+    <div class="tab-icon">📝</div>
+    <div>翻译</div>
+  </div>
+  <div class="tab-item" onclick="switchTab('kb', this)">
+    <div class="tab-icon">📚</div>
+    <div>知识库</div>
+  </div>
+  <div class="tab-item" onclick="switchTab('jobs', this)">
+    <div class="tab-icon">📋</div>
+    <div>任务</div>
+  </div>
+  <div class="tab-item" onclick="switchTab('settings', this)">
+    <div class="tab-icon">⚙️</div>
+    <div>设置</div>
+  </div>
+</div>
+
+<!-- ========== CREATE KB MODAL ========== -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal-content">
+    <div class="modal-title">新建知识库文档</div>
+    <input class="input" id="kbTitle" placeholder="标题" style="margin-bottom:8px;">
+    <input class="input" id="kbFileType" placeholder="类型（如 md, pdf）" style="margin-bottom:8px;">
+    <textarea class="textarea" id="kbContent" placeholder="Markdown 内容..." style="min-height:150px; margin-bottom:12px;"></textarea>
+    <button class="btn btn-primary btn-block" onclick="createKBEntry()">创建</button>
+    <button class="btn btn-sm" onclick="hideCreateModal()" style="width:100%; margin-top:8px; background:#EEE; color:#666;">取消</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Configuration
+// ============================================================
+const LANGS = ['Chinese','English','Japanese','Korean','French','German','Spanish','Russian','Portuguese','Arabic','Thai','Vietnamese','Auto'];
+
+let apiHost = '127.0.0.1';
+let apiPort = '18888';
+let pollingTimers = {};
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+let photoBase64 = null;
+
+// Load saved settings
+(function loadSettings() {
+  try {
+    apiHost = localStorage.getItem('api_host') || '127.0.0.1';
+    apiPort = localStorage.getItem('api_port') || '18888';
+  } catch(e) {}
+  document.getElementById('apiHost').value = apiHost;
+  document.getElementById('apiPort').value = apiPort;
+})();
+
+function baseUrl() { return `http://${apiHost}:${apiPort}`; }
+
+// ============================================================
+// HTTP Client
+// ============================================================
+async function apiRequest(method, path, body, expectStatus) {
+  const url = baseUrl() + path;
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body !== undefined && body !== null) {
+    opts.body = JSON.stringify(body);
+  }
+  let code, data;
+  try {
+    const resp = await fetch(url, opts);
+    code = resp.status;
+    const text = await resp.text();
+    data = text ? JSON.parse(text) : null;
+  } catch(e) {
+    if (e.message.includes('Failed to fetch')) {
+      throw new Error(`无法连接服务器 ${url}，请检查设置`);
+    }
+    throw e;
+  }
+  if (expectStatus && !expectStatus.includes(code)) {
+    const err = data && data.error ? data.error : `HTTP ${code}`;
+    throw new Error(err);
+  }
+  return { code, data };
+}
+
+function apiGet(path, query) {
+  const q = query ? '?' + new URLSearchParams(query).toString() : '';
+  return apiRequest('GET', path + q);
+}
+function apiPost(path, body) {
+  return apiRequest('POST', path, body, [200, 201, 202]);
+}
+function apiDelete(path, body) {
+  return apiRequest('DELETE', path, body, [200, 404]);
+}
+
+// ============================================================
+// Job polling
+// ============================================================
+function startPolling(jobId, callback, interval) {
+  interval = interval || 1500;
+  const maxWait = 120;
+  let count = 0;
+  pollingTimers[jobId] = setInterval(async () => {
+    count++;
+    if (count > maxWait) {
+      clearInterval(pollingTimers[jobId]);
+      delete pollingTimers[jobId];
+      callback({ status: 'timeout', error: '轮询超时' });
+      return;
+    }
+    try {
+      const { data } = await apiGet(`/api/jobs/${jobId}`);
+      const s = data && data.status;
+      if (s === 'completed' || s === 'failed' || s === 'cancelled') {
+        clearInterval(pollingTimers[jobId]);
+        delete pollingTimers[jobId];
+        callback(data);
+      }
+    } catch(e) {
+      clearInterval(pollingTimers[jobId]);
+      delete pollingTimers[jobId];
+      callback({ status: 'error', error: e.message });
+    }
+  }, interval);
+}
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
+  setTimeout(() => { el.className = 'toast'; }, 2500);
+}
+
+// ============================================================
+// Tab switching
+// ============================================================
+function switchTab(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'jobs') loadJobs();
+  if (name === 'kb') loadKB();
+}
+
+// ============================================================
+// Text Translation
+// ============================================================
+async function translateText() {
+  const text = document.getElementById('txtInput').value.trim();
+  if (!text) { showToast('请输入要翻译的文本', 'error'); return; }
+  const lang = document.getElementById('txtLang').value;
+  const btn = document.getElementById('txtTranslateBtn');
+  const resultEl = document.getElementById('txtResult');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 翻译中...';
+  resultEl.className = 'result-box';
+  resultEl.textContent = '提交中...';
+
+  try {
+    const { data } = await apiPost('/api/translate/text', { text, target_language: lang });
+    resultEl.textContent = `任务已提交: ${data.job_id}\n等待结果...`;
+    startPolling(data.job_id, (job) => {
+      if (job.status === 'completed') {
+        resultEl.textContent = job.result || '(空结果)';
+        showToast('翻译完成', 'success');
+      } else if (job.status === 'failed') {
+        resultEl.textContent = '❌ 翻译失败: ' + (job.error || '未知错误');
+        showToast('翻译失败', 'error');
+      } else {
+        resultEl.textContent = '⏳ ' + job.status + '...';
+      }
+    });
+  } catch(e) {
+    resultEl.textContent = '❌ ' + e.message;
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '翻译';
+  }
+}
+
+// ============================================================
+// File Translation
+// ============================================================
+async function translateFile() {
+  const path = document.getElementById('filePath').value.trim();
+  if (!path) { showToast('请输入文件路径', 'error'); return; }
+  const lang = document.getElementById('fileLang').value;
+  const output = document.getElementById('fileOutput').value.trim();
+  const btn = document.getElementById('fileTranslateBtn');
+  const resultEl = document.getElementById('fileResult');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 翻译中...';
+  resultEl.className = 'result-box';
+  resultEl.textContent = '提交中...';
+
+  try {
+    const body = { file_path: path, target_language: lang };
+    if (output) body.output_path = output;
+    const { data } = await apiPost('/api/translate/file', body);
+    resultEl.textContent = `任务已提交: ${data.job_id}\n等待结果...`;
+    startPolling(data.job_id, (job) => {
+      if (job.status === 'completed') {
+        resultEl.textContent = '✅ 完成\n输出: ' + (job.result || '(空)');
+        showToast('文件翻译完成', 'success');
+      } else if (job.status === 'failed') {
+        resultEl.textContent = '❌ 翻译失败: ' + (job.error || '未知错误');
+        showToast('翻译失败', 'error');
+      } else {
+        resultEl.textContent = '⏳ ' + job.status + '...';
+      }
+    });
+  } catch(e) {
+    resultEl.textContent = '❌ ' + e.message;
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '翻译文件';
+  }
+}
+
+// ============================================================
+// Photo Translation
+// ============================================================
+function onPhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('photoFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoBase64 = e.target.result.split(',')[1];
+  };
+  reader.readAsDataURL(file);
+}
+
+async function translatePhoto() {
+  if (!photoBase64) { showToast('请先选择图片', 'error'); return; }
+  const lang = document.getElementById('photoLang').value;
+  const btn = document.getElementById('photoTranslateBtn');
+  const resultEl = document.getElementById('photoResult');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 翻译中...';
+  resultEl.className = 'result-box';
+  resultEl.textContent = '提交中...';
+
+  try {
+    const { data } = await apiPost('/api/translate/photo', {
+      image_base64: photoBase64,
+      target_language: lang
+    });
+    resultEl.textContent = `任务已提交: ${data.job_id}\n等待结果...`;
+    startPolling(data.job_id, (job) => {
+      if (job.status === 'completed') {
+        resultEl.textContent = '✅ 完成\n输出: ' + (job.result || '(空)');
+        showToast('图片翻译完成', 'success');
+      } else if (job.status === 'failed') {
+        resultEl.textContent = '❌ 翻译失败: ' + (job.error || '未知错误');
+        showToast('翻译失败', 'error');
+      } else {
+        resultEl.textContent = '⏳ ' + job.status + '...';
+      }
+    });
+  } catch(e) {
+    resultEl.textContent = '❌ ' + e.message;
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '翻译图片';
+  }
+}
+
+// ============================================================
+// ASR Voice Recording
+// ============================================================
+async function toggleRecording() {
+  const btn = document.getElementById('micBtn');
+  if (isRecording) {
+    stopRecording(btn);
+  } else {
+    startRecording(btn);
+  }
+}
+
+async function startRecording(btn) {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true }
+    });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => processAudio();
+    mediaRecorder.start();
+    isRecording = true;
+    btn.classList.add('recording');
+    btn.title = '点击停止录音';
+    showToast('录音中... 点击麦克风停止');
+  } catch(e) {
+    showToast('无法访问麦克风: ' + e.message, 'error');
+  }
+}
+
+function stopRecording(btn) {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  isRecording = false;
+  btn.classList.remove('recording');
+  btn.title = '语音输入';
+}
+
+async function processAudio() {
+  const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  const arrayBuf = await blob.arrayBuffer();
+  // Convert to WAV-like format: we'll send raw PCM via MediaRecorder
+  // For simplicity, encode as base64 and send. The server expects 16kHz 16-bit mono.
+  // MediaRecorder gives webm/opus, so we need to convert.
+  // Use AudioContext to decode and resample.
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuf.slice(0));
+    const channelData = audioBuffer.getChannelData(0);
+    // Convert float32 to int16 PCM
+    const pcm16 = new Int16Array(channelData.length);
+    for (let i = 0; i < channelData.length; i++) {
+      pcm16[i] = Math.max(-32768, Math.min(32767, channelData[i] * 32768));
+    }
+    // Build WAV
+    const wavBuf = encodeWAV(pcm16, audioBuffer.sampleRate);
+    const b64 = arrayBufferToBase64(wavBuf);
+
+    const resultEl = document.getElementById('txtResult');
+    resultEl.className = 'result-box';
+    resultEl.textContent = '识别中...';
+
+    const { data } = await apiPost('/api/asr/recognize', {
+      audio_base64: b64,
+      max_duration: 30
+    });
+
+    if (data.text) {
+      document.getElementById('txtInput').value = data.text;
+      showToast('识别完成，开始翻译...', 'success');
+      translateText();
+    } else {
+      resultEl.textContent = '未识别到语音内容';
+      showToast('未识别到语音', 'error');
+    }
+  } catch(e) {
+    showToast('语音处理失败: ' + e.message, 'error');
+  }
+}
+
+function encodeWAV(samples, sampleRate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  function writeStr(offset, s) { for (let i = 0; i < s.length; i++) v.setUint8(offset + i, s.charCodeAt(i)); }
+  writeStr(0, 'RIFF');
+  v.setUint32(4, 36 + samples.length * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, sampleRate, true);
+  v.setUint32(28, sampleRate * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, samples[i], true);
+  return buf;
+}
+
+function arrayBufferToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+// ============================================================
+// Knowledge Base
+// ============================================================
+async function loadKB() {
+  try {
+    const { data } = await apiGet('/api/kb/entries', { limit: 50 });
+    const list = document.getElementById('kbList');
+    const empty = document.getElementById('kbEmpty');
+    if (!data || !data.entries || data.entries.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = data.entries.map(e => `
+      <div class="kb-card">
+        <div class="kb-card-title">${escHtml(e.title || 'Untitled')}</div>
+        <div class="kb-card-meta">${e.file_type || ''} · ${e.translated_lang || ''} · ${e.created_at || ''}</div>
+        <div class="kb-card-summary">${escHtml(e.summary || e.markdown_content || '')}</div>
+        <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="deleteKB(${e.id})">删除</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    showToast('加载知识库失败: ' + e.message, 'error');
+  }
+}
+
+async function searchKB() {
+  const q = document.getElementById('kbSearch').value.trim();
+  try {
+    const { data } = await apiGet('/api/kb/search', { q });
+    const list = document.getElementById('kbList');
+    const empty = document.getElementById('kbEmpty');
+    if (!data || !data.entries || data.entries.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      empty.querySelector('.empty-state-text').textContent = '未找到匹配文档';
+      return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = data.entries.map(e => `
+      <div class="kb-card">
+        <div class="kb-card-title">${escHtml(e.title || 'Untitled')}</div>
+        <div class="kb-card-meta">${e.file_type || ''} · ${e.translated_lang || ''}</div>
+        <div class="kb-card-summary">${escHtml(e.summary || e.markdown_content || '')}</div>
+        <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="deleteKB(${e.id})">删除</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    showToast('搜索失败: ' + e.message, 'error');
+  }
+}
+
+function showCreateModal() { document.getElementById('createModal').classList.add('show'); }
+function hideCreateModal() { document.getElementById('createModal').classList.remove('show'); }
+
+async function createKBEntry() {
+  const title = document.getElementById('kbTitle').value.trim();
+  const content = document.getElementById('kbContent').value.trim();
+  if (!title && !content) { showToast('请输入标题或内容', 'error'); return; }
+  try {
+    const { data } = await apiPost('/api/kb/entries', {
+      title: title || 'Untitled',
+      file_type: 'md',
+      markdown_content: content,
+      parse_status: 'done'
+    });
+    showToast('文档已创建 (ID: ' + data.id + ')', 'success');
+    hideCreateModal();
+    document.getElementById('kbTitle').value = '';
+    document.getElementById('kbContent').value = '';
+    loadKB();
+  } catch(e) {
+    showToast('创建失败: ' + e.message, 'error');
+  }
+}
+
+async function deleteKB(id) {
+  if (!confirm('确定删除此文档？')) return;
+  try {
+    await apiDelete(`/api/kb/entries/${id}`);
+    showToast('已删除', 'success');
+    loadKB();
+  } catch(e) {
+    showToast('删除失败: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// Jobs
+// ============================================================
+async function loadJobs() {
+  try {
+    const { data } = await apiGet('/api/status');
+    const kbCount = data.kb_doc_count || 0;
+    // Try to get jobs list
+    let jobs = [];
+    try {
+      const j = await apiGet('/api/jobs');
+      jobs = j.data && j.data.jobs ? j.data.jobs : [];
+    } catch(e) {
+      // /api/jobs may not exist, try without
+    }
+    // If no jobs list endpoint, show placeholder
+    const listEl = document.getElementById('jobsList');
+    const emptyEl = document.getElementById('jobsEmpty');
+    if (jobs.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-state-text">暂无任务记录</div></div>';
+    } else {
+      listEl.innerHTML = jobs.slice(0, 50).map(j => jobHTML(j)).join('');
+    }
+  } catch(e) {
+    document.getElementById('jobsList').innerHTML =
+      '<div class="empty-state"><div class="empty-state-text">加载失败: ' + escHtml(e.message) + '</div></div>';
+  }
+}
+
+function jobHTML(j) {
+  const badgeCls = 'badge badge-' + (j.status || 'unknown');
+  const time = j.created_at || '';
+  return `<div class="job-item">
+    <div class="job-header">
+      <span class="job-id">${escHtml(j.job_id || j.id || '')}</span>
+      <span class="${badgeCls}">${j.status || 'unknown'}</span>
+    </div>
+    <div class="job-time">${escHtml(time)} · ${j.type || ''}</div>
+    ${j.result ? '<div class="result-box" style="margin-top:6px; font-size:12px; padding:8px;">' + escHtml(String(j.result).substring(0, 200)) + '</div>' : ''}
+    ${j.error ? '<div style="color:#E74C3C; font-size:12px; margin-top:4px;">' + escHtml(j.error) + '</div>' : ''}
+  </div>`;
+}
+
+// ============================================================
+// Settings
+// ============================================================
+function saveSettings() {
+  apiHost = document.getElementById('apiHost').value.trim() || '127.0.0.1';
+  apiPort = document.getElementById('apiPort').value.trim() || '18888';
+  try {
+    localStorage.setItem('api_host', apiHost);
+    localStorage.setItem('api_port', apiPort);
+  } catch(e) {}
+  showToast('设置已保存', 'success');
+}
+
+async function testConnection() {
+  const el = document.getElementById('connStatus');
+  el.innerHTML = '<span class="spinner" style="border-color:#0B7C72; border-top-color:transparent;"></span> 连接中...';
+  try {
+    const { data } = await apiGet('/api/health');
+    el.innerHTML = '<span class="status-dot online"></span> 连接成功 (API 正常)';
+    showToast('连接成功', 'success');
+  } catch(e) {
+    el.innerHTML = '<span class="status-dot offline"></span> 连接失败: ' + escHtml(e.message);
+    showToast('连接失败', 'error');
+  }
+}
+
+// ============================================================
+// Utils
+// ============================================================
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  // Auto-load KB when switching to KB tab
+  const origSwitch = switchTab;
+});
+</script>
+</body>
+</html>
