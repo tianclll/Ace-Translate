@@ -4,8 +4,8 @@
 解决浏览器 getUserMedia 需要 HTTPS 的问题。
 
 用法：
-    python311 script/https_proxy.py
-    python311 script/https_proxy.py --port 8443 --api 127.0.0.1:18888
+    python311 webapp/https_proxy.py
+    python311 webapp/https_proxy.py --port 8443 --api 127.0.0.1:18888
 
 然后手机浏览器访问：https://<电脑IP>:8443/
 
