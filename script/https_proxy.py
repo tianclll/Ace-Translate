@@ -15,6 +15,7 @@
 
 import argparse
 import http.server
+import ipaddress
 import os
 import socket
 import ssl
@@ -74,7 +75,9 @@ def generate_self_signed_cert(cert_path, key_path):
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.utcnow())
         .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))
-        .add_extension(x509.SubjectAlternativeName([x509.IPAddress(socket.inet_aton("127.0.0.1"))]), critical=False)
+        .add_extension(x509.SubjectAlternativeName([
+            x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
+        ]), critical=False)
         .sign(key, hashes.SHA256())
     )
 
