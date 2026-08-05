@@ -351,7 +351,7 @@ def test_asr(client):
 
     # 无效 base64 → 400
     code, err = client.post("/api/asr/recognize",
-                            {"audio_base64": "NOT_VALID_BASE64!!!"},
+                            {"audio_base64": "X"},
                             expect_status=(400,))
     report("无效 base64 返回 400", code == 400, repr(err)[:120])
 
@@ -378,7 +378,7 @@ def main():
     parser = argparse.ArgumentParser(description="AceTranslatePro REST API 端到端测试")
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"服务器地址 (默认 {DEFAULT_HOST})")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"端口 (默认 {DEFAULT_PORT})")
-    parser.add_argument("--only", default="file",
+    parser.add_argument("--only", default="asr",
                         help="逗号分隔指定模块: all,health,translate,kb,file,photo,asr,cancel")
     args = parser.parse_args()
 
