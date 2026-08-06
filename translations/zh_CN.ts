@@ -666,6 +666,21 @@ Drop files above to get started</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <location filename="../ui/mainwindow.cpp" line="2779" />
+        <source>REST API Server</source>
+        <translation>REST API 服务器</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2784" />
+        <source>Expose translation and knowledge base operations via HTTP. Requires restart. Default: disabled.</source>
+        <translation>通过 HTTP 暴露翻译和知识库操作。修改后需重启生效。默认关闭。</translation>
+    </message>
+    <message>
+        <location filename="../ui/mainwindow.cpp" line="2793" />
+        <source>Enable REST API</source>
+        <translation>启用 REST API</translation>
+    </message>
+    <message>
         <location filename="../ui/mainwindow.cpp" line="706" />
         <location filename="../ui/mainwindow.cpp" line="2411" />
         <source>Settings</source>
