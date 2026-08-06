@@ -176,7 +176,7 @@ endforeach()
 
 # Qt DLL
 set(QT_BIN_DIR "${QT_DIR}/bin")
-foreach(DLL Qt6Core.dll Qt6Gui.dll Qt6Svg.dll Qt6Widgets.dll Qt6Sql.dll)
+foreach(DLL Qt6Core.dll Qt6Gui.dll Qt6Svg.dll Qt6Widgets.dll Qt6Sql.dll Qt6Network.dll Qt6WebSockets.dll Qt6HttpServer.dll)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${QT_BIN_DIR}/${DLL}" "${OUT_DIR}/"
