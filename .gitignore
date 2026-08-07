@@ -101,6 +101,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# ── CodeGraph 索引 ──
+.codegraph/
+
 # ── 开发文档 / 过程产物 ──
 docs/superpowers/
 
