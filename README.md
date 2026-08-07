@@ -7,8 +7,8 @@
 
 **🌐 中文 · [English](./README_en.md) · [日本語](./README_ja.md)**
 
-> 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入  
-> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别 · 多语言 TTS 朗读
+> 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入 · 知识库 · 专有词管理
+> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别 · 多语言 TTS 朗读 · REST API 远程调用
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-blue?style=flat-square&logo=windows" alt="Windows"/>
@@ -35,6 +35,10 @@
 | 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 | 语音输入 |
 | 🔊 **朗读** | 支持中文/英文/日文/韩文/泰米尔/印地语等多语言 TTS 朗读 | 听译文发音 |
 | 🌐 **多语言界面** | 支持中文/English/日本語 界面切换，拖拽调整导航栏宽度 | 多语言用户 |
+| 📚 **个人知识库** | 导入 PDF/Word/Excel/PPT/MD/TXT 文档，自动提取文本生成 Markdown 入库 | 文档管理、资料积累 |
+| 🏷️ **专有词管理** | 导入术语表，翻译时自动注入专有词，保证术语一致 | 专业翻译场景 |
+| 🔌 **REST API** | 内嵌 HTTP 服务器，提供 16 个 REST 端点（文本/文件/图片翻译、知识库 CRUD、语音识别），支持 Web 前端和脚本远程调用 | 自动化集成、移动端访问 |
+| 📱 **Web 前端** | 手机浏览器访问，支持文本翻译、文件翻译、图片翻译、语音输入 | 移动端使用 |
 
 </div>
 
@@ -264,9 +268,14 @@ AceTranslatePro/
 ├── 📜 CMakeLists_cpu.txt     # CPU 版构建配置
 │
 ├── 📂 ui/                    # Qt6 图形界面
-│   ├── mainwindow.cpp        # 主窗口（6 面板 + 状态栏 + 托盘 + 热键 + 语音）
+│   ├── mainwindow.cpp        # 主窗口（7 面板 + 状态栏 + 托盘 + 热键 + 语音）
+│   ├── api_server.cpp        # REST API 服务器（Qt6 QHttpServer）
+│   ├── api_job_tracker.cpp   # 异步任务管理
 │   ├── floatwindow.cpp       # 划词翻译悬浮窗
 │   ├── regioncapture.cpp     # 截图选区
+│   ├── knowledgebase_page.cpp/.h  # 知识库页面 UI
+│   ├── knowledgebase_manager.cpp/.h  # 知识库 SQLite 管理器
+│   ├── glossary_dialog.cpp   # 专有词管理弹窗
 │   ├── toast.cpp             # 顶部通知组件
 │   ├── zoomablelabel.cpp     # 可缩放图片控件
 │   ├── style.qss             # 全局样式表
@@ -325,6 +334,54 @@ AceTranslatePro/
 | 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime + OpenCV FFT) |
 | 🔊 语音合成 | Windows SAPI（多语言自动匹配） |
 | 📄 文档解析 | PDFium + office2md (Python) |
+| 🔌 REST API | Qt6 QHttpServer（16 个端点，支持 Web 前端和脚本远程调用） |
+| 📱 Web 前端 | 单文件 SPA（翻译/知识库/任务/设置），手机浏览器直接访问 |
+
+---
+
+## 🔌 REST API
+
+程序内嵌 HTTP 服务器，开启后可通过 REST API 远程调用翻译和知识库功能。
+
+- **启用方式**：设置面板 → *REST API Server* → 勾选 *Enable REST API*，配置端口后**重启生效**。默认端口 `18888`，默认关闭。
+- **完整文档**：[docs/rest-api.md](./docs/rest-api.md)
+
+### 核心端点
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/translate/text` | 文本翻译 |
+| POST | `/api/translate/file` | 文件翻译 |
+| POST | `/api/translate/photo` | 图片翻译（base64） |
+| POST | `/api/asr/recognize` | 语音识别（base64 音频） |
+| GET/POST/DELETE | `/api/kb/entries` | 知识库文档 CRUD |
+| GET | `/api/kb/search?q=` | 全文搜索 |
+| GET/POST | `/api/kb/tags` | 标签管理 |
+| GET/POST/DELETE | `/api/kb/glossary` | 专有词管理 |
+| POST | `/api/kb/import` | 导入文件到知识库 |
+| GET | `/api/jobs/{id}` | 查询异步任务 |
+| GET | `/api/health` | 健康检查 |
+
+### Web 前端
+
+`web` 分支包含手机浏览器 Web 前端（单 HTML 文件），支持：
+- 文本翻译、文件翻译、图片翻译
+- 语音输入（手机麦克风 → ASR → 自动翻译）
+- 知识库浏览/搜索/创建/删除
+- 任务状态查看
+
+配合 HTTPS 反向代理（`webapp/https_proxy.py`）可在手机浏览器中使用麦克风功能。
+
+---
+
+## 🌿 分支说明
+
+| 分支 | 说明 |
+|---|---|
+| `main` | **主分支**，含 REST API 服务器（16 个端点） |
+| `web` | 主分支 + 手机 Web 前端（`webapp/`） |
+| `base` | 基础分支，不含 REST API 和 Web 前端 |
+| `feature/knowledge-base` | 知识库功能开发分支 |
 
 ---
 
