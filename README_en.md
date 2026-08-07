@@ -83,6 +83,7 @@ Organize your translated documents and build your personal translation knowledge
 | 🎤 **Voice Input** | Click mic button, speech to text |
 | 🔊 **Read Aloud** | Multilingual TTS (CN/EN/JP & more) |
 | 🌐 **Multilingual UI** | Chinese / English / Japanese |
+| 🔌 **REST API** | Embedded HTTP server, 16 endpoints, script/Web remote access, [docs](./docs/rest-api.md) |
 
 ---
 
