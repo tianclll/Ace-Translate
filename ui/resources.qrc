@@ -29,6 +29,10 @@
         <file alias="knowledge.png">icons/knowledge.png</file>
         <file alias="Search.png">icons/Search.png</file>
         <file alias="Calendar.png">icons/Calendar.png</file>
+        <file alias="left_month.png">icons/left_month.png</file>
+        <file alias="right_month.png">icons/right_month.png</file>
+        <file alias="left_year.png">icons/left_year.png</file>
+        <file alias="right_year.png">icons/right_year.png</file>
     </qresource>
     <qresource prefix="/translations">
         <file alias="zh_CN.qm">../translations/zh_CN.qm</file>

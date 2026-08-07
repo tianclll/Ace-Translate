@@ -987,19 +987,21 @@ bool KnowledgeBasePage::eventFilter(QObject* obj, QEvent* event) {
                         }
                     };
                     updateLabel();
-                    auto makeBtn = [](QWidget* p, const QString& sym, const QString& tip) {
-                        auto* b = new QPushButton(sym, p);
+                    auto makeBtn = [](QWidget* p, const QString& iconPath, const QString& tip) {
+                        auto* b = new QToolButton(p);
                         b->setFixedSize(22, 22);
                         b->setToolTip(tip);
+                        b->setIcon(QIcon(iconPath));
+                        b->setIconSize(QSize(16, 16));
                         b->setStyleSheet(
-                            "QPushButton { background: transparent; color: #6B7280; font-size: 14px; border: none; border-radius: 4px; padding: 0px; }"
-                            "QPushButton:hover { background: #F3F4F6; color: #0B7C72; }");
+                            "QToolButton { background: transparent; border: none; border-radius: 4px; }"
+                            "QToolButton:hover { background: #F3F4F6; }");
                         return b;
                     };
-                    auto* b0 = makeBtn(bar, "◀", tr("Previous year"));
-                    auto* b1 = makeBtn(bar, "◁", tr("Previous month"));
-                    auto* b3 = makeBtn(bar, "▷", tr("Next month"));
-                    auto* b4 = makeBtn(bar, "▶", tr("Next year"));
+                    auto* b0 = makeBtn(bar, ":/icons/left_year.png", tr("Previous year"));
+                    auto* b1 = makeBtn(bar, ":/icons/left_month.png", tr("Previous month"));
+                    auto* b3 = makeBtn(bar, ":/icons/right_month.png", tr("Next month"));
+                    auto* b4 = makeBtn(bar, ":/icons/right_year.png", tr("Next year"));
                     barLay->addWidget(b0);
                     barLay->addWidget(b1);
                     barLay->addWidget(monthLabel, 1);
