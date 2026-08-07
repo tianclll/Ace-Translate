@@ -21,6 +21,29 @@
 
 ---
 
+## 💡 Why AceTranslatePro?
+
+When translating academic papers, technical documents, or product manuals, have you experienced these frustrations?
+
+- **Online tools** require file uploads — your data leaves your computer
+- **Format destroyed**: tables, formulas, and image layouts become a mess after translation
+- **Inconsistent terminology**: the same term translated differently across documents
+- **Poor quality for specialized content**: generic engines don't understand your domain
+- **No offline mode**: can't work without internet on flights, in labs, or abroad
+
+**AceTranslatePro solves all of these.**
+
+Everything runs on your machine. Files never leave your computer. Formatting is preserved. Terminology stays consistent. Works without internet.
+
+<p align="center">
+  <img src="https://img.shields.io/github/stars/tianclll/Ace-Translate?style=social" alt="GitHub Stars"/>
+  <img src="https://img.shields.io/github/forks/tianclll/Ace-Translate?style=social" alt="GitHub Forks"/>
+</p>
+
+⭐ **If you find this useful, please give it a Star!** Your support is what keeps me improving.
+
+---
+
 ## 📄 File Translation
 
 Supports PDF, Word, Excel, PPT, Markdown, TXT, and images. Drag and drop to translate.

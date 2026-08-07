@@ -21,6 +21,29 @@
 
 ---
 
+## 💡 AceTranslatePro を選ぶ理由
+
+学術論文、技術文書、製品マニュアルを翻訳する際、こんな悩みはありませんか？
+
+- **オンライン翻訳ツール**はファイルアップロードが必要、プライバシーが心配
+- **レイアウト崩壊**：PDFの表・数式・画像が翻訳後にぐちゃぐちゃに
+- **用語が不一致**：同じ言葉が文書内で違う翻訳に
+- **専門用語の精度が低い**：汎用エンジンはあなたの分野を理解しない
+- **オフラインで使えない**：出張、研究室、国外でネットがないと使えない
+
+**AceTranslatePro はこれらの問題をすべて解決します。**
+
+すべての処理があなたのPC上で完結。ファイルは外部に送信されない。レイアウトを保持。用語を統一。インターネット不要。
+
+<p align="center">
+  <img src="https://img.shields.io/github/stars/tianclll/Ace-Translate?style=social" alt="GitHub Stars"/>
+  <img src="https://img.shields.io/github/forks/tianclll/Ace-Translate?style=social" alt="GitHub Forks"/>
+</p>
+
+⭐ **お役に立てましたら、Star をお願いします！** 皆さんの応援が改善の原動力です。
+
+---
+
 ## 📄 ファイル翻訳
 
 PDF、Word、Excel、PPT、Markdown、TXT、画像に対応。ドラッグ＆ドロップで翻訳。

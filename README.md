@@ -21,6 +21,29 @@
 
 ---
 
+## 💡 为什么选择 AceTranslatePro？
+
+翻译学术论文、技术文档、产品手册时，你是否遇到过这些痛点？
+
+- **在线翻译工具**需要上传文件，担心隐私泄露
+- **格式全乱了**：PDF 里的表格、公式、图片排版翻译后面目全非
+- **术语不一致**：同一个词在不同地方翻译不一样
+- **专业内容翻译不准**：通用翻译引擎不懂你的领域术语
+- **没有网络时无法工作**：出差、实验室、外网受限场景
+
+**AceTranslatePro 就是为解决这些问题而生的。**
+
+所有计算都在你的电脑上完成，文件无需上传，文档格式完整保留，术语自动统一，离线也能用。
+
+<p align="center">
+  <img src="https://img.shields.io/github/stars/tianclll/Ace-Translate?style=social" alt="GitHub Stars"/>
+  <img src="https://img.shields.io/github/forks/tianclll/Ace-Translate?style=social" alt="GitHub Forks"/>
+</p>
+
+⭐ **如果觉得有用，请给个 Star！** 你的支持是我持续改进的最大动力。
+
+---
+
 ## 📄 文件翻译
 
 支持 PDF、Word、Excel、PPT、Markdown、TXT、图片等格式，拖入即译。
