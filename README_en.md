@@ -30,10 +30,26 @@ Supports PDF, Word, Excel, PPT, Markdown, TXT, and images. Drag and drop to tran
 - **Batch processing**: Queue multiple files for translation at once
 
 ![File Translation](docs/images/document_translation1_en.png)
+---
+
+## 📚 Knowledge Base & Glossary
+
+Organize your translated documents and build your personal translation knowledge base.
+
+- **Document Archiving**: Import PDF/Word/Excel/PPT/MD/TXT, auto-extract text, generate Markdown, build searchable index
+- **Full-text Search**: Search by title or content keywords, find what you need instantly
+- **Tag Management**: Tag documents for categorization, batch tagging and export supported
+- **Glossary Injection**: Import terminology (e.g. GPU → Graphics Processor), auto-replace during translation for consistency
+- **Batch Operations**: Batch delete, batch export to Markdown
+
+![Knowledge Base](docs/images/text_translate_en.png)
 
 ---
 
 ## ✨ Other Features
+
+---
+
 
 | Feature | Description |
 |---------|-------------|
@@ -44,8 +60,6 @@ Supports PDF, Word, Excel, PPT, Markdown, TXT, and images. Drag and drop to tran
 | 🎤 **Voice Input** | Click mic button, speech to text |
 | 🔊 **Read Aloud** | Multilingual TTS (CN/EN/JP & more) |
 | 🌐 **Multilingual UI** | Chinese / English / Japanese |
-| 📚 **Knowledge Base** | Import documents, full-text search |
-| 🏷️ **Glossary** | Import terminology, auto-inject into translations |
 
 ---
 
