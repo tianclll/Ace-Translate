@@ -3,12 +3,12 @@
 
 # AceTranslatePro
 
-**一站式本地翻译工具**
+**离线文件翻译利器**
 
 **🌐 中文 · [English](./README_en.md) · [日本語](./README_ja.md)**
 
-> 文本翻译 · 划词翻译 · 截图翻译 · 图片翻译 · 文件翻译 · 语音输入 · 知识库 · 专有词管理
-> 纯离线 · 隐私安全 · GPU/CPU 双模式 · 多语言自动语音识别 · 多语言 TTS 朗读 · REST API 远程调用
+> PDF / Word / Excel / PPT / 图片 → 翻译后保留原格式
+> 纯本地运行 · 无需联网 · 隐私安全 · GPU/CPU 双模式
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-blue?style=flat-square&logo=windows" alt="Windows"/>
@@ -21,61 +21,33 @@
 
 ---
 
-## ✨ 功能一览
+## 📄 文件翻译
 
-<div align="center">
+支持 PDF、Word、Excel、PPT、Markdown、TXT、图片等格式，拖入即译。
 
-| 功能 | 说明 | 适用场景 |
-|------|------|----------|
-| 📝 **文本翻译** | 输入或粘贴文本，快速翻译 | 日常翻译需求 |
-| 🖱️ **划词翻译** | 选中任意应用文字，`Ctrl+Shift+C` 弹出翻译 | 阅读外语文档 |
-| 📷 **截图翻译** | 截取屏幕区域，自动 OCR + 翻译，支持多种语言 | 图片中的文字 |
-| 🖼️ **图片翻译** | 上传图片，翻译后渲染回图片 | 漫画、海报、菜单 |
-| 📄 **文件翻译** | PDF/Word/Excel/PPT/MD/TXT 批量文档翻译 | 批量文档处理 |
-| 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 | 语音输入 |
-| 🔊 **朗读** | 支持中文/英文/日文/韩文/泰米尔/印地语等多语言 TTS 朗读 | 听译文发音 |
-| 🌐 **多语言界面** | 支持中文/English/日本語 界面切换，拖拽调整导航栏宽度 | 多语言用户 |
-| 📚 **个人知识库** | 导入 PDF/Word/Excel/PPT/MD/TXT 文档，自动提取文本生成 Markdown 入库 | 文档管理、资料积累 |
-| 🏷️ **专有词管理** | 导入术语表，翻译时自动注入专有词，保证术语一致 | 专业翻译场景 |
-| 🔌 **REST API** | 内嵌 HTTP 服务器，提供 16 个 REST 端点（文本/文件/图片翻译、知识库 CRUD、语音识别），支持 Web 前端和脚本远程调用 | 自动化集成、移动端访问 |
-| 📱 **Web 前端** | 手机浏览器访问，支持文本翻译、文件翻译、图片翻译、语音输入 | 移动端使用 |
+- **保留格式**：PDF 转 Markdown，表格、标题、列表结构完整保留
+- **图片嵌入**：翻译后图片自动嵌入文档，不丢失图表
+- **批量处理**：一次导入多个文件，自动排队翻译
+- **批量翻译**：支持对整个文件夹批量翻译
 
-</div>
+![文件翻译](docs/images/document_translation1.png)
 
 ---
 
-## 🖼️ 界面预览
+## ✨ 其他功能
 
-> *点击图片查看大图*
-
-![主界面](docs/images/text_translate.png)
-
-## 📸 翻译效果
-
-> *点击图片查看大图*
-
-### 文本翻译
-
-![文本翻译效果](docs/images/text_translate.png)
-
-### 划词翻译
-
-![划词翻译效果](docs/images/selection_translate1.png)
-
-![划词翻译效果 2](docs/images/selection_translate2.png)
-
-### 截图翻译
-
-![截图翻译效果](docs/images/ScreenShot_translate.png)
-
-### 图片翻译
-
-![图片翻译效果](docs/images/image_translate.png)
-
-### 文件翻译
-
-![文件翻译效果](docs/images/document_translation1.png)
-<img src="docs/images/document_translate2.jpg" width="48%"> <img src="docs/images/document_translate3.png" width="48%">
+| 功能 | 说明 |
+|------|------|
+| 📝 **文本翻译** | 输入或粘贴文本，快速翻译 |
+| 🖱️ **划词翻译** | 选中任意应用文字，`Ctrl+Shift+C` 弹出翻译 |
+| 📷 **截图翻译** | 截取屏幕区域，自动 OCR + 翻译 |
+| 🖼️ **图片翻译** | 上传图片，翻译后渲染回图片 |
+| 🎤 **语音输入** | 点击麦克风按钮录音，自动识别语音语言并转文字 |
+| 🔊 **朗读** | 支持中文/英文/日文等 TTS 朗读 |
+| 🌐 **多语言界面** | 中文 / English / 日本語 切换 |
+| 📚 **知识库** | 导入文档自动归档，全文搜索 |
+| 🏷️ **专有词** | 导入术语表，翻译时自动注入，保证术语一致 |
+| 🔌 **REST API** | 内嵌 HTTP 服务器，16 个端点，支持脚本/Web 远程调用 |
 
 ---
 
@@ -114,16 +86,10 @@
 > ```bash
 > pip install pyinstaller python-docx python-pptx openpyxl lxml pylatexenc
 > ```
-> 建议使用虚拟环境（如 `tools/office2md/clean_env/`）隔离依赖。
 
 #### 1. 编译 llama.cpp
 
-llama.cpp 需提前编译好，GPU 版依赖 CUDA Toolkit 12.1。
-
 ```bash
-# 从 llama.cpp 官方仓库下载源码（master 分支）
-# https://github.com/ggml-org/llama.cpp
-
 # GPU 版
 cd external/llama.cpp
 cmake -B build_gpu -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
@@ -134,15 +100,10 @@ cmake -B build -DGGML_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
-编译产物在 `build_gpu/bin/Release/`（GPU）或 `build/bin/Release/`（CPU）。
-
-#### 2. 编译 office2md.exe（文件翻译必需）
+#### 2. 编译 office2md.exe
 
 ```bash
-# 进入 office2md 目录
 cd script
-# 激活虚拟环境（如 tools/office2md/clean_env/）或直接使用全局 Python
-# 编译为单个 exe
 pyinstaller --onefile --name office2md --clean ^
     --hidden-import=docx ^
     --hidden-import=pptx ^
@@ -152,242 +113,52 @@ pyinstaller --onefile --name office2md --clean ^
     cli_converter.py
 ```
 
-编译产物为 `script/office2md.exe`，CMake 的 POST_BUILD 会自动将其复制到输出目录。
-
 #### 3. 编译主程序
 
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/AceTranslatePro.git
-cd AceTranslatePro
-```
-
-<details>
-<summary><b>🖥️ GPU 版编译（有 NVIDIA 显卡）</b></summary>
-
-```bash
-# 一键编译（推荐）
+# GPU 版
 双击 build_all.bat
 
-# 或手动执行
-mkdir build_all && cd build_all
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release
-```
-
-</details>
-
-<details>
-<summary><b>💻 CPU 版编译（无独立显卡）</b></summary>
-
-```bash
-# 一键编译（推荐）
+# CPU 版
 双击 build_cpu.bat
-
-# 或手动执行
-mkdir build_cpu && cd build_cpu
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release
 ```
-
-</details>
 
 #### 📁 模型文件
 
-编译完成后，将模型文件放入 `build_all/Release/models/`（或 `build_cpu/Release/models/`）目录：
+将模型文件放入 `Release/models/` 目录：
 
 ```
 models/
-├── translation/                     # 翻译模型（需自行准备）
-│   ├── Hy-MT2-1.8B-Q4_K_M.gguf      # 翻译模型（默认）
-│   ├── Hy-MT2-1.8B-Q6_K.gguf        # 翻译模型（更高精度）
-│   ├── HY-MT1.5-1.8B-Q4_K_M.gguf    # 翻译模型（旧版）
-│   └── HY-MT1.5-1.8B-Q6_K.gguf      # 翻译模型（旧版高精度）
-├── VLM/
-│   └── PaddleOCR-VL-1.6-GGUF*.gguf  # VLM 多模态公式识别模型
-├── layout/
-│   └── pp_doclayoutv2.onnx          # 版面分析模型
-├── ocr/
-│   ├── tiny/                        # OCR 模型（轻量，默认）
-│   │   ├── det/det.onnx             # 文本检测
-│   │   ├── rec/rec.onnx             # 文字识别
-│   │   └── cls/cls.onnx             # 方向分类
-│   ├── small/                       # OCR 模型（中等）
-│   └── medium/                      # OCR 模型（高精度）
-├── ASR/
-│   ├── model_quant.onnx             # 语音识别模型（SenseVoiceSmall）
-│   ├── am.mvn                       # CMVN 归一化文件（推荐）
-│   └── tokens.json                  # 语音 token 映射
-└── uvdoc/
-    └── UVDoc_grid.onnx              # 图片矫正模型
+├── translation/          # 翻译模型（.gguf）
+├── VLM/                  # 公式识别模型
+├── layout/               # 版面分析模型
+├── ocr/                  # OCR 检测/识别模型
+├── ASR/                  # 语音识别模型
+└── uvdoc/                # 图片矫正模型
 ```
 
 > **模型下载**：[Hugging Face 🤗](https://huggingface.co/tianclll/AceTranslatePro-models)
-
-> **注意**：本项目为追求轻量化，所有模型均使用量化版本（翻译 Q4_K_M、OCR tiny、小型 VLM 等），在常见场景下表现良好。如果您有更高精度、更全语言覆盖的需求，欢迎联系我定制。
-
----
-
-## ⚙️ 配置
-
-程序首次运行会在同目录生成 `config.json`，也可以在设置面板中修改：
-
-**常用设置**：
-
-- **默认语言**：设置翻译目标语言（35 种语言可选，所有面板统一）
-- **界面语言**：切换软件界面语言（中文 / English / 日本語），重启后生效
-- **OCR 模型大小**：tiny（轻量）→ medium（高精度）
-- **翻译模型**：自动扫描 `models/translation/` 目录，列出所有 `.gguf` 文件
-- **启动加载引擎**：选择开机时自动加载哪些引擎，关闭可减少启动时间。默认仅加载翻译引擎
-
-**GPU 设置**（设置 → GPU 设置）：
-
-- **总开关**：一键启用/关闭所有引擎的 GPU 加速
-- **独立开关**：分别为 OCR、版面分析、公式识别、图片矫正、翻译引擎、语音识别设置
-
-> 修改 GPU 设置和模型大小后需重启应用生效。
-
----
-
-## ⌨️ 快捷键
-
-| 快捷键 | 功能 | 自定义 |
-|--------|------|--------|
-| `Ctrl+Shift+C` | 划词翻译 | ✅ 可在浮窗配置中修改 |
-| `Ctrl+Shift+Z` | 截图翻译 | ✅ 可在截图面板中修改 |
-
----
-
-## 🏗️ 项目架构
-
-```
-AceTranslatePro/
-├── 📜 build_all.bat          # GPU 版编译脚本
-├── 📜 build_cpu.bat          # CPU 版编译脚本（自动替换 CMakeLists）
-├── 📜 CMakeLists.txt         # GPU 版构建配置
-├── 📜 CMakeLists_cpu.txt     # CPU 版构建配置
-│
-├── 📂 ui/                    # Qt6 图形界面
-│   ├── mainwindow.cpp        # 主窗口（7 面板 + 状态栏 + 托盘 + 热键 + 语音）
-│   ├── api_server.cpp        # REST API 服务器（Qt6 QHttpServer）
-│   ├── api_job_tracker.cpp   # 异步任务管理
-│   ├── floatwindow.cpp       # 划词翻译悬浮窗
-│   ├── regioncapture.cpp     # 截图选区
-│   ├── knowledgebase_page.cpp/.h  # 知识库页面 UI
-│   ├── knowledgebase_manager.cpp/.h  # 知识库 SQLite 管理器
-│   ├── glossary_dialog.cpp   # 专有词管理弹窗
-│   ├── toast.cpp             # 顶部通知组件
-│   ├── zoomablelabel.cpp     # 可缩放图片控件
-│   ├── style.qss             # 全局样式表
-│   └── i18n/                 # 国际化翻译（.ts/.qm 文件）
-│
-├── 📂 translations/           # Qt 翻译文件（zh_CN/en_US/ja_JP）
-│
-├── 📂 src/                   # C++ 核心代码
-│   ├── engines/              # DLL 封装（OCR/VLM/Translator/Layout/ASR/DocProc）
-│   ├── processors/           # 文档处理管线
-│   ├── modules/              # 业务逻辑模块
-│   ├── core/                 # 引擎上下文 & 配置管理
-│   └── utils/                # 工具函数
-│
-├── 📂 deps/                  # 引擎 DLL 源码（add_subdirectory）
-│   ├── asr/                  # SenseVoice 语音识别（ONNXRuntime + OpenCV）
-│   │   ├── SenseVoiceEngine  # ONNX 推理 + CTC 解码 + CMVN
-│   │   ├── Fbank             # FBank 特征提取（OpenCV FFT, LFR）
-│   │   ├── CMVN              # CMVN 归一化（am.mvn 解析）
-│   │   └── AudioCapture      # waveIn API 录音
-│   ├── ocr/                  # PaddleOCR（ONNXRuntime）
-│   ├── doclayout/            # 版面分析（ONNXRuntime）
-│   ├── vlm/                  # VLM 多模态公式识别（llama.cpp）
-│   ├── translator/           # 翻译引擎（llama.cpp）
-│   └── uvdoc/                # 图片矫正（ONNXRuntime）
-│
-├── 📂 script/                # 辅助工具
-│   └── office2md/            # Office → Markdown 转换
-│
-└── 📂 third_party/           # 第三方库
-    ├── pdfium/               # PDF 解析引擎
-    └── nlohmann/             # JSON 解析库
-```
 
 ---
 
 ## 🧩 技术栈
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Qt-6.5.2-41CD52?style=flat-square&logo=qt" />
-  <img src="https://img.shields.io/badge/C%2B%2B-17-00599C?style=flat-square&logo=c%2B%2B" />
-  <img src="https://img.shields.io/badge/OpenCV-4.8-5C3EE8?style=flat-square&logo=opencv" />
-  <img src="https://img.shields.io/badge/ONNX_Runtime-1.20-005BED?style=flat-square" />
-  <img src="https://img.shields.io/badge/llama.cpp-latest-FF6F00?style=flat-square" />
-  <img src="https://img.shields.io/badge/CUDA-12.1-76B900?style=flat-square&logo=nvidia" />
-</p>
-
 | 组件 | 技术 |
 |------|------|
-| 🖥️ 界面 | Qt 6.5.2 Widgets（中/英/日 多语言，可拖拽导航栏） |
+| 🖥️ 界面 | Qt 6.5.2 Widgets |
 | 🖼️ 图像处理 | OpenCV 4.8 |
 | 🔍 OCR | PaddleOCR (ONNXRuntime) |
 | 📐 版面分析 | PPDocLayoutV2 (ONNXRuntime) |
 | 🧮 公式识别 | VLM 多模态模型 (llama.cpp) |
 | 🌐 翻译 | 本地 LLM (llama.cpp) |
-| 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime + OpenCV FFT) |
-| 🔊 语音合成 | Windows SAPI（多语言自动匹配） |
+| 🎤 语音识别 | SenseVoiceSmall (ONNXRuntime) |
 | 📄 文档解析 | PDFium + office2md (Python) |
-| 🔌 REST API | Qt6 QHttpServer（16 个端点，支持 Web 前端和脚本远程调用） |
-| 📱 Web 前端 | 单文件 SPA（翻译/知识库/任务/设置），手机浏览器直接访问 |
-
----
-
-## 🔌 REST API
-
-程序内嵌 HTTP 服务器，开启后可通过 REST API 远程调用翻译和知识库功能。
-
-- **启用方式**：设置面板 → *REST API Server* → 勾选 *Enable REST API*，配置端口后**重启生效**。默认端口 `18888`，默认关闭。
-- **完整文档**：[docs/rest-api.md](./docs/rest-api.md)
-
-### 核心端点
-
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| POST | `/api/translate/text` | 文本翻译 |
-| POST | `/api/translate/file` | 文件翻译 |
-| POST | `/api/translate/photo` | 图片翻译（base64） |
-| POST | `/api/asr/recognize` | 语音识别（base64 音频） |
-| GET/POST/DELETE | `/api/kb/entries` | 知识库文档 CRUD |
-| GET | `/api/kb/search?q=` | 全文搜索 |
-| GET/POST | `/api/kb/tags` | 标签管理 |
-| GET/POST/DELETE | `/api/kb/glossary` | 专有词管理 |
-| POST | `/api/kb/import` | 导入文件到知识库 |
-| GET | `/api/jobs/{id}` | 查询异步任务 |
-| GET | `/api/health` | 健康检查 |
-
-### Web 前端
-
-`web` 分支包含手机浏览器 Web 前端（单 HTML 文件），支持：
-- 文本翻译、文件翻译、图片翻译
-- 语音输入（手机麦克风 → ASR → 自动翻译）
-- 知识库浏览/搜索/创建/删除
-- 任务状态查看
-
-配合 HTTPS 反向代理（`webapp/https_proxy.py`）可在手机浏览器中使用麦克风功能。
-
----
-
-## 🌿 分支说明
-
-| 分支 | 说明 |
-|---|---|
-| `main` | **主分支**，含 REST API 服务器（16 个端点） |
-| `web` | 主分支 + 手机 Web 前端（`webapp/`） |
-| `base` | 基础分支，不含 REST API 和 Web 前端 |
-| `feature/knowledge-base` | 知识库功能开发分支 |
 
 ---
 
 ## 📄 许可证
 
-本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) 文件。
+MIT License
 
 > 📌 旧版（Python 版）已迁移至 [`archive/old-python-version`](https://github.com/tianclll/Ace-Translate/tree/archive/old-python-version) 分支
 
@@ -397,6 +168,6 @@ AceTranslatePro/
 
 **Made with ❤️**
 
-如需更高精度、更多语言覆盖的定制模型或服务器版本，请联系微信：`kriswu1106tc`
+如需定制模型或服务器版本，请联系：`kriswu1106tc`
 
 </div>
