@@ -130,8 +130,12 @@ private:
         QSize baseSize = originalFullPixmap_.size();
         QSize newSize(qMax(1, (int)(baseSize.width() * zoom_)), qMax(1, (int)(baseSize.height() * zoom_)));
         setPixmap(originalFullPixmap_.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        // ★ 核心：彻底移除 setFixedSize(newSize)，让 QScrollArea 直接管理它的物理大小，
-        // 彻底切断因外层样式变化导致图片强行布局闪烁的源头！
+        // 用 minimumSize 让 widget 物理大小跟随缩放。widgetResizable 的 QScrollArea
+        // 会把 widget 撑到 max(viewport, minimumSize) —— 当缩放使 minimumSize 超过
+        // viewport 时，滚动条出现，拖拽手势才能推动滚动条。
+        // 注意用 minimumSize 而非 setFixedSize，避免锁死后引发外层布局闪烁。
+        setMinimumSize(newSize);
+        updateGeometry();
     }
 
     QPixmap originalFullPixmap_;
